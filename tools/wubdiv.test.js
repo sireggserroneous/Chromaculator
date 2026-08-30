@@ -130,4 +130,30 @@ function identity(){
   ok(isFinite(run("EXTENT")) && run("EXTENT") > 0, "EXTENT bad");
   console.log(`  curve closes (gap ${d.toExponential(1)}), extent ${run("EXTENT").toExponential(2)}`);
 }
+/* 9. what push can and cannot move here. push conserves the value, so the
+      arithmetic is untouchable; only spellings and the geometry they feed. */
+{
+  const base = () => setRack([3, 10, 200], 8);
+  const arith = () => run(`JSON.stringify(M.P.map(p => [p.Q.join(","), p.e, p.E,
+    String(p.rem.num) + "/" + String(p.rem.den)]))`);
+  const geom = () => run(`JSON.stringify(M.P.map(p => [p.inner, p.fold, p.outer, p.shown.join(",")]))`);
+  base(); const a0 = arith(), g0 = geom();
+
+  run(`KS[1].push = true; KS[2].push = true; refresh();`);
+  ok(arith() === a0, "pushing a divisor must not move Q, e, the ring or R");
+  ok(geom() !== g0, "pushing a divisor should respell the tableau");
+
+  base(); run(`KS[0].push = true; refresh();`);
+  ok(arith() === a0, "pushing the dividend must not move the arithmetic");
+  ok(geom() === g0, "pushing the dividend has nothing to move — the tableau is B x Q");
+  ok(run(`operandDigits(KS[0]).join(",")`) !== run(`operandDigits({k:3, push:false}).join(",")`),
+     "...but its own spelling must still change");
+
+  const card = {innerHTML: ""};
+  run("paintRow")(0, {querySelector: s => s === ".body" ? card : {style: {}}});
+  ok(/push conserves that/.test(card.innerHTML),
+     "the dividend row has to say why its push does nothing");
+  console.log("  push: conserves the value, so Q/e/ring/R never move on any row.");
+  console.log("    divisor push respells the tableau; dividend push moves only its own row, and says so");
+}
 console.log("\nall good.");
