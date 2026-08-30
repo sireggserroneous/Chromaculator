@@ -261,3 +261,62 @@ function productDigits(P){
   const sgn = num < 0n ? -1 : 1, mag = num < 0n ? -num : num;
   return mag.toString(2).padStart(D, "0").split("").map(ch => ch === "1" ? sgn : 0);
 }
+
+/* ---- division: quotient, multiplier, remainder ----
+   A/B will not fit a grid the way A*B does, and usually it will not fit at all
+   -- most quotients repeat forever. Both problems go away by refusing to round.
+   Run the division only as far as the grid allows and keep what is left over:
+
+       A  =  2^e * Q * B  +  R
+
+   holds exactly at every width, with nothing repeating and nothing dropped.
+
+   Q is an ordinary stalk inside (-1,1), so it draws like every other number.
+   The size lives in e, the multiplier on the boundary -- the shift that brings
+   the quotient back inside, normalised so |2^-e * A/B| is in [1/2, 1) and the
+   leading cell is never wasted. R is a stalk too, always dyadic and always
+   inside (-1,1): it is exactly what the repeating digits would have been.
+
+   Widening the grid grows Q and shrinks R; the identity never moves.
+
+   The tableau -- the rows of B that got subtracted -- is hexProduct(B, Q): the
+   same rectangle multiplication draws, only solved for rather than read off. */
+function divide(A, B, W){
+  const abs = x => x < 0n ? -x : x;
+  const g = (a, b) => { a = abs(a); while(b){ [a, b] = [b, a % b]; } return a || 1n; };
+  const red = (n, d) => { if(d < 0n){ n = -n; d = -d; } const h = g(n, d); return [n/h, d/h]; };
+  const fa = hexValue(A), fb = hexValue(B);
+  if(fb.num === 0n) return null;                       // nothing divides by green
+  const [N, D] = red(fa.num * fb.den, fa.den * fb.num);
+  /* the multiplier: the smallest e with |A/B| < 2^e */
+  let e = 0;
+  if(N !== 0n){
+    e = abs(N).toString(2).length - D.toString(2).length + 1;
+    const under = k => k >= 0 ? abs(N) < (D << BigInt(k)) : (abs(N) << BigInt(-k)) < D;
+    while(!under(e)) e++;
+    while(under(e - 1)) e--;
+  }
+  /* long division on what is left, which is now inside (-1,1) */
+  let rn = e >= 0 ? N : N << BigInt(-e);
+  const DD = e >= 0 ? (D << BigInt(e)) : D;
+  const Q = [];
+  for(let i = 0; i < W; i++){
+    rn *= 2n;
+    if(rn >= DD){ Q.push(1); rn -= DD; }
+    else if(-rn >= DD){ Q.push(-1); rn += DD; }
+    else Q.push(0);
+  }
+  /* R = A - 2^e*Q*B = B * 2^(e-W) * rn/DD */
+  let [rnum, rden] = red(fb.num * rn, fb.den * DD);
+  const sh = e - W;
+  if(sh >= 0) rnum <<= BigInt(sh); else rden <<= BigInt(-sh);
+  [rnum, rden] = red(rnum, rden);
+  return {Q, e, R: {num: rnum, den: rden}, exact: rn === 0n, value: hexValue(Q)};
+}
+/* a dyadic inside (-1,1) written back out as a stalk, so R can be drawn */
+function fracDigits(f){
+  const k = f.den.toString(2).length - 1;              // den is a power of two
+  if(!k) return [0];
+  const sgn = f.num < 0n ? -1 : 1, mag = f.num < 0n ? -f.num : f.num;
+  return mag.toString(2).padStart(k, "0").split("").map(ch => ch === "1" ? sgn : 0);
+}
