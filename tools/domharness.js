@@ -5,12 +5,25 @@
 // a genuine "this element does not exist" bug into a silent pass, which is
 // exactly how a missing <span id="spacing"> got a page shipped with a dead
 // render loop. Call it with no html only if you do not care.
+/* the real canvas throws on these; a proxy that swallows everything turns a
+   render-loop-killing bug into a silent pass, so enforce what Chrome enforces. */
+function checkRadii(name, args, radiusIdx){
+  for(const a of args)
+    if(typeof a === "number" && !isFinite(a))
+      throw new Error(`Failed to execute '${name}': argument is not finite`);
+  for(const i of radiusIdx)
+    if(args[i] < 0)
+      throw new Error(`IndexSizeError: Failed to execute '${name}': radius ${args[i]} is less than 0`);
+}
 function harness(html){
   const known = html == null ? null
     : new Set([...String(html).matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
   const grad = () => ({addColorStop(){}});
   const ctx = new Proxy({measureText:()=>({width:10}), canvas:{width:300,height:300},
-      createRadialGradient:grad, createLinearGradient:grad, createPattern:()=>null,
+      createRadialGradient:(...a)=>{ checkRadii("createRadialGradient", a, [2,5]); return grad(); },
+      createLinearGradient:(...a)=>{ checkRadii("createLinearGradient", a, []); return grad(); },
+      arc:(...a)=>{ checkRadii("arc", a, [2]); },
+      createPattern:()=>null,
       getImageData:()=>({data:new Uint8ClampedArray(4)})},
     {get:(t,k)=> k in t ? t[k] : ()=>{} , set:()=>true});
   const els = new Map();

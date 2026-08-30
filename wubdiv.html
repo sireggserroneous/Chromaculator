@@ -826,7 +826,14 @@ function drawSphere(tip, joints){
      is no front and back, and the whole thing reads as flat rings. */
   const proj = (q, R) => {
     const x = q.x*ca - q.y*sa, h = q.x*sa + q.y*ca;
-    return {px: cx + x*R, py: cy - (q.z*ct - h*st)*R, d: q.z*st + h*ct};
+    /* d is how far toward the viewer this points, as a cosine. it has to be
+       normalised: everything downstream reads it as lying in [-1,1] to fade an
+       alpha or size a point, and an un-normalised dot product grows with the
+       coordinates. Ring scaling puts those at 1e14 and up, which drove a point
+       size negative and threw IndexSizeError out of createRadialGradient --
+       killing the render loop outright. */
+    const mag = Math.hypot(q.x, q.y, q.z) || 1;
+    return {px: cx + x*R, py: cy - (q.z*ct - h*st)*R, d: (q.z*st + h*ct) / mag};
   };
   const ring = (R, kind, ang, style, wid, dash) => {
     ctx.beginPath();
@@ -1079,7 +1086,15 @@ function stats(){
   $("stats").innerHTML = [
     ["Phasors", `${M.N}`, `spaced ${M.N ? (360/M.N).toFixed(0) : "—"}° apart`],
     ["Period", `${M.period.toFixed(3)} rad`, M.g ? `gcd of the rates is ${M.g}` : "no turning phasors"],
-    ["Reach", `${RMAX.toFixed(4)}`, `mean ${RMEAN.toFixed(4)} — the sphere breathes between them`],
+    ["Reach", RMAX > 1e6 ? RMAX.toExponential(2) : RMAX.toFixed(4), (() => {
+      /* rings are true, but a wide spread makes one arm dwarf every other and
+         the picture collapses to a spike. say so rather than look broken. */
+      const Es = M.P.map(p => p.E);
+      const span = Es.length ? Math.max(...Es) - Math.min(...Es) : 0;
+      return span > 12
+        ? `rings span 2^${span} — one arm dwarfs the rest. Turn rings off to compare shapes`
+        : `mean ${RMEAN.toFixed(4)} — the sphere breathes between them`;
+    })()],
     ["Greens", `${tot}`, tot
       ? `rerolled ${DIVS || "once"}${DIVS ? " /lap" : ""} · ${Math.round((BIAS + 1) / 2 * 100)}% blue`
       : "nothing undecided"],

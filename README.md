@@ -42,6 +42,7 @@ node tools/wubx.test.js         # Wub x, including the parts run.js cannot reach
 node tools/gizmo.test.js        # the corner gizmo points where it says
 node tools/divide.test.js       # A = 2^e x Q x B + R, at every width
 node tools/wubdiv.test.js       # Wub div, including the parts run.js cannot reach
+node tools/load.test.js         # all three Wub pages under a full rack
 ```
 
 `run.js` runs a page's JavaScript against a stand-in DOM. A 200 from the server says
