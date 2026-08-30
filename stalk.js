@@ -320,3 +320,19 @@ function fracDigits(f){
   const sgn = f.num < 0n ? -1 : 1, mag = f.num < 0n ? -f.num : f.num;
   return mag.toString(2).padStart(k, "0").split("").map(ch => ch === "1" ? sgn : 0);
 }
+
+/* ---- squashing a grid back to a stalk ----
+   A cell's weight depends only on r+c, so the anti-diagonals ARE the place
+   values and collapsing the rectangle can only mean summing each one. What
+   comes back is not a stalk yet: the sums are integers, and anything outside
+   {-1,0,+1} still owes a carry. That is the bill the rectangle deferred --
+   about two grids in three owe something -- and productDigits() settles it.
+
+   Summing a lattice along its diagonals and carrying is gelosia, the method
+   Napier's bones mechanise. The rectangle is the lattice; this is its sum. */
+function squashDiagonals(P){
+  const S = new Array(P.rows + P.cols - 1).fill(0);
+  for(let i = 0; i < P.cells.length; i++)
+    S[Math.floor(i / P.cols) + (i % P.cols)] += P.cells[i];
+  return S;                                   // S[d] rides weight 2^-(d+2)
+}

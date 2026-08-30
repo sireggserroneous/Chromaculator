@@ -83,4 +83,44 @@ console.log(`  3 operands -> ${run("M.N")} grids, shapes `
   ok(run("EXTENT") > 0 && isFinite(run("EXTENT")), "EXTENT bad: " + run("EXTENT"));
   console.log(`  curve closes (gap ${d.toExponential(1)}), extent ${run("EXTENT").toExponential(2)}`);
 }
+/* 7. push answers beside the rectangle rather than rewriting it */
+{
+  const snap = () => run(`JSON.stringify(M.P.map(p => [p.inner, p.fold, p.outer,
+    p.rateA, p.rateB, p.shown.join(",")]))`);
+  run(`KS = [{k:3,push:false,op:.55},{k:10,push:false,op:.55},{k:200,push:false,op:.55}]; refresh();`);
+  const before = snap();
+  run(`KS.forEach(e => e.push = true); refresh();`);
+  ok(snap() === before, "push must not rewrite the rectangle or its geometry");
+
+  const card = {innerHTML: ""};
+  run("paintRow")(1, {querySelector: s => s === ".body" ? card : {style: {}}});
+  ok(/gbits/.test(card.innerHTML), "the plain rectangle must survive");
+  ok(/class="ans"/.test(card.innerHTML), "pushed row should carry an answer block");
+  ok(/squash/.test(card.innerHTML), "the anti-diagonal sums should be shown");
+
+  /* the squash has to add back up, and the carries have to be marked honestly */
+  const r = run(`(() => {
+    let bad = 0, marked = 0, owed = 0;
+    for(const p of M.P){
+      const S = squashDiagonals(p.grid);
+      let n = 0n; const D = p.rows + p.cols;
+      S.forEach((v, d) => n += BigInt(v) * (1n << BigInt(D - (d + 2))));
+      const pv = productValue(p.grid);
+      if(n * pv.den !== pv.num * (1n << BigInt(D))) bad++;
+      owed += S.filter(v => Math.abs(v) > 1).length;
+      const h = squashHTML(p.grid);
+      marked += (h.match(/class="car"/g) || []).length;
+    }
+    return {bad, owed, marked};
+  })()`);
+  ok(r.bad === 0, "the anti-diagonal sums must reconstruct the product");
+  ok(r.marked === r.owed, `${r.marked} marked but ${r.owed} owe a carry`);
+
+  /* and the pushed vector is the same number as the vector */
+  const same = run(`M.P.every(p => { const V = productDigits(p.grid), U = pushLeft(V);
+    const a = hexValue(V), b = hexValue(U); return a.num === b.num && a.den === b.den; })`);
+  ok(same, "push must conserve the squashed vector's value");
+  console.log(`  push: rectangle intact, squash sums reconstruct the product,`
+    + ` ${r.owed} anti-diagonals owe a carry and all ${r.marked} are marked`);
+}
 console.log("\nall good.");

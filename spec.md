@@ -105,6 +105,26 @@ is still one of them: the anti-diagonal through the **last cell of the shorter o
 A sequence is multiplied **left to right**, so `n` operands give `n−1` rectangles. Each grid is
 read back out as a plain stalk to be the next step's left operand.
 
+**Squashing.** A cell's weight depends only on `r+c`, so the anti-diagonals *are* the place values,
+and collapsing the rectangle can only mean summing each one. What comes back is not a stalk yet:
+the sums are integers, and anything outside `{−1,0,+1}` still owes a carry. That is the bill the
+rectangle deferred — 4,972 of 7,200 grids owe something, and the largest anti-diagonal sum seen was
+5. Settling it gives the ordinary stalk, which then folds and pushes like any other number.
+
+```
+255 x 255   squash  1 2 3 4 5 6 7 8 7 6 5 4 3 2 1
+            vector  1111111000000001
+            pushed  11111111--------      65025/65536, both spellings
+```
+
+Summing a lattice along its diagonals and carrying is **gelosia**, the method Napier's bones
+mechanise. The rectangle is the lattice; the squash is its diagonal sum.
+
+**Push is an answer, not a respelling.** The grid is always built from the plain operands and is
+never rewritten. Ticking push adds the result's vector beside the rectangle: squash, settle, push.
+Push conserves the value, so nothing in the picture moves — which is exactly why the answer can sit
+next to the plain form instead of replacing it.
+
 **What order does and does not change.** Swapping a single pair only transposes the rectangle.
 Weight depends on `r+c`, and transposing preserves `r+c`, so Inner, Fold and Outer come out
 identical — measured, 625 of 625 pairs. Order only bites in a chain of three or more, where the

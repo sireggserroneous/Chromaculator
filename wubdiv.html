@@ -122,6 +122,10 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rval b{color:var(--ink)}
 .rval.dim{color:var(--ink3)}
+.rval i{font-style:normal}
+.rval i.car{color:var(--brass); font-weight:600}   /* an anti-diagonal that owes a carry */
+.ans{border-left:2px solid var(--brass); padding-left:7px; margin-top:2px;
+  display:flex; flex-direction:column; gap:2px}
 
 .info{display:flex; flex-direction:column; gap:12px}
 .legend{display:flex; gap:15px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
@@ -186,10 +190,9 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
       solved for rather than read off. <b>Fold</b> is the equator, <b>Inner</b> reaches north,
       <b>Outer</b> south. Mantissas carry down the rack and exponents add, so the running
       <b>ring</b> is where the answer actually sits; colour comes from the mantissa, radius from the
-      ring. <b>Push</b> respells an operand without moving its value, so on this page it can
-      never move <b>Q</b>, the ring or <b>R</b> — pushing a divisor respells the tableau and the
-      geometry with it, and pushing the dividend moves nothing but its own row.
-      The phasors sit <span id="spacing">180°</span> apart and sum tip to tail.
+      ring. <b>Push</b> leaves the tableau alone and answers beside it: the quotient
+      <b>Q</b> spelled with as many lit cells as it has, which is its address. Push conserves the
+      value, so nothing else moves — that is the point of it. The phasors sit <span id="spacing">180°</span> apart and sum tip to tail.
       The faint green dot on each arm is <b>R</b> — the part that did not fit. Widen the grid
       and watch it fall back toward the arm it came from.</p>
   </header>
@@ -307,8 +310,23 @@ const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c
    pushed toward the coarse end. */
 function operandDigits(e){
   const {v, neg} = parse(String(e.k));
-  const raw = hexSequence(v, neg).raw;
-  return e.push ? pushLeft(raw) : raw;
+  return hexSequence(v, neg).raw;
+}
+/* push is an answer, not a respelling: the grid is always built from the plain
+   operands, and ticking push adds the result's vector beside it rather than
+   rewriting anything. squash the anti-diagonals, settle the carries, push. */
+function answerHTML(digits){
+  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
+  const U = pushLeft(digits);
+  return `<div class="rval"><b>vector</b> ${digits.map(gl).join("")} = ${fmt(hexValue(digits))}</div>`
+    + `<div class="rval"><b>pushed</b> ${U.map(gl).join("")} = ${fmt(hexValue(U))}</div>`;
+}
+function squashHTML(P){
+  const S = squashDiagonals(P);
+  const owed = S.filter(v => Math.abs(v) > 1).length;
+  return `<div class="rval dim">squash `
+    + S.map(v => `<i class="${Math.abs(v) > 1 ? "car" : ""}">${v}</i>`).join(" ")
+    + ` \u00b7 ${owed ? `${owed} owe a carry` : "already digits"}</div>`;
 }
 /* the rack is a sequence divided left to right: A / B / C. Each step hands its
    quotient down as the next dividend and adds its exponent to a running ring,
@@ -1008,14 +1026,15 @@ function paintRow(i, row){
     const K = knotOf(p);
     parts.push(`<div class="rval dim">${Math.round(p.nm)} nm \u00b7 ${p.greens} green`
       + ` \u00b7 ${K.a}\u00d7${K.b} ${K.name}${K.knotted ? `, ${K.crossings} cr` : ""}</div>`);
-    if(e.push) parts.push(`<div class="rval dim">pushed \u2014 the tableau is respelled and the`
-      + ` geometry with it. Q, the ring and R cannot move: push conserves the value.</div>`);
   } else if(i === 0){
     parts.push(`<div class="rval dim">the dividend \u2014 nothing above it to divide by</div>`);
-    if(e.push) parts.push(`<div class="rval dim">pushed \u2014 this spelling only. The division reads`
-      + ` the dividend's <i>value</i>, and push conserves that, so nothing downstream moves.</div>`);
   } else {
     parts.push(`<div class="rval dim">this one is zero \u2014 nothing divides by green</div>`);
+  }
+  if(e.push){
+    /* the answer here is the quotient, which is already a stalk. the tableau
+       stays exactly as it was. */
+    parts.push(`<div class="ans">` + answerHTML(p ? p.Q : d) + `</div>`);
   }
   row.querySelector(".body").innerHTML = parts.join("");
   row.querySelector(".dot").style.background = p ? p.col : "transparent";

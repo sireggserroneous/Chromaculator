@@ -122,6 +122,10 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rval b{color:var(--ink)}
 .rval.dim{color:var(--ink3)}
+.rval i{font-style:normal}
+.rval i.car{color:var(--brass); font-weight:600}   /* an anti-diagonal that owes a carry */
+.ans{border-left:2px solid var(--brass); padding-left:7px; margin-top:2px;
+  display:flex; flex-direction:column; gap:2px}
 
 .info{display:flex; flex-direction:column; gap:12px}
 .legend{display:flex; gap:15px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
@@ -185,7 +189,9 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
       <b>Outer</b> south. The rack is a sequence, taken left to right — each row after the first
       multiplies everything above it, so it is one rectangle and one phasor, and its grid is read
       back out as a stalk for the row below. Reorder with the arrows: the product cannot move, but
-      every grid under the row you moved does. The phasors sit <span id="spacing">120°</span> apart
+      every grid under the row you moved does. <b>Push</b> leaves the rectangle alone and answers
+      beside it: squash the anti-diagonals — which <i>are</i> the place values — settle the carries
+      the grid deferred, and push what comes out. About two grids in three owe a carry. The phasors sit <span id="spacing">120°</span> apart
       and sum tip to tail. Each rides a torus, so it is a <b>(p,q) torus knot</b> — p its row width,
       q its runs of like colour, reduced.</p>
   </header>
@@ -294,8 +300,23 @@ const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c
    pushed toward the coarse end. */
 function operandDigits(e){
   const {v, neg} = parse(String(e.k));
-  const raw = hexSequence(v, neg).raw;
-  return e.push ? pushLeft(raw) : raw;
+  return hexSequence(v, neg).raw;
+}
+/* push is an answer, not a respelling: the grid is always built from the plain
+   operands, and ticking push adds the result's vector beside it rather than
+   rewriting anything. squash the anti-diagonals, settle the carries, push. */
+function answerHTML(digits){
+  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
+  const U = pushLeft(digits);
+  return `<div class="rval"><b>vector</b> ${digits.map(gl).join("")} = ${fmt(hexValue(digits))}</div>`
+    + `<div class="rval"><b>pushed</b> ${U.map(gl).join("")} = ${fmt(hexValue(U))}</div>`;
+}
+function squashHTML(P){
+  const S = squashDiagonals(P);
+  const owed = S.filter(v => Math.abs(v) > 1).length;
+  return `<div class="rval dim">squash `
+    + S.map(v => `<i class="${Math.abs(v) > 1 ? "car" : ""}">${v}</i>`).join(" ")
+    + ` \u00b7 ${owed ? `${owed} owe a carry` : "already digits"}</div>`;
 }
 /* the rack is a sequence and the product is taken left to right, so a rack of
    n rows is n-1 rectangles. Each grid is read back out as a plain stalk to be
@@ -958,6 +979,12 @@ function paintRow(i, row){
       + `${K.knotted ? `, ${K.crossings} cr` : ""}</div>`);
   } else if(i === 0){
     parts.push(`<div class="rval dim">the seed \u2014 nothing above it to multiply by</div>`);
+  }
+  if(e.push){
+    parts.push(`<div class="ans">`
+      + (p ? squashHTML(p.grid) : "")
+      + answerHTML(p ? productDigits(p.grid) : d)
+      + `</div>`);
   }
   row.querySelector(".body").innerHTML = parts.join("");
   row.querySelector(".dot").style.background = p ? p.col : "transparent";
