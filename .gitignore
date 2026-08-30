@@ -1,2 +1,6 @@
 *.tmp
 .DS_Store
+
+# the reference shelf. published books, hardlinked in from ~/Downloads --
+# readable locally at /refs/, never committed and never pushed.
+refs/*.pdf

@@ -207,11 +207,24 @@ same mirror. `miny = −tiny` exactly, so the two halves are one negation apart.
 
 ```
 ∗   star    { 0 | 0 }          confused with 0 — no position at all
-↑   up      { 0 | ∗ }          positive, below every positive NUMBER
-over        { 0 | over }       a loopy infinitesimal, above the short all-small games
-⧾   tiny    { 0 || 0 | −G }    positive, below n·↑ for every n
+⧾   tiny    { 0 || 0 | −G }    written +G in Winning Ways
+↑   up      { 0 | ∗ }          = tiny-zero. NOT a separate species
+over        { 0 | over }       a loopy infinitesimal
 on          { on | }           pronounced omega. Above everything
 ```
+
+**Up is the top of the tiny family, not something above it.** Winning Ways vol. 1
+p. 126 gives `+₀ = {0 | {0 | 0}} = {0 | ∗} = ↑` outright. And on the same page: *if `x`
+and `y` are numbers with `x > y ≥ 0`, then `+ₓ` is so much smaller than `+ᵧ` that no matter
+how many terms `+ₓ` we add to each other, the sum will be less than `+ᵧ`.* A tiny shrinks
+as its parameter grows, and no multiple can climb back. So with `on` the largest parameter
+there is, `tiny-on` is the smallest tiny, `up` is the largest, and every other tiny falls
+between them — which is exactly the order above, now for a stated reason rather than by
+report.
+
+The book also writes tiny-`x` as `+ₓ` and miny-`x` as `−ₓ`. The two halves of this
+structure are called plus and minus in the source, which is where the site's `+/−` address
+notation would have come from had it started here instead of at the other end.
 
 **The rim is made of the centre.** `tiny-on` is not tiny stacked on tiny — `on` is a game, and
 `tiny-on` is tiny *parameterised by* it: the smallest thing you can build, made out of the biggest
@@ -260,6 +273,6 @@ Every claim below was measured, not assumed. Where a guess failed it is not list
 
 ## Open questions
 
-- Whether `over > n·↑` for all `n`, which the ordering above assumes. It matches every source consulted, but has not been checked against Siegel's tables.
+- Whether `over > n·↑` for all `n`, which the ordering above assumes. Everything else in the chain is now cited to Winning Ways vol. 1 p. 126, but over is a loopy game and lives in ch. 11, *Games Infinite and Indefinite* — volume 2, which is not on the shelf. ONAG ch. 11 covers the same ground.
 - Whether the horizon rings belong on the Atlas as a continuation, given that the geometry changes from hyperbolic to logarithmic at the boundary.
 - Whether the remainder should be reported in `A`'s units, as here, or as `R/B` in the quotient's.
