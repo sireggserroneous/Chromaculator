@@ -219,6 +219,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
           <option value="flames">flames</option>
         </select>
         <label class="chip" style="margin-left:auto"><input type="checkbox" id="pulse" checked><span>pulse</span></label>
+        <label class="chip"><input type="checkbox" id="autospin" checked><span>auto-spin</span></label>
       </div>
       <div class="zoomrow"><label for="zoom">Zoom</label>
         <input type="range" id="zoom" min="0" max="100" step="0.5" value="34" aria-label="Zoom">
@@ -229,6 +230,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
         <span>colour is each grid&rsquo;s wavelength — violet 380 nm to red 730 nm</span>
         <span><i class="sw" style="background:var(--ink)"></i>the average</span>
         <span><i class="sw" style="background:var(--brass)"></i>the summed trace</span>
+        <span>drag the sphere to turn it — the corner cross snaps to an axis, its middle comes home</span>
       </div>
       <div class="stats" id="stats"></div>
 
@@ -516,6 +518,7 @@ let M = model(), CURVE = [], EXTENT = 1, RAD = [], RMAX = 1, RMEAN = 1;
 let WX = [], WY = [], WZ = [], AVGX = [], AVGY = [], AVGZ = [];
 let T = 0, FREQ = 0.12, LAST = null, DIVS = 0, LASTSLOT = null, DRAWN = null, PREV = null, BOUND = 0;
 let DRAG = null, SPIN = 0, TILT = .38, DRAG3 = null, ZOOM = 1, SHELL = 0.10;
+let SNAP = null, AUTOSPIN = true;
 let MEASURE_T = null;
 /* the path each integer's joint has traced, newest last */
 let TRAILS = [];
@@ -700,11 +703,97 @@ function draw(ts){
   if(typeof requestAnimationFrame === "function") requestAnimationFrame(draw);
 }
 
+/* ---- the orientation gizmo ----
+   the corner cross Blender and Earth both put there. It reads the same SPIN
+   and TILT the sphere does, so it is never out of step with what you see:
+   drag anywhere to turn, click a ball to look straight down that axis, click
+   the middle to come home. Axis colours match the tip's dropped axes — X blue,
+   Y red, Z green. */
+const GIZ = {r: 34, pad: 52, ball: 8};
+const AXCOL = {X: () => col("--blue"), Y: () => col("--red"), Z: () => col("--green")};
+const AXES3 = [
+  {v: [1,0,0], n: "X", pos: true},  {v: [-1,0,0], n: "X", pos: false},
+  {v: [0,1,0], n: "Y", pos: true},  {v: [0,-1,0], n: "Y", pos: false},
+  {v: [0,0,1], n: "Z", pos: true},  {v: [0,0,-1], n: "Z", pos: false},
+];
+const gizCentre = (W, H) => ({x: W - GIZ.pad, y: GIZ.pad});
+/* the same projection drawSphere uses, at gizmo scale */
+function gizBalls(W, H){
+  const c = gizCentre(W, H);
+  const ca = Math.cos(SPIN), sa = Math.sin(SPIN), ct = Math.cos(TILT), st = Math.sin(TILT);
+  return AXES3.map(a => {
+    const [x, y, z] = a.v, xx = x*ca - y*sa, h = x*sa + y*ca;
+    return {...a, px: c.x + xx*GIZ.r, py: c.y - (z*ct - h*st)*GIZ.r, d: z*st + h*ct};
+  });
+}
+function drawGizmo(ctx, W, H){
+  const c = gizCentre(W, H);
+  ctx.save();
+  ctx.globalAlpha = .5;
+  ctx.beginPath(); ctx.arc(c.x, c.y, GIZ.r + 13, 0, 7);
+  ctx.fillStyle = col("--panel"); ctx.fill();
+  ctx.strokeStyle = col("--rule"); ctx.lineWidth = 1; ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.font = "600 10px 'IBM Plex Mono', monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for(const b of gizBalls(W, H).sort((p, q) => p.d - q.d)){   // back to front
+    const cc = AXCOL[b.n]();
+    ctx.globalAlpha = .4 + .6 * (b.d + 1) / 2;                // behind reads dimmer
+    if(b.pos){
+      ctx.strokeStyle = cc; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(b.px, b.py); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(b.px, b.py, GIZ.ball, 0, 7);
+    ctx.fillStyle = b.pos ? cc : col("--panel"); ctx.fill();
+    ctx.strokeStyle = cc; ctx.lineWidth = 1.4; ctx.stroke();
+    if(b.pos){ ctx.fillStyle = col("--panel"); ctx.fillText(b.n, b.px, b.py + .5); }
+  }
+  ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.arc(c.x, c.y, 3.2, 0, 7);             // home
+  ctx.fillStyle = col("--ink3"); ctx.fill();
+  ctx.restore();
+}
+/* what the pointer landed on: a ball, "home", or nothing (so it is a drag) */
+function gizHit(e){
+  const cv = $("sph"), r = cv.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  const c = gizCentre(r.width, r.height);
+  const away = Math.hypot(x - c.x, y - c.y);
+  if(away > GIZ.r + 15) return null;
+  if(away < 9) return "home";
+  let best = null, bd = GIZ.ball + 4;
+  /* front to back, so the near ball wins when two overlap */
+  for(const b of gizBalls(r.width, r.height).sort((p, q) => q.d - p.d)){
+    const d = Math.hypot(x - b.px, y - b.py);
+    if(d < bd){ bd = d; best = b; break; }
+  }
+  return best;
+}
+/* solve SPIN and TILT for "camera on this axis". the depth term in proj is
+   q . (sin S cos T, cos S cos T, sin T), so that vector is where the camera
+   sits — set it to the axis and read the two angles back off. */
+function snapTo(v){
+  const wrap = a => { while(a > Math.PI) a -= TAU; while(a < -Math.PI) a += TAU; return a; };
+  let s, t;
+  if(!v){ s = 0; t = .38; }                       // home
+  else if(v[2]){ s = SPIN; t = v[2] > 0 ? Math.PI/2 : -Math.PI/2; }
+  else { s = SPIN + wrap(Math.atan2(v[0], v[1]) - SPIN); t = 0; }
+  SNAP = {s0: SPIN, s1: s, t0: TILT, t1: t, at: Date.now()};
+  setSpin(false);
+}
+
 function drawSphere(tip, joints){
   const cv = $("sph"); if(!cv) return;
   const {ctx, W, H} = fitCanvas(cv);          // fills the viewport, not a square
   const cx = W/2, cy = H/2, unit = Math.min(W, H) * 0.42 / (RMAX || 1) * ZOOM;
-  if(!still() && !DRAG3) SPIN += 0.004;
+  if(SNAP){
+    const u = Math.min(1, (Date.now() - SNAP.at) / 380);
+    const e = u < .5 ? 2*u*u : 1 - Math.pow(-2*u + 2, 2) / 2;
+    SPIN = SNAP.s0 + (SNAP.s1 - SNAP.s0) * e;
+    TILT = SNAP.t0 + (SNAP.t1 - SNAP.t0) * e;
+    if(u >= 1) SNAP = null;
+  }
+  if(!still() && !DRAG3 && !SNAP && AUTOSPIN) SPIN += 0.004;
   const ca = Math.cos(SPIN), sa = Math.sin(SPIN), ct = Math.cos(TILT), st = Math.sin(TILT);
   /* spin about the vertical, then tilt. keep the depth term: without it there
      is no front and back, and the whole thing reads as flat rings. */
@@ -825,6 +914,8 @@ function drawSphere(tip, joints){
   ctx.beginPath(); ctx.arc(t.px, t.py, 6, 0, 7);
   ctx.fillStyle = col("--brass"); ctx.strokeStyle = col("--panel"); ctx.lineWidth = 2;
   ctx.fill(); ctx.stroke();
+
+  drawGizmo(ctx, W, H);
 }
 
 /* ---- the rack ---- */
@@ -1033,11 +1124,22 @@ for(const id of ["wubxy", "wubyz", "wubzx"]){
   cv.addEventListener("pointerdown", e => { DRAG = 1; scrub(cv, e); });
   cv.addEventListener("pointermove", e => { if(DRAG) scrub(cv, e); });
 }
-$("sph").addEventListener("pointerdown", e => { DRAG3 = {x: e.clientX, y: e.clientY, s: SPIN, t: TILT}; });
+$("sph").addEventListener("pointerdown", e => {
+  const hit = gizHit(e);
+  if(hit){ snapTo(hit === "home" ? null : hit.v); return; }
+  SNAP = null;
+  setSpin(false);                       // you have the wheel now; stop drifting
+  DRAG3 = {x: e.clientX, y: e.clientY, s: SPIN, t: TILT};
+  /* without capture the drag dies the moment the pointer leaves the canvas,
+     which is most of what made this hard to turn */
+  try{ $("sph").setPointerCapture(e.pointerId); }catch(_){}
+});
+function setSpin(on){ AUTOSPIN = on; const b = $("autospin"); if(b) b.checked = on; }
+$("autospin").addEventListener("change", e => { AUTOSPIN = e.target.checked; });
 $("sph").addEventListener("pointermove", e => {
   if(!DRAG3) return;
   SPIN = DRAG3.s + (e.clientX - DRAG3.x) * 0.01;
-  TILT = Math.max(-1.4, Math.min(1.4, DRAG3.t + (e.clientY - DRAG3.y) * 0.01));
+  TILT = Math.max(-Math.PI/2, Math.min(Math.PI/2, DRAG3.t + (e.clientY - DRAG3.y) * 0.01));
 });
 addEventListener("pointerup", () => { DRAG = null; DRAG3 = null; });
 addEventListener("pointercancel", () => { DRAG = null; DRAG3 = null; });
