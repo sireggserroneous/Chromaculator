@@ -1019,7 +1019,8 @@ function rack(){
     });
   });
   el.scrollTop = keep;
-  $("spacing").textContent = M.N ? `${(360 / M.N).toFixed(0)}°` : "—";
+  const sp = $("spacing");        // a page may not carry one; that is not fatal
+  if(sp) sp.textContent = M.N ? `${(360 / M.N).toFixed(0)}°` : "—";
 }
 
 function stats(){

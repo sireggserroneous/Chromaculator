@@ -1,18 +1,6 @@
 /* node tools/wubdiv.test.js — Wub ÷ draws what the arithmetic says. */
-const fs = require("fs"), vm = require("vm"), path = require("path");
-const {harness} = require(__dirname + "/domharness.js");
-const page = __dirname + "/../wubdiv.html";
-const html = fs.readFileSync(page, "utf8");
-const {g} = harness();
-const ctx = vm.createContext(g);
-let src = "";
-for(const m of html.matchAll(/<script[^>]*\bsrc="([^"]+)"/g)){
-  const f = path.join(path.dirname(page), m[1].replace(/^\//, ""));
-  if(fs.existsSync(f)) src += fs.readFileSync(f, "utf8") + "\n";
-}
-for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) src += m[1] + "\n";
-vm.runInContext(src, ctx, {filename: "wubdiv.html"});
-const run = c => vm.runInContext(c, ctx);
+const {loadPage} = require(__dirname + "/domharness.js");
+const {run} = loadPage(__dirname + "/../wubdiv.html");
 const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 
 const setRack = (ks, w) =>

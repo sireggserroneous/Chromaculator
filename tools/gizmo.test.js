@@ -1,19 +1,8 @@
 /* node tools/gizmo.test.js — the corner gizmo actually points where it says.
    Runs against wubx.html; wub.html carries the same block. */
-const fs = require("fs"), vm = require("vm"), path = require("path");
-const {harness} = require(__dirname + "/domharness.js");
+const {loadPage} = require(__dirname + "/domharness.js");
 const page = process.argv[2] || (__dirname + "/../wubx.html");
-const html = fs.readFileSync(page, "utf8");
-const {g} = harness();
-const ctx = vm.createContext(g);
-let src = "";
-for(const m of html.matchAll(/<script[^>]*\bsrc="([^"]+)"/g)){
-  const f = path.join(path.dirname(page), m[1].replace(/^\//, ""));
-  if(fs.existsSync(f)) src += fs.readFileSync(f, "utf8") + "\n";
-}
-for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) src += m[1] + "\n";
-vm.runInContext(src, ctx, {filename: path.basename(page)});
-const run = c => vm.runInContext(c, ctx);
+const {run} = loadPage(page);
 const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 
 /* the camera sits where proj's depth term points: (sin S cos T, cos S cos T, sin T) */

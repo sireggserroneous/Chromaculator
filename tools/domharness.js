@@ -1,5 +1,13 @@
 // minimal DOM so we can RUN a page, not just parse it
-function harness(){
+//
+// harness(html) reads the ids the page actually declares, and returns null for
+// any other getElementById. That matters: a stub for every id you ask for turns
+// a genuine "this element does not exist" bug into a silent pass, which is
+// exactly how a missing <span id="spacing"> got a page shipped with a dead
+// render loop. Call it with no html only if you do not care.
+function harness(html){
+  const known = html == null ? null
+    : new Set([...String(html).matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
   const grad = () => ({addColorStop(){}});
   const ctx = new Proxy({measureText:()=>({width:10}), canvas:{width:300,height:300},
       createRadialGradient:grad, createLinearGradient:grad, createPattern:()=>null,
@@ -24,7 +32,11 @@ function harness(){
     return el;
   };
   const doc = {
-    getElementById(id){ if(!els.has(id)) els.set(id, mkEl(id)); return els.get(id); },
+    getElementById(id){
+      if(known && !known.has(id)) return null;      // the page does not have it
+      if(!els.has(id)) els.set(id, mkEl(id));
+      return els.get(id);
+    },
     createElement:()=>mkEl("new"), body:mkEl("body"), documentElement:mkEl("html"),
     addEventListener(){}, styleSheets:[],
   };
@@ -46,4 +58,20 @@ function harness(){
   g.window = g; g.globalThis = g; g.self = g;
   return {g, els, frames:()=>frames};
 }
-module.exports = {harness};
+/* load a page's scripts into a fresh context and hand back a runner. every
+   caller wants exactly this, so it lives here rather than in four copies. */
+function loadPage(pagePath){
+  const fs = require("fs"), vm = require("vm"), path = require("path");
+  const html = fs.readFileSync(pagePath, "utf8");
+  const h = harness(html);
+  const ctx = vm.createContext(h.g);
+  let src = "";
+  for(const m of html.matchAll(/<script[^>]*\bsrc="([^"]+)"/g)){
+    const f = path.join(path.dirname(pagePath), m[1].replace(/^\//, ""));
+    if(fs.existsSync(f)) src += fs.readFileSync(f, "utf8") + "\n";
+  }
+  for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) src += m[1] + "\n";
+  vm.runInContext(src, ctx, {filename: path.basename(pagePath)});
+  return {...h, ctx, html, run: code => vm.runInContext(code, ctx)};
+}
+module.exports = {harness, loadPage};

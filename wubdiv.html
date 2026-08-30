@@ -186,7 +186,8 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
       solved for rather than read off. <b>Fold</b> is the equator, <b>Inner</b> reaches north,
       <b>Outer</b> south. Mantissas carry down the rack and exponents add, so the running
       <b>ring</b> is where the answer actually sits; colour comes from the mantissa, radius from the
-      ring. The faint green dot on each arm is <b>R</b> — the part that did not fit. Widen the grid
+      ring. The phasors sit <span id="spacing">180°</span> apart and sum tip to tail.
+      The faint green dot on each arm is <b>R</b> — the part that did not fit. Widen the grid
       and watch it fall back toward the arm it came from.</p>
   </header>
 
@@ -1069,7 +1070,8 @@ function rack(){
     });
   });
   el.scrollTop = keep;
-  $("spacing").textContent = M.N ? `${(360 / M.N).toFixed(0)}°` : "—";
+  const sp = $("spacing");        // a page may not carry one; that is not fatal
+  if(sp) sp.textContent = M.N ? `${(360 / M.N).toFixed(0)}°` : "—";
 }
 
 function stats(){

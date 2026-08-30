@@ -1,20 +1,7 @@
 /* node tools/wubx.test.js — runs wubx.html for real, then pokes the parts the
    harness cannot reach on its own (paintRow lives behind querySelector). */
-const fs = require("fs"), vm = require("vm"), path = require("path");
-const {harness} = require(__dirname + "/domharness.js");
-
-const page = __dirname + "/../wubx.html";
-const html = fs.readFileSync(page, "utf8");
-const {g} = harness();
-const ctx = vm.createContext(g);
-let src = "";
-for(const m of html.matchAll(/<script[^>]*\bsrc="([^"]+)"/g)){
-  const f = path.join(path.dirname(page), m[1].replace(/^\//, ""));
-  if(fs.existsSync(f)) src += fs.readFileSync(f, "utf8") + "\n";
-}
-for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) src += m[1] + "\n";
-vm.runInContext(src, ctx, {filename: "wubx.html"});
-const run = code => vm.runInContext(code, ctx);
+const {loadPage} = require(__dirname + "/domharness.js");
+const {run} = loadPage(__dirname + "/../wubx.html");
 const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 
 /* 1. the default rack builds one grid per step */
