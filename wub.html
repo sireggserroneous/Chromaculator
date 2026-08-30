@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wub · chronochromatic.org</title>
+<meta name="description" content="Several integers as phase-offset phasors on the stalk arrangement, summed into one closed curve.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/base.css">
+<style>
+html,body{height:100%}
+body{overflow:hidden}
+/* every word lives in the left three eighths; the sphere takes the other five,
+   and neither of them scrolls the page. */
+.stage{position:fixed; top:52px; left:0; right:0; bottom:0;
+  display:grid; grid-template-columns:3fr 5fr; gap:14px; padding:12px 16px 16px}
+.left{min-height:0; min-width:0; overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-gutter:stable; padding-right:6px;
+  display:flex; flex-direction:column; gap:11px}
+/* an item with its own overflow has an automatic minimum size of zero, so flex
+   is free to squash it out of existence. nothing here may shrink. */
+.left > *{flex:none}
+/* the controls pin to the top of the column and everything else scrolls under
+   them. the panel is opaque and casts a small shadow so the tuck reads. */
+.left .controls{position:sticky; top:0; z-index:3;
+  background:var(--panel); box-shadow:0 7px 16px -10px #000A}
+.right{min-height:0; min-width:0; position:relative}
+#sph{position:absolute; inset:0; width:100%; height:100%; display:block;
+  cursor:grab; touch-action:none}
+#sph:active{cursor:grabbing}
+.mast{display:flex; flex-direction:column; gap:6px; padding-bottom:10px;
+  border-bottom:2px solid var(--ink); flex:none}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.55rem;
+  margin:0; letter-spacing:-.02em; line-height:1.05}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.sub{color:var(--ink2); margin:0; font-size:.75rem; line-height:1.5}
+
+.toprow{display:grid; grid-template-columns:minmax(240px,290px) 1fr; gap:18px; align-items:start}
+@media (max-width:900px){ .toprow{grid-template-columns:1fr} }
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  box-shadow:var(--shadow); padding:14px}
+.controls{display:flex; flex-direction:column; gap:12px}
+.addrow{display:flex; gap:8px; flex-wrap:wrap}
+button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px; cursor:pointer;
+  background:transparent; color:var(--ink2); border:1px solid var(--rule2); border-radius:2px}
+button:hover{border-color:var(--brass); color:var(--brass)}
+button.add{border-color:var(--brass); color:var(--brass)}
+button.ghost{color:var(--ink3)}
+.speedrow{display:flex; align-items:center; gap:10px}
+label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600; min-width:52px}
+input[type=range]{accent-color:var(--brass); flex:1; min-width:0}
+/* the bias track shows which way it leans before you read the number */
+input[type=range].rb{accent-color:var(--ink3);
+  background:linear-gradient(to right, var(--red), var(--rule2) 50%, var(--blue));
+  height:5px; border-radius:3px; -webkit-appearance:none; appearance:none}
+input[type=range].rb::-webkit-slider-thumb{-webkit-appearance:none; width:13px; height:13px;
+  border-radius:50%; background:var(--panel); border:2px solid var(--ink2); cursor:pointer}
+input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50%;
+  background:var(--panel); border:2px solid var(--ink2); cursor:pointer}
+.rv{font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink2); white-space:nowrap}
+
+/* every card is exactly one row tall, whatever it holds, so a card can never
+   change its neighbours' geometry. three rows visible, the rest scrolls. */
+.rack{--cardh:152px;
+  display:grid; grid-template-columns:1fr;        /* one integer per row */
+  grid-auto-rows:var(--cardh); gap:10px; align-items:stretch;
+  max-height:calc(var(--cardh)*3 + 20px);
+  overflow-y:auto;
+  scrollbar-gutter:stable;        /* the bar takes no width when it appears */
+  overscroll-behavior:contain;    /* and the wheel stops here, not on the page */
+  padding-right:2px}
+.row{display:flex; flex-direction:column; gap:5px; padding:8px 9px; height:100%; overflow:hidden;
+  background:var(--sunk); border:1px solid var(--rule); border-left:3px solid var(--brass); border-radius:3px}
+.row .body{flex:1; min-height:0; overflow:hidden;
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:12px}
+.form{min-width:0; display:flex; flex-direction:column; gap:3px; justify-content:flex-start}
+.rhead,.row .speedrow{flex:none}
+.rhead{display:flex; align-items:center; gap:7px}
+.rhead input{font-family:"IBM Plex Mono",monospace; font-size:.88rem; width:74px; padding:4px 20px 4px 6px;
+  background:var(--panel); color:var(--ink); border:1px solid var(--rule2); border-radius:2px}
+.knum{position:relative; display:flex; flex:none}
+.kspin{position:absolute; right:3px; top:2px; bottom:2px; display:flex; flex-direction:column; gap:1px}
+.kspin button{flex:1; width:14px; padding:0; line-height:1; font-size:.38rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--sunk); color:var(--ink3); border:1px solid var(--rule2); border-radius:2px}
+.kspin button:hover{color:var(--brass); border-color:var(--brass)}
+.kspin button:active{background:var(--brass); color:var(--panel)}
+.dot{width:11px; height:11px; border-radius:50%; flex:none}
+.rm{margin-left:auto; width:24px; padding:2px 0; text-align:center}
+.chip{display:flex; align-items:center; gap:5px; font-family:"IBM Plex Mono",monospace;
+  font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); cursor:pointer}
+.chip input{accent-color:var(--brass); width:13px; height:13px; margin:0; cursor:pointer}
+.chip:has(input:checked){color:var(--brass)}
+.forms{display:flex; gap:12px}
+.bits{font-family:"IBM Plex Mono",monospace; font-size:.82rem; line-height:1.45; letter-spacing:.04em;
+  white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none}
+.bits::-webkit-scrollbar{display:none}
+.bits i{font-style:normal}
+.bits i.b{color:var(--blue); font-weight:600} .bits i.r{color:var(--red)} .bits i.g{color:var(--green); opacity:.7}
+.bits i.cma{color:var(--ink3); padding:0 1px}
+.rval{font-family:"IBM Plex Mono",monospace; font-size:.7rem; color:var(--ink2); line-height:1.45;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rval b{color:var(--ink)}
+.rval.dim{color:var(--ink3)}
+
+.info{display:flex; flex-direction:column; gap:12px}
+.legend{display:flex; gap:15px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
+  font-size:.68rem; color:var(--ink2)}
+.sw{display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:5px; vertical-align:-1px}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}   /* 3 across, 2 down */
+.stat{background:var(--panel); border:1px solid var(--rule); border-left:3px solid var(--brass);
+  border-radius:3px; padding:10px 12px; display:flex; flex-direction:column; gap:3px; min-width:0}
+.skey{font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+.sval{font-family:"Zilla Slab",serif; font-size:1.05rem; font-weight:700; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.sfoot{font-size:.68rem; color:var(--ink3); line-height:1.35}
+
+/* fill down the first column, then the second: the three 1D views stack on
+   the left, the three 2D projections on the right. */
+.rail{display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,auto);
+  grid-auto-flow:column; gap:8px; flex:none}
+.rail .cap{font-size:.6rem; line-height:1.3}
+.rail canvas{width:100%}
+.rail figure{background:var(--bar); border:1px solid var(--rule); border-radius:3px; padding:6px}
+.zoomrow{display:flex; gap:8px; align-items:center}
+.zoomrow input[type=range]{flex:1}
+.zoomrow select{font-family:"IBM Plex Mono",monospace; font-size:.66rem; padding:3px 6px;
+  background:var(--sunk); color:var(--ink); border:1px solid var(--rule2); border-radius:2px}
+.chart{margin:0; display:flex; flex-direction:column; gap:7px}
+.chart canvas{width:100%; background:var(--panel); border:1px solid var(--rule); border-radius:3px; display:block}
+.rail canvas{aspect-ratio:1.55}
+.cap{font-size:.76rem; color:var(--ink3); line-height:1.45}
+.cap b{color:var(--ink2)}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="/">Home</a>
+    <a href="/spectrometer.html">Spectrometer</a>
+    <a href="/atlas.html">Atlas</a>
+    <a href="/wub.html" class="cur" aria-current="page">Wub</a>
+    <a href="/spec.html">Spec</a>
+    <a href="/inspirations.html">Inspirations</a>
+  </nav>
+</header>
+
+<div class="stage">
+  <aside class="left">
+  <header class="mast">
+    <span class="eyebrow">n phasors · 360°/n apart · one closed curve</span>
+    <h1>Wub</h1>
+    <p class="sub">Every integer is written in hex, so its bits arrive padded to a whole nibble and
+      lay in most significant first at 2<sup>−(<i>i</i>+1)</sup>.
+      The string folds into a square, and its three regions keep the meaning the fold gives them —
+      <b>Fold</b> is the equator, <b>Inner</b> reaches north, <b>Outer</b> south. Two angles turn
+      independently, so one integer already leaves the plane. Greens are undecided; each is redrawn
+      red-or-blue once per degree of sweep, easing rather than jumping. The phasors sit
+      <span id="spacing">120°</span> apart and sum tip to tail. The trace is the wub. Each phasor alone rides a torus, so it is a
+      <b>(p,q) torus knot</b> — p and q being its two rates reduced; the summed trace is not on a
+      torus and has no type.</p>
+  </header>
+
+    <div class="panel controls">
+      <div class="addrow">
+        <button class="add" id="addbtn">+ Add integer</button>
+        <button class="add ghost" id="randbtn">Randomise</button>
+        <button class="add ghost" id="resetbtn">Reset</button>
+        <button class="add ghost" id="expbtn">Export curve</button>
+      </div>
+      <div class="speedrow"><label for="speed">Sweep</label>
+        <input type="range" id="speed" min="0" max="1.5" step="0.01" value="0.12"
+               aria-label="Sweep frequency in laps per second">
+        <span class="rv" id="speedval">0.12 Hz</span></div>
+      <div class="speedrow"><label for="jit">Greens</label>
+        <input type="range" id="jit" min="0" max="360" step="1" value="0"
+               aria-label="Green rerolls per lap">
+        <span class="rv" id="jitval">frozen</span></div>
+      <div class="speedrow"><label for="bias">Bias</label>
+        <input type="range" id="bias" class="rb" min="-1" max="1" step="0.02" value="0"
+               aria-label="Green reroll bias, red to blue">
+        <span class="rv" id="biasval">50 / 50</span></div>
+      <div class="speedrow"><label for="shell">Shell</label>
+        <input type="range" id="shell" min="0" max="1" step="0.01" value="0.10"
+               aria-label="Sphere shell opacity">
+        <span class="rv" id="shellval">10%</span></div>
+      <div class="zoomrow"><label for="pstyle">Points</label>
+        <select id="pstyle" aria-label="How the points are drawn">
+          <option value="lights">lights</option>
+          <option value="birds">birds</option>
+          <option value="flames">flames</option>
+        </select>
+        <label class="chip" style="margin-left:auto"><input type="checkbox" id="pulse" checked><span>pulse</span></label>
+      </div>
+      <div class="zoomrow"><label for="zoom">Zoom</label>
+        <input type="range" id="zoom" min="0" max="100" step="0.5" value="34" aria-label="Zoom">
+        <span class="rv" id="zoomval">1.0×</span></div>
+    </div>
+
+      <div class="legend">
+        <span>colour is the number&rsquo;s wavelength — violet 380 nm to red 730 nm</span>
+        <span><i class="sw" style="background:var(--ink)"></i>the average</span>
+        <span><i class="sw" style="background:var(--brass)"></i>the summed trace</span>
+      </div>
+      <div class="stats" id="stats"></div>
+
+    <div class="rail">
+      <figure class="chart">
+        <canvas id="wavex" role="img" aria-label="Each integer's X over one period"></canvas>
+        <figcaption class="cap"><b>1D · X</b> <i>(i)</i> — round the equator.</figcaption>
+      </figure>
+      <figure class="chart">
+        <canvas id="wavey" role="img" aria-label="Each integer's Y over one period"></canvas>
+        <figcaption class="cap"><b>1D · Y</b> <i>(j)</i> — a quarter turn on.</figcaption>
+      </figure>
+      <figure class="chart">
+        <canvas id="wavez" role="img" aria-label="Each integer's Z over one period"></canvas>
+        <figcaption class="cap"><b>1D · Z</b> <i>(k)</i> — north by <b>Inner</b>, south by <b>Outer</b>.</figcaption>
+      </figure>
+      <figure class="chart">
+        <canvas id="wubxy" tabindex="0" role="img" aria-label="The curve seen down Z"></canvas>
+        <figcaption class="cap"><b>2D · X–Y</b> — seen down <i>k</i>. Drag to scrub.</figcaption>
+      </figure>
+      <figure class="chart">
+        <canvas id="wubyz" tabindex="0" role="img" aria-label="The curve seen down X"></canvas>
+        <figcaption class="cap"><b>2D · Y–Z</b> — seen down <i>i</i>.</figcaption>
+      </figure>
+      <figure class="chart">
+        <canvas id="wubzx" tabindex="0" role="img" aria-label="The curve seen down Y"></canvas>
+        <figcaption class="cap"><b>2D · Z–X</b> — seen down <i>j</i>.</figcaption>
+      </figure>
+    </div>
+    <div class="rack" id="rack"></div>
+  </aside>
+  <div class="right">
+    <canvas id="sph" tabindex="0" role="img"
+      aria-label="A sphere whose radius is the tip's distance"></canvas>
+  </div>
+</div>
+
+<script src="/stalk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const col = k => getComputedStyle(document.body).getPropertyValue(k).trim();
+const TAU = Math.PI * 2;
+const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---- one integer -> one phasor ----
+   the stalk's three regions each become a channel. a green is undecided, so
+   rolling it red-or-blue gives one concrete draw from inside that region's
+   range; with no greens the region is a single number and never jitters. */
+const wOf = c => c.v * Math.pow(2, -(c.i + 1));
+const settled = cells => cells.reduce((s, c) => s + wOf(c), 0);
+/* a green is undecided, so it is rolled. BIAS leans that coin: -1 always red,
+   +1 always blue, 0 an even chance. */
+let BIAS = 0;
+const coin = () => (Math.random() < (BIAS + 1) / 2 ? 1 : -1);
+const rolled = cells => cells.reduce((s, c) =>
+  s + (c.v !== 0 ? wOf(c) : coin() * Math.pow(2, -(c.i + 1))), 0);
+const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -(c.i + 1)) : 0), 0);
+
+function phasor(k, push){
+  const {v, neg} = parse(String(k));
+  const {n, raw, cells} = hexSequence(v, neg);
+  const shown = push ? pushLeft(raw) : raw;
+  const full = shown.concat(cells.slice(raw.length));
+  const R = hexRegions(full, n);
+  const runs = full.reduce((c, d, i) => c + (i && d !== full[i-1] ? 1 : 0), full.length ? 1 : 0);
+  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
+  return {
+    k, push, n, R, shown,
+    inner, outer, fold,
+    greens: full.filter(d => d === 0).length,
+    spread: spreadOf(R.outer),
+    amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
+    /* handedness must reverse with the sign, always. the Fold usually says
+       which way, but it can be exactly zero — then the integer's own sign
+       does, rather than defaulting everything to one direction. */
+    dir: Math.sign(fold) || (neg ? -1 : 1),
+    /* the hex string is nibble-quantised, so its length alone would put every
+       integer under 16 on the same rate. the bit length is what actually
+       varies, and it is what the stalk length stood for before. */
+    rateA: Math.max(1, v === 0n ? 1 : v.toString(2).length),
+    rateB: Math.max(1, runs),                // one per run of like colour
+    value: hexValue(shown),
+  };
+}
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+
+/* a curve on a torus that turns p times the long way while turning q times the
+   short way is the (p,q) torus knot, provided p and q are coprime. reducing the
+   two rates by their gcd makes them coprime, so every phasor is some torus
+   knot -- trivial whenever either side reduces to 1. */
+function knotOf(p){
+  const d = gcd(p.rateA, p.rateB), a = p.rateA / d, b = p.rateB / d;
+  const R = Math.abs(p.inner), r = Math.abs(p.outer), f = Math.abs(p.fold);
+  /* the (p,q) label only means anything if the curve is actually on a torus.
+     these region sums can genuinely be zero, and often are. */
+  if(R === 0 && r === 0) return {a, b, kind: "degenerate", name: "a segment — no torus",
+    knotted: false, crossings: 0};
+  if(r === 0) return {a, b, kind: "flat", name: "unknot — flat circle, no tube",
+    knotted: false, crossings: 0};
+  if(f === 0) return {a, b, kind: "flat", name: "unknot — flat annulus, no height",
+    knotted: false, crossings: 0};
+  if(R <= r) return {a, b, kind: "crossing", name: "tube swallows the axis — no type",
+    knotted: false, crossings: 0};
+  const lo = Math.min(a, b), hi = Math.max(a, b);
+  const knotted = lo >= 2;
+  const name = !knotted ? "unknot"
+    : lo === 2 && hi === 3 ? "trefoil"
+    : lo === 2 && hi === 5 ? "cinquefoil"
+    : lo === 2 && hi === 7 ? "septafoil"
+    : `(${a},${b}) torus knot`;
+  return {a, b, kind: "torus", knotted, name,
+          crossings: knotted ? Math.min(a*(b-1), b*(a-1)) : 0};
+}
+
+/* ---- crossings of the SUMMED curve ----
+   the sum is not on a torus, so there is no formula. count crossings in a
+   projection instead and keep the best one found: that is an upper bound on
+   the real crossing number, never a proof of it. */
+function segCross(a, b, c, d){
+  const s1 = (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]);
+  const s2 = (b[0]-a[0])*(d[1]-a[1]) - (b[1]-a[1])*(d[0]-a[0]);
+  const s3 = (d[0]-c[0])*(a[1]-c[1]) - (d[1]-c[1])*(a[0]-c[0]);
+  const s4 = (d[0]-c[0])*(b[1]-c[1]) - (d[1]-c[1])*(b[0]-c[0]);
+  return ((s1 > 0) !== (s2 > 0)) && ((s3 > 0) !== (s4 > 0));
+}
+function crossingsAlong(P, dir){
+  const up = Math.abs(dir[2]) > 0.9 ? [1,0,0] : [0,0,1];
+  const cr = (x, y) => [x[1]*y[2]-x[2]*y[1], x[2]*y[0]-x[0]*y[2], x[0]*y[1]-x[1]*y[0]];
+  const nm = v => { const m = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/m, v[1]/m, v[2]/m]; };
+  const u = nm(cr(dir, up)), w = nm(cr(dir, u));
+  const Q = P.map(q => [q.x*u[0]+q.y*u[1]+q.z*u[2], q.x*w[0]+q.y*w[1]+q.z*w[2]]);
+  const n = Q.length;
+  let c = 0;
+  for(let i = 0; i < n; i++){
+    const a = Q[i], b = Q[(i+1) % n];
+    for(let j = i + 2; j < n; j++){
+      if(i === 0 && j === n - 1) continue;
+      if(segCross(a, b, Q[j], Q[(j+1) % n])) c++;
+    }
+  }
+  return c;
+}
+const CROSS_DIRS = 48, CROSS_PTS = 240;
+/* measuring costs a few hundred milliseconds, so it waits for the edits to
+   stop rather than running on every keystroke. */
+function scheduleMeasure(){
+  if(MEASURE_T) clearTimeout(MEASURE_T);
+  MEASURE_T = setTimeout(() => {
+    MEASURE_T = null;
+    BOUND = crossingBound(CURVE);
+    stats();
+  }, 450);
+}
+
+function crossingBound(curve){
+  if(curve.length < 4) return 0;
+  const step = Math.max(1, Math.floor(curve.length / CROSS_PTS));
+  const P = curve.filter((_, i) => i % step === 0);
+  let best = Infinity;
+  for(let t = 0; t < CROSS_DIRS; t++){                 // spiral of directions
+    const z = 2 * (((t + 0.5) * 0.6180339887) % 1) - 1;
+    const th = t * 2.39996, rr = Math.sqrt(Math.max(0, 1 - z*z));
+    best = Math.min(best, crossingsAlong(P, [rr*Math.cos(th), rr*Math.sin(th), z]));
+    if(best === 0) break;
+  }
+  return best;
+}
+/* ---- colour by the number, not by its place in the list ----
+   the stalk value lands in (0,1), so it maps onto the visible band:
+   380 nm at the bottom, 730 nm at the top. as a hue that is violet through
+   to red, which is 270 degrees of the wheel — so hue = 270 (1 - |value|).
+   because each nibble class walks the whole band, k and 16k come out the
+   same colour: the same note, an octave apart. */
+const nmOf  = val => 380 + Math.min(1, Math.abs(val)) * 350;
+const hueOf = val => Math.round(270 * (1 - Math.min(1, Math.abs(val))));
+const hue   = val => `hsl(${hueOf(val)} 72% 58%)`;
+
+/* ---- how a point is drawn ----
+   one pulse drives all three: it brightens a light, beats a wing, and feeds a
+   flame. tied to the sweep, so it keeps time with everything else. */
+const STYLE = () => ($("pstyle") && $("pstyle").value) || "lights";
+const PULSED = () => !$("pulse") || $("pulse").checked;
+const pulseOf = (p, t) => PULSED() ? 0.5 + 0.5 * Math.sin(t * (p.rateB + 1) * 2 + p.phase) : 0.6;
+
+function drawPoint(g, x, y, h, size, u, inverted){
+  const H = inverted ? (h + 180) % 360 : h;      // the sphere turned inside out
+  const core = `hsl(${H} 70% ${60 + 18*u}%)`;
+  const soft = (a) => `hsla(${H} 80% 62% / ${a})`;
+  const st = STYLE();
+  if(st === "lights"){
+    const r = size * (0.7 + 1.5 * u);
+    const gr = g.createRadialGradient(x, y, 0, x, y, r * 3);
+    gr.addColorStop(0, soft(0.85)); gr.addColorStop(0.35, soft(0.28)); gr.addColorStop(1, soft(0));
+    g.fillStyle = gr;
+    g.beginPath(); g.arc(x, y, r * 3, 0, 7); g.fill();
+    g.fillStyle = core;
+    g.beginPath(); g.arc(x, y, size * 0.55, 0, 7); g.fill();
+  } else if(st === "birds"){
+    const spread = 0.25 + 1.15 * u;              // wings beat with the pulse
+    const w = size * 2.2;
+    g.strokeStyle = core; g.lineWidth = Math.max(1, size * 0.34);
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(x - w, y + Math.sin(spread) * w * 0.55);
+    g.quadraticCurveTo(x - w * 0.35, y - Math.cos(spread) * w * 0.5, x, y);
+    g.quadraticCurveTo(x + w * 0.35, y - Math.cos(spread) * w * 0.5, x + w, y + Math.sin(spread) * w * 0.55);
+    g.stroke(); g.lineCap = "butt";
+  } else {                                        // flames
+    const hgt = size * (1.6 + 3.2 * u);
+    const gr = g.createLinearGradient(x, y + size * 0.5, x, y - hgt);
+    gr.addColorStop(0, soft(0.7)); gr.addColorStop(0.55, `hsla(${(H + 26) % 360} 90% 62% / .5)`);
+    gr.addColorStop(1, soft(0));
+    g.fillStyle = gr;
+    g.beginPath();
+    g.moveTo(x - size * 0.8, y + size * 0.4);
+    g.quadraticCurveTo(x - size * 0.9, y - hgt * 0.45, x, y - hgt);
+    g.quadraticCurveTo(x + size * 0.9, y - hgt * 0.45, x + size * 0.8, y + size * 0.4);
+    g.closePath(); g.fill();
+    g.fillStyle = core;
+    g.beginPath(); g.arc(x, y + size * 0.1, size * 0.42, 0, 7); g.fill();
+  }
+}
+
+let KS = [{k: 3, plain: true, push: false, op: 0.55},
+          {k: 5, plain: true, push: false, op: 0.55},
+          {k: 7, plain: true, push: false, op: 0.55}];
+
+function model(){
+  const P = [];
+  for(const e of KS){
+    const op = e.op === undefined ? 0.55 : e.op;
+    if(e.plain){ const q = phasor(e.k, false); q.opacity = op; P.push(q); }
+    if(e.push){  const q = phasor(e.k, true);  q.opacity = op; P.push(q); }
+  }
+  const N = P.length;
+  P.forEach((p, j) => {
+    p.phase = TAU * j / N;                 // position in the ring stays positional
+    const val = dec(p.value);              // colour comes from the number itself
+    p.nm = nmOf(val);
+    p.hue = hueOf(val);
+    p.col = hue(val);
+  });
+  const rates = P.flatMap(p => [p.rateA, p.rateB]).filter(r => r > 0);
+  const g = rates.length ? rates.reduce(gcd) : 0;
+  return {P, N, g, period: g ? TAU / g : TAU};
+}
+
+const angleA = (p, t) => p.phase + p.dir * p.rateA * t;
+/* r is a width and cannot go negative, so a negative integer carries its sign
+   in B's phase instead — that keeps negation an exact reflection. */
+const angleB = (p, t) => p.phase + (p.dir < 0 ? Math.PI : 0) + p.dir * p.rateB * t;
+/* the regions keep the meaning the fold gives them: Fold is the equator, Inner
+   reaches north, Outer reaches south. A is longitude, B latitude, so a phasor
+   rides an ellipsoid whose two halves have different heights. */
+const comp = (p, t) => {
+  const A = angleA(p, t), B = angleB(p, t);
+  const sB = Math.sin(B), rr = p.fold * Math.cos(B);
+  const m = (p.inner + p.outer) / 2, d = (p.inner - p.outer) / 2;
+  return [rr * Math.cos(A), rr * Math.sin(A), m * sB + d * Math.abs(sB)];
+};
+
+let M = model(), CURVE = [], EXTENT = 1, RAD = [], RMAX = 1, RMEAN = 1;
+let WX = [], WY = [], WZ = [], AVGX = [], AVGY = [], AVGZ = [];
+let T = 0, FREQ = 0.12, LAST = null, DIVS = 0, LASTSLOT = null, DRAWN = null, PREV = null, BOUND = 0;
+let DRAG = null, SPIN = 0, TILT = .38, DRAG3 = null, ZOOM = 1, SHELL = 0.10;
+let MEASURE_T = null;
+/* the path each integer's joint has traced, newest last */
+let TRAILS = [];
+const TRAIL_MAX = 600;
+const SAMPLES = 720;
+
+function recompute(){
+  M = model();
+  CURVE = []; RAD = [];
+  WX = M.P.map(() => []); WY = M.P.map(() => []); WZ = M.P.map(() => []);
+  AVGX = []; AVGY = []; AVGZ = [];
+  let mx = 1e-9;
+  for(let i = 0; i <= SAMPLES; i++){
+    const t = M.period * i / SAMPLES;
+    let sx = 0, sy = 0, sz = 0;
+    M.P.forEach((p, j) => {
+      const c = comp(p, t);
+      WX[j].push(c[0]); WY[j].push(c[1]); WZ[j].push(c[2]);
+      sx += c[0]; sy += c[1]; sz += c[2];
+    });
+    AVGX.push(M.N ? sx / M.N : 0); AVGY.push(M.N ? sy / M.N : 0); AVGZ.push(M.N ? sz / M.N : 0);
+    const r = Math.hypot(sx, sy, sz);
+    RAD.push(r); mx = Math.max(mx, r);
+    CURVE.push({x: sx, y: sy, z: sz});
+  }
+  BOUND = null;                    // stale until measured again
+  scheduleMeasure();
+  RMAX = mx;
+  RMEAN = RAD.length ? RAD.reduce((s, r) => s + r, 0) / RAD.length : 0;
+  EXTENT = Math.max(mx, M.P.reduce((s, p) => s + p.amp, 0)) * 1.12 || 1;
+}
+const frac = () => ((T % M.period) + M.period) % M.period / M.period;
+
+function fitCanvas(cv, ratio){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = cv.clientWidth || 380;
+  const H = ratio ? Math.round(W / ratio) : (cv.clientHeight || 380);
+  if(cv.width !== Math.round(W * dpr)){ cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  return {ctx, W, H};
+}
+
+function drawWave(id, TRACES, AVGS){
+  const cv = $(id); if(!cv || !TRACES.length) return;
+  const {ctx, W, H} = fitCanvas(cv, 1.55);
+  const pad = 11, w = W - pad*2, h = H - pad*2, cy = pad + h/2;
+  let peak = 1e-9;
+  for(const wv of TRACES) for(const y of wv) peak = Math.max(peak, Math.abs(y));
+  const sc = (h/2) / peak, X = i => pad + i / SAMPLES * w, Y = y => cy - y * sc;
+  ctx.strokeStyle = col("--rule2"); ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W-pad, cy); ctx.stroke(); ctx.setLineDash([]);
+  ctx.lineWidth = 1.3; ctx.globalAlpha = .78;
+  M.P.forEach((p, j) => {
+    ctx.strokeStyle = p.col; ctx.beginPath();
+    TRACES[j].forEach((y, i) => i ? ctx.lineTo(X(i), Y(y)) : ctx.moveTo(X(i), Y(y)));
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = col("--ink"); ctx.lineWidth = 2.4; ctx.beginPath();
+  AVGS.forEach((y, i) => i ? ctx.lineTo(X(i), Y(y)) : ctx.moveTo(X(i), Y(y)));
+  ctx.stroke();
+  const px = pad + frac()*w, idx = Math.round(frac()*SAMPLES);
+  ctx.strokeStyle = col("--ink3"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(px, pad); ctx.lineTo(px, H-pad); ctx.stroke();
+  M.P.forEach((p, j) => { ctx.beginPath(); ctx.arc(px, Y(TRACES[j][idx]), 3, 0, 7);
+    ctx.fillStyle = p.col; ctx.fill(); });
+  ctx.beginPath(); ctx.arc(px, Y(AVGS[idx]), 4.5, 0, 7);
+  ctx.fillStyle = col("--ink"); ctx.strokeStyle = col("--panel"); ctx.lineWidth = 2;
+  ctx.fill(); ctx.stroke();
+}
+
+/* each projection scales to what it actually contains — the summed curve, the
+   linkage and every trail — because a shared extent lets one view clip while
+   another sits half empty. */
+function extentFor(ax, ay, joints){
+  let m = 1e-9;
+  const take = q => { const a = Math.abs(q[ax]), b = Math.abs(q[ay]);
+                      if(a > m) m = a; if(b > m) m = b; };
+  for(const q of CURVE) take(q);
+  for(const q of joints) take(q);
+  for(const tr of TRAILS) if(tr) for(const q of tr) take(q);
+  return m;
+}
+
+/* one flat view, looking down whichever axis is not named */
+function draw2D(id, ax, ay, joints){
+  const cv = $(id); if(!cv) return;
+  const {ctx, W, H} = fitCanvas(cv, 1.55);
+  const cx = W/2, cy = H/2;
+  const S = (Math.min(W, H) * 0.46) / (extentFor(ax, ay, joints) * 1.06);
+  const X = v => cx + v*S, Y = v => cy - v*S;
+  ctx.strokeStyle = col("--rule2"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy);
+  ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+  if(CURVE.length > 1){
+    ctx.beginPath();
+    CURVE.forEach((p, i) => i ? ctx.lineTo(X(p[ax]), Y(p[ay])) : ctx.moveTo(X(p[ax]), Y(p[ay])));
+    ctx.closePath(); ctx.strokeStyle = col("--brass"); ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  M.P.forEach((p, j) => {                       // each integer's own path
+    const op = p.opacity, tr = TRAILS[j];
+    if(op <= 0 || !tr || tr.length < 2) return;
+    ctx.strokeStyle = p.col; ctx.lineWidth = 1.1; ctx.globalAlpha = op;
+    ctx.beginPath();
+    tr.forEach((q, i) => i ? ctx.lineTo(X(q[ax]), Y(q[ay])) : ctx.moveTo(X(q[ax]), Y(q[ay])));
+    ctx.stroke(); ctx.globalAlpha = 1;
+  });
+  M.P.forEach((p, j) => {                       // the linkage, tip to tail
+    const a = joints[j], b = joints[j+1];
+    ctx.strokeStyle = p.col; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(X(a[ax]), Y(a[ay])); ctx.lineTo(X(b[ax]), Y(b[ay])); ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(b[ax]), Y(b[ay]), 2.6, 0, 7); ctx.fillStyle = p.col; ctx.fill();
+  });
+  const tip = joints[joints.length - 1];
+  ctx.beginPath(); ctx.arc(X(tip[ax]), Y(tip[ay]), 5, 0, 7);
+  ctx.fillStyle = col("--brass"); ctx.strokeStyle = col("--panel"); ctx.lineWidth = 2;
+  ctx.fill(); ctx.stroke();
+}
+
+function draw(ts){
+  const dt = (LAST == null || !ts) ? 0 : Math.min((ts - LAST) / 1000, 0.1);
+  if(ts) LAST = ts;
+  if(!still() && !DRAG) T += M.period * FREQ * dt;
+
+  /* reroll every green once per slot — Inner, Fold and Outer alike. the new
+     roll is eased into over the slot rather than snapped to, so a green moves
+     the tip smoothly instead of teleporting it. */
+  const slotF = DIVS ? frac() * DIVS : 0;
+  const slot = Math.floor(slotF);
+  const stale = !DRAWN || DRAWN.length !== M.P.length;
+  const roll = () => M.P.map(p => still() || !p.greens
+    ? {N: p.inner, S: p.outer, E: p.fold}
+    : {N: rolled(p.R.inner), S: rolled(p.R.outer), E: rolled(p.R.fold)});
+  if(still()){ DRAWN = M.P.map(p => ({N: p.inner, S: p.outer, E: p.fold})); PREV = DRAWN; }
+  else if(!DIVS){ if(stale){ DRAWN = roll(); PREV = DRAWN; } }
+  else if(slot !== LASTSLOT || stale){
+    LASTSLOT = slot;
+    PREV = stale ? null : DRAWN;      // ease out of where we actually were
+    DRAWN = roll();
+    if(!PREV) PREV = DRAWN;
+  }
+  /* smoothstep across the slot: flat at both ends, so consecutive slots join
+     without a kink. a lap moves DIVS slots, so this never lags the sweep. */
+  const u = DIVS ? Math.min(1, Math.max(0, slotF - slot)) : 1;
+  const e = u * u * (3 - 2 * u);
+  const live = DRAWN.map((d, j) => {
+    const a = PREV[j] || d;
+    return {N: a.N + (d.N - a.N) * e,      // north reach
+            S: a.S + (d.S - a.S) * e,      // south reach
+            E: a.E + (d.E - a.E) * e};     // equator radius
+  });
+
+  const joints = [{x:0, y:0, z:0}];
+  { let x = 0, y = 0, z = 0;
+    M.P.forEach((p, j) => {
+      const A = angleA(p, T), B = angleB(p, T), L = live[j];
+      const sB = Math.sin(B), rr = L.E * Math.cos(B);
+      const m = (L.N + L.S)/2, dd = (L.N - L.S)/2;
+      x += rr*Math.cos(A); y += rr*Math.sin(A); z += m*sB + dd*Math.abs(sB);
+      joints.push({x, y, z});
+    }); }
+  /* remember where every joint has been, so each integer leaves a path */
+  if(TRAILS.length !== M.P.length) TRAILS = M.P.map(() => []);
+  M.P.forEach((p, j) => {
+    const q = joints[j + 1], tr = TRAILS[j];
+    const last = tr[tr.length - 1];
+    if(!last || Math.hypot(q.x - last.x, q.y - last.y, q.z - last.z) > 1e-6)
+      tr.push({x: q.x, y: q.y, z: q.z});
+    if(tr.length > TRAIL_MAX) tr.splice(0, tr.length - TRAIL_MAX);
+  });
+
+  draw2D("wubxy", "x", "y", joints);      // down k
+  draw2D("wubyz", "y", "z", joints);      // down i
+  draw2D("wubzx", "z", "x", joints);      // down j
+  const tip = joints.at(-1);
+  drawSphere(tip, joints);
+  drawWave("wavex", WX, AVGX);
+  drawWave("wavey", WY, AVGY);
+  drawWave("wavez", WZ, AVGZ);
+  if(typeof requestAnimationFrame === "function") requestAnimationFrame(draw);
+}
+
+function drawSphere(tip, joints){
+  const cv = $("sph"); if(!cv) return;
+  const {ctx, W, H} = fitCanvas(cv);          // fills the viewport, not a square
+  const cx = W/2, cy = H/2, unit = Math.min(W, H) * 0.42 / (RMAX || 1) * ZOOM;
+  if(!still() && !DRAG3) SPIN += 0.004;
+  const ca = Math.cos(SPIN), sa = Math.sin(SPIN), ct = Math.cos(TILT), st = Math.sin(TILT);
+  /* spin about the vertical, then tilt. keep the depth term: without it there
+     is no front and back, and the whole thing reads as flat rings. */
+  const proj = (q, R) => {
+    const x = q.x*ca - q.y*sa, h = q.x*sa + q.y*ca;
+    return {px: cx + x*R, py: cy - (q.z*ct - h*st)*R, d: q.z*st + h*ct};
+  };
+  const ring = (R, kind, ang, style, wid, dash) => {
+    ctx.beginPath();
+    for(let i = 0; i <= 72; i++){
+      const a = i/72 * TAU;
+      const q = kind === "lat"
+        ? {x: Math.cos(ang)*Math.cos(a), y: Math.cos(ang)*Math.sin(a), z: Math.sin(ang)}
+        : {x: Math.cos(a)*Math.cos(ang), y: Math.cos(a)*Math.sin(ang), z: Math.sin(a)};
+      const pt = proj(q, R);
+      i ? ctx.lineTo(pt.px, pt.py) : ctx.moveTo(pt.px, pt.py);
+    }
+    ctx.strokeStyle = style; ctx.lineWidth = wid;
+    if(dash) ctx.setLineDash(dash);
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+
+  const reach = Math.hypot(tip.x, tip.y, tip.z);
+  const ghost = RMEAN * unit;                     // the mean, held still to breathe against
+  ctx.globalAlpha = .5;
+  ring(ghost, "lat", 0, col("--ink3"), 1, [4,4]);
+  ctx.beginPath(); ctx.arc(cx, cy, ghost, 0, 7);
+  ctx.strokeStyle = col("--rule2"); ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  const R = Math.max(reach * unit, 0.5);
+  /* below the mean it has turned itself inside out; the points invert with it */
+  const inverted = reach < RMEAN;
+  const c = inverted ? col("--blue") : col("--red");
+  if(SHELL > 0){
+    ctx.globalAlpha = .26 * SHELL;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fillStyle = c; ctx.fill();
+    ctx.globalAlpha = SHELL;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7);
+    ctx.strokeStyle = c; ctx.lineWidth = 1.6; ctx.stroke();
+    for(const lat of [-0.9, -0.45, 0, 0.45, 0.9]) ring(R, "lat", lat, c, lat === 0 ? 1.8 : 0.8);
+    for(const lon of [0, Math.PI/3, 2*Math.PI/3]) ring(R, "lon", lon, c, 0.8);
+    ctx.globalAlpha = 1;
+  }
+
+  M.P.forEach((p, j) => {                          // each integer's own path
+    const op = p.opacity;
+    if(op <= 0) return;
+    const tr = TRAILS[j];
+    if(!tr || tr.length < 2) return;
+    ctx.strokeStyle = p.col; ctx.lineWidth = 1.3;
+    for(let i = 1; i < tr.length; i++){
+      const a = proj(tr[i-1], unit), b = proj(tr[i], unit);
+      ctx.globalAlpha = op * (.3 + .7 * (Math.max(a.d, b.d) + 1) / 2);
+      ctx.beginPath(); ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, b.py); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
+
+  if(CURVE.length > 1){                            // the curve, faded where it runs behind
+    ctx.lineWidth = 1.7; ctx.strokeStyle = col("--brass");
+    for(let i = 1; i < CURVE.length; i++){
+      const a = proj(CURVE[i-1], unit), b = proj(CURVE[i], unit);
+      ctx.globalAlpha = .34 + .66 * (Math.max(a.d, b.d) + 1) / 2;
+      ctx.beginPath(); ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, b.py); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  const t  = proj(tip, unit);
+  const xp = proj({x: tip.x, y: 0, z: 0}, unit);
+  const yp = proj({x: 0, y: tip.y, z: 0}, unit);
+  const zp = proj({x: 0, y: 0, z: tip.z}, unit);
+  const axes = [[xp, col("--blue")], [yp, col("--red")], [zp, col("--green")]];
+  ctx.setLineDash([3,3]); ctx.lineWidth = 1; ctx.globalAlpha = .45;
+  for(const [q, cc] of axes){ ctx.strokeStyle = cc;
+    ctx.beginPath(); ctx.moveTo(q.px, q.py); ctx.lineTo(t.px, t.py); ctx.stroke(); }
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+  /* ---- {:} at the centre: a black body that the points light ---- */
+  const lit = (joints || []).slice(1).map((q, j) => ({
+    pr: proj(q, unit), p: M.P[j], u: pulseOf(M.P[j], T)
+  })).filter(o => o.p);
+  /* the body is an object, not a feature of the sphere: it holds its size
+     while the sphere breathes, and only zoom changes it. */
+  const bodyR = Math.max(7, Math.min(Math.min(W, H) * 0.035 * ZOOM, Math.min(W, H) * 0.3));
+  ctx.beginPath(); ctx.arc(cx, cy, bodyR, 0, 7);
+  ctx.fillStyle = "#05070B"; ctx.fill();
+  ctx.save(); ctx.clip();                        // the glow stays on the body
+  for(const {pr, p, u} of lit){
+    const dx = pr.px - cx, dy = pr.py - cy, d = Math.hypot(dx, dy) || 1;
+    const hx = cx + dx / d * bodyR * 0.62, hy = cy + dy / d * bodyR * 0.62;
+    const fall = 1 / (1 + d / (bodyR * 5));      // nearer points light it more
+    const a = 0.45 * fall * (0.45 + 0.55 * u);
+    const H = inverted ? (p.hue + 180) % 360 : p.hue;
+    const gr = ctx.createRadialGradient(hx, hy, 0, hx, hy, bodyR * 1.15);
+    gr.addColorStop(0, `hsla(${H} 85% 62% / ${a.toFixed(3)})`);
+    gr.addColorStop(1, `hsla(${H} 85% 62% / 0)`);
+    ctx.fillStyle = gr;
+    ctx.beginPath(); ctx.arc(cx, cy, bodyR, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+  ctx.beginPath(); ctx.arc(cx, cy, bodyR, 0, 7);
+  ctx.strokeStyle = col("--brass"); ctx.lineWidth = 1;
+  ctx.globalAlpha = .5; ctx.setLineDash([3,3]); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+  /* ---- the points, in whichever style is chosen ---- */
+  for(const {pr, p, u} of lit){
+    const near = 0.65 + 0.35 * (pr.d + 1) / 2;   // smaller when it is behind
+    drawPoint(ctx, pr.px, pr.py, p.hue, 5.5 * near, u, inverted);
+  }
+  for(const [q, cc] of axes){
+    ctx.beginPath(); ctx.arc(q.px, q.py, 4, 0, 7);
+    ctx.fillStyle = cc; ctx.strokeStyle = col("--panel"); ctx.lineWidth = 1.4;
+    ctx.fill(); ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(t.px, t.py, 6, 0, 7);
+  ctx.fillStyle = col("--brass"); ctx.strokeStyle = col("--panel"); ctx.lineWidth = 2;
+  ctx.fill(); ctx.stroke();
+}
+
+/* ---- the rack ---- */
+function paintRow(i, row){
+  const e = KS[i];
+  const parts = [];
+  for(const pu of [false, true]){
+    if(!(pu ? e.push : e.plain)) continue;
+    const p = M.P.find(q => q.k === e.k && q.push === pu) || phasor(e.k, pu);
+    const rows = [];
+    for(let i = 0; i < p.shown.length; i += p.n) rows.push(p.shown.slice(i, i + p.n));
+    const gr = rows.map(g => g.map(v => `<i class="${cls(v)}">${glyph(v)}</i>`).join(""))
+      .join('<i class="cma">,</i>');
+    const K = knotOf(p);
+    parts.push(`<div class="form">`
+      + `<div class="bits">${gr}</div>`
+      + `<div class="rval"><b>${pu ? "pushed" : "plain"}</b> · ${fmt(p.value)}`
+      + ` · ${Math.round(p.nm)} nm · ${p.greens} green</div>`
+      + `<div class="rval">I ${p.inner.toFixed(3)} · F ${p.fold.toFixed(3)} · O ${p.outer.toFixed(3)}</div>`
+      + `<div class="rval dim">${K.a}\u00d7${K.b} \u2014 ${K.name}`
+      + `${K.knotted ? `, ${K.crossings} cr` : ""}</div>`
+      + `</div>`);
+  }
+  row.querySelector(".body").innerHTML = parts.join("")
+    || `<div class="form"><div class="rval dim">neither spelling shown</div></div>`;
+  const p0 = M.P.find(q => q.k === e.k);
+  row.querySelector(".dot").style.background = p0 ? p0.col : "transparent";
+}
+
+function rack(){
+  const el = $("rack");
+  const keep = el.scrollTop;            // a rebuild must not scroll you away
+  el.innerHTML = KS.map((e, i) => `
+    <div class="row" data-i="${i}">
+      <div class="rhead">
+        <span class="dot"></span>
+        <span class="knum">
+          <input type="text" class="kin" value="${e.k}" spellcheck="false" aria-label="Integer">
+          <span class="kspin">
+            <button class="kup" tabindex="-1" aria-label="Increase by one">&#9650;</button>
+            <button class="kdn" tabindex="-1" aria-label="Decrease by one">&#9660;</button>
+          </span>
+        </span>
+        <span class="forms">
+          <label class="chip"><input type="checkbox" class="cp" ${e.plain ? "checked" : ""}><span>plain</span></label>
+          <label class="chip"><input type="checkbox" class="cu" ${e.push ? "checked" : ""}><span>pushed</span></label>
+        </span>
+        <button class="rm" aria-label="Remove">×</button>
+      </div>
+      <div class="body"></div>
+      <div class="speedrow"><label style="min-width:38px">Path</label>
+        <input type="range" class="op" min="0" max="1" step="0.01"
+               value="${e.op === undefined ? 0.55 : e.op}" aria-label="Path opacity">
+      </div>
+    </div>`).join("");
+  el.querySelectorAll(".row").forEach(row => {
+    const i = +row.dataset.i;
+    paintRow(i, row);
+    const kin = row.querySelector(".kin");
+    const setK = v => {
+      KS[i].k = v; kin.value = v;
+      recompute(); paintRow(i, row); stats();
+      TRAILS = [];                       // the old path belonged to a different number
+    };
+    kin.addEventListener("input", ev => {
+      const v = parseInt(ev.target.value, 10);
+      if(!isNaN(v)){ KS[i].k = v; recompute(); paintRow(i, row); stats(); TRAILS = []; }
+    });
+    kin.addEventListener("keydown", ev => {
+      if(ev.key === "ArrowUp"){ setK((parseInt(kin.value, 10) || 0) + 1); ev.preventDefault(); }
+      if(ev.key === "ArrowDown"){ setK((parseInt(kin.value, 10) || 0) - 1); ev.preventDefault(); }
+    });
+    row.querySelector(".kup").addEventListener("click", () => setK((parseInt(kin.value, 10) || 0) + 1));
+    row.querySelector(".kdn").addEventListener("click", () => setK((parseInt(kin.value, 10) || 0) - 1));
+    row.querySelector(".cp").addEventListener("change", ev => {
+      KS[i].plain = ev.target.checked; refresh();
+    });
+    row.querySelector(".cu").addEventListener("change", ev => {
+      KS[i].push = ev.target.checked; refresh();
+    });
+    row.querySelector(".op").addEventListener("input", ev => {
+      KS[i].op = parseFloat(ev.target.value);
+      M.P.forEach(q => { if(q.k === KS[i].k) q.opacity = KS[i].op; });
+    });
+    row.querySelector(".rm").addEventListener("click", () => {
+      if(KS.length > 1){ KS.splice(i, 1); refresh(); }
+    });
+  });
+  el.scrollTop = keep;
+  $("spacing").textContent = M.N ? `${(360 / M.N).toFixed(0)}°` : "—";
+}
+
+function stats(){
+  const tot = M.P.reduce((s, p) => s + p.greens, 0);
+  $("stats").innerHTML = [
+    ["Phasors", `${M.N}`, `spaced ${M.N ? (360/M.N).toFixed(0) : "—"}° apart`],
+    ["Period", `${M.period.toFixed(3)} rad`, M.g ? `gcd of the rates is ${M.g}` : "no turning phasors"],
+    ["Reach", `${RMAX.toFixed(4)}`, `mean ${RMEAN.toFixed(4)} — the sphere breathes between them`],
+    ["Greens", `${tot}`, tot
+      ? `rerolled ${DIVS || "once"}${DIVS ? " /lap" : ""} · ${Math.round((BIAS + 1) / 2 * 100)}% blue`
+      : "nothing undecided"],
+    ["Knots", `${M.P.filter(p => knotOf(p).knotted).length} / ${M.N}`,
+      M.N ? M.P.map(p => knotOf(p).name).join(" · ") : "no phasors"],
+    ["Crossings", BOUND === null ? "measuring\u2026" : `\u2264 ${BOUND}`,
+      BOUND === null ? "settles a moment after the last change"
+        : BOUND === 0 ? "no projection crossed itself \u2014 the sum is unknotted"
+        : `best of ${CROSS_DIRS} projections \u2014 an upper bound, not the crossing number`],
+  ].map(([k, v, f]) => `<div class="stat"><span class="skey">${k}</span>`
+    + `<span class="sval">${v}</span><span class="sfoot">${f}</span></div>`).join("");
+}
+
+function refresh(){ recompute(); rack(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = []; }
+
+$("addbtn").addEventListener("click", () => {
+  KS.push({k: KS.length + 2, plain: true, push: false, op: 0.55});
+  refresh();
+  const el = $("rack");
+  el.scrollTop = el.scrollHeight;       // bring the one just added into view
+});
+$("randbtn").addEventListener("click", () => {
+  KS = KS.map(e => ({...e, k: Math.floor(Math.random()*127) - 63 || 1})); refresh();
+});
+$("resetbtn").addEventListener("click", () => {
+  KS = [{k:3, plain:true, push:false}, {k:5, plain:true, push:false}, {k:7, plain:true, push:false}];
+  refresh();
+});
+/* the sampled curve as plain xyz, for feeding to something that can actually
+   classify it — SnapPy, KnotPlot, or anything that takes a polygonal knot. */
+$("expbtn").addEventListener("click", () => {
+  const head = [
+    `# chronochromatic wub curve`,
+    `# integers: ${KS.map(e => `${e.k}${e.plain ? "" : ""}${e.push ? "(pushed)" : ""}`).join(", ")}`,
+    `# phasors: ${M.N}, period ${M.period} rad, samples ${CURVE.length}`,
+    `# rates: ${M.P.map(p => `${p.k}${p.push ? "P" : ""}:A=${p.rateA},B=${p.rateB}`).join(" ")}`,
+    `# crossing bound found here: ${BOUND === null ? "not measured" : `<= ${BOUND} (best of ${CROSS_DIRS} projections)`}`,
+    `# closed curve: the last point joins back to the first`,
+    `# x y z`,
+  ].join("\n");
+  const body = CURVE.map(p => `${p.x} ${p.y} ${p.z}`).join("\n");
+  const blob = new Blob([head + "\n" + body + "\n"], {type: "text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `wub-${KS.map(e => e.k).join("_")}.xyz`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+/* 0.1x to 60x. a linear slider would spend most of its travel above 10x, so
+   the control is logarithmic and the wheel is a constant ratio per notch. */
+const ZMIN = 0.1, ZMAX = 60;
+const zFromSlider = v => ZMIN * Math.pow(ZMAX / ZMIN, v / 100);
+const sliderFromZ = z => 100 * Math.log(z / ZMIN) / Math.log(ZMAX / ZMIN);
+function setZoom(z, moveSlider){
+  ZOOM = Math.max(ZMIN, Math.min(ZMAX, z));
+  if(moveSlider) $("zoom").value = sliderFromZ(ZOOM);
+  $("zoomval").textContent = (ZOOM < 10 ? ZOOM.toFixed(2) : ZOOM.toFixed(1)) + "×";
+}
+$("bias").addEventListener("input", e => {
+  BIAS = parseFloat(e.target.value);
+  const blue = Math.round((BIAS + 1) / 2 * 100);
+  $("biasval").textContent = blue === 50 ? "50 / 50"
+    : blue > 50 ? `${blue}% blue` : `${100 - blue}% red`;
+});
+$("shell").addEventListener("input", e => {
+  SHELL = parseFloat(e.target.value);
+  $("shellval").textContent = Math.round(SHELL * 100) + "%";
+});
+$("zoom").addEventListener("input", e => setZoom(zFromSlider(parseFloat(e.target.value)), false));
+$("sph").addEventListener("wheel", e => {
+  e.preventDefault();
+  setZoom(ZOOM * (e.deltaY < 0 ? 1.12 : 1/1.12), true);
+}, {passive: false});
+setZoom(1, true);
+
+$("speed").addEventListener("input", e => {
+  FREQ = parseFloat(e.target.value);
+  $("speedval").textContent = FREQ.toFixed(2) + " Hz";
+});
+$("jit").addEventListener("input", e => {
+  DIVS = parseInt(e.target.value, 10);
+  $("jitval").textContent = DIVS ? `${DIVS} /lap` : "frozen";
+  LASTSLOT = null; stats();
+});
+const scrub = (cv, e) => {
+  const r = cv.getBoundingClientRect();
+  T = ((e.clientX - r.left) / r.width) * M.period;
+};
+for(const id of ["wubxy", "wubyz", "wubzx"]){
+  const cv = $(id);
+  cv.addEventListener("pointerdown", e => { DRAG = 1; scrub(cv, e); });
+  cv.addEventListener("pointermove", e => { if(DRAG) scrub(cv, e); });
+}
+$("sph").addEventListener("pointerdown", e => { DRAG3 = {x: e.clientX, y: e.clientY, s: SPIN, t: TILT}; });
+$("sph").addEventListener("pointermove", e => {
+  if(!DRAG3) return;
+  SPIN = DRAG3.s + (e.clientX - DRAG3.x) * 0.01;
+  TILT = Math.max(-1.4, Math.min(1.4, DRAG3.t + (e.clientY - DRAG3.y) * 0.01));
+});
+addEventListener("pointerup", () => { DRAG = null; DRAG3 = null; });
+addEventListener("pointercancel", () => { DRAG = null; DRAG3 = null; });
+
+refresh();
+if(typeof requestAnimationFrame === "function") requestAnimationFrame(draw);
+</script>
+</body>
+</html>

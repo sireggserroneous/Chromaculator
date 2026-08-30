@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inspirations · chronochromatic.org</title>
+<meta name="description" content="Who got to each piece of this first.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/base.css">
+<style>
+.wrap{max-width:960px; margin:0 auto; padding:34px 24px 80px; display:flex; flex-direction:column; gap:26px}
+.mast{display:flex; flex-direction:column; gap:9px; padding-bottom:18px; border-bottom:2px solid var(--ink)}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:clamp(1.9rem,5vw,2.6rem);
+  margin:0; letter-spacing:-.02em; line-height:1.04}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.17em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.sub{color:var(--ink2); max-width:70ch; margin:0}
+section{display:flex; flex-direction:column; gap:12px}
+h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; margin:0;
+  padding-bottom:6px; border-bottom:1px solid var(--rule)}
+.lead{color:var(--ink3); font-size:.86rem; margin:0; max-width:74ch}
+.items{display:flex; flex-direction:column; gap:9px}
+.item{display:grid; grid-template-columns:minmax(0,15rem) minmax(0,1fr); gap:16px;
+  background:var(--panel); border:1px solid var(--rule); border-left:3px solid var(--brass);
+  border-radius:3px; padding:11px 14px; align-items:baseline}
+@media (max-width:700px){ .item{grid-template-columns:1fr; gap:5px} }
+.mine{font-family:"IBM Plex Mono",monospace; font-size:.78rem; color:var(--ink);
+  line-height:1.45}
+.theirs{font-size:.88rem; color:var(--ink2); line-height:1.55}
+.theirs a{color:var(--blue); text-decoration:none; border-bottom:1px solid var(--rule2)}
+.theirs a:hover{border-color:var(--blue)}
+.theirs a:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.who{color:var(--ink3); font-size:.82rem}
+.open{background:var(--sunk); border-left-color:var(--green)}
+.foot{border-top:1px solid var(--rule); padding-top:18px; color:var(--ink3);
+  font-size:.86rem; line-height:1.6; max-width:74ch}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="/">Home</a>
+    <a href="/spectrometer.html">Spectrometer</a>
+    <a href="/atlas.html">Atlas</a>
+    <a href="/wub.html">Wub</a>
+    <a href="/spec.html">Spec</a>
+    <a href="/inspirations.html" class="cur" aria-current="page">Inspirations</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <header class="mast">
+    <span class="eyebrow">Who got here first</span>
+    <h1>Inspirations</h1>
+    <p class="sub">Maths is discovery, not invention. Nearly every piece of this site was found
+      before — often decades before, sometimes by engineers solving an unrelated problem. This page
+      names them. Arriving somewhere already furnished does not make the walk less real.</p>
+  </header>
+
+  <section>
+    <h2>The digits</h2>
+    <p class="lead">Red −1, green 0, blue +1 in base two — a redundant representation, where the
+      same number has many spellings.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">digits −1, 0, +1 in base 2</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Signed-digit_representation">Signed-digit representation</a>
+          · <a href="https://en.wikipedia.org/wiki/Balanced_ternary">Balanced ternary</a> is its base-3 cousin
+          <br><span class="who">Booth, 1951</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">adding two grids in one pass, no carries</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Redundant_binary_representation">Redundant binary representation</a>
+          — the redundancy <i>is</i> what buys carry-free addition
+          <br><span class="who">Avizienis, 1961. The 20,000-pair test was rediscovering his theorem.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">push — spreading colour as far as it goes</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm">Booth&rsquo;s multiplication algorithm</a>
+          recodes runs the same way</span>
+      </div>
+      <div class="item">
+        <span class="mine">NAF — the fewest lit cells</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Non-adjacent_form">Non-adjacent form</a>
+          · used to make <a href="https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication">elliptic-curve multiplication</a> a third faster</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The stalks</h2>
+    <p class="lead">Blue and red edges read as a number, and the <code>+/−</code> address that names it.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">blue–red stalks with values</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Hackenbush">Hackenbush</a>
+          · <a href="https://en.wikipedia.org/wiki/Surreal_number">Surreal numbers</a>
+          <br><span class="who">Conway, <a href="https://en.wikipedia.org/wiki/On_Numbers_and_Games">On Numbers and Games</a>, 1976;
+          Berlekamp–Conway–Guy, <a href="https://en.wikipedia.org/wiki/Winning_Ways_for_Your_Mathematical_Plays">Winning Ways</a>, 1982</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">the <code>+ − + −</code> address</span>
+        <span class="theirs">The <b>sign expansion</b> — a sign expansion of a surreal number is exactly
+          a Hackenbush chain. <a href="https://en.wikipedia.org/wiki/Combinatorial_game_theory">Combinatorial game theory</a></span>
+      </div>
+      <div class="item">
+        <span class="mine">pinning 2⁰ so everything is a fraction</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Dyadic_rational">Dyadic rationals</a>
+          — exactly the numbers with finite birthdays
+          <br><span class="who">The standard Hackenbush recipe already puts the binary point at the first colour change.</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The atlas</h2>
+    <p class="lead">Rings of integers, ordered by value — which turned out to be an FFT and a machine part.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">bits reversed over 2<sup>L</sup></span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Van_der_Corput_sequence">Van der Corput sequence</a>,
+          1935 · the base of every <a href="https://en.wikipedia.org/wiki/Low-discrepancy_sequence">low-discrepancy sequence</a></span>
+      </div>
+      <div class="item">
+        <span class="mine">why counting scrambles the arc</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Bit-reversal_permutation">Bit-reversal permutation</a>
+          — the input reordering of the <a href="https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm">Cooley–Tukey FFT</a>, 1965</span>
+      </div>
+      <div class="item">
+        <span class="mine">ring <i>r</i> is 2<sup><i>r</i>+1</sup> even directions</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Root_of_unity">Roots of unity</a>
+          — the FFT&rsquo;s twiddle factors, in polar form</span>
+      </div>
+      <div class="item">
+        <span class="mine">concentric rings, each doubling its sectors</span>
+        <span class="theirs">An absolute <a href="https://en.wikipedia.org/wiki/Rotary_encoder">rotary encoder</a> disc
+          · often in <a href="https://en.wikipedia.org/wiki/Gray_code">Gray code</a> so only one track changes at a time
+          <br><span class="who">Engineers machined this geometry into shafts because it is the efficient way to read an angle.</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Shifting</h2>
+    <p class="lead">Move the point, or drop a digit — two different operations, both classical.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">dropping a digit; orbits and periods</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Dyadic_transformation">The doubling map</a>
+          · <a href="https://en.wikipedia.org/wiki/Symbolic_dynamics">Symbolic dynamics</a></span>
+      </div>
+      <div class="item">
+        <span class="mine">bar notation reaching thirds</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Repeating_decimal">Repeating expansions</a>
+          · block length divides 2<sup>m</sup>−1 by the <a href="https://en.wikipedia.org/wiki/Multiplicative_order">multiplicative order</a> of 2</span>
+      </div>
+      <div class="item">
+        <span class="mine">a binary tree of every rational</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Stern%E2%80%93Brocot_tree">Stern–Brocot tree</a></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The wub</h2>
+    <p class="lead">Phasors summed tip to tail, riding surfaces, tying knots.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">phasors summed tip to tail tracing a closed curve</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Deferent_and_epicycle">Epicycles</a>
+          · <a href="https://en.wikipedia.org/wiki/Fourier_series">Fourier series</a>
+          · <a href="https://en.wikipedia.org/wiki/Phasor">Phasors</a>
+          <br><span class="who">Ptolemy had the picture; Fourier had the theorem.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">(p,q) from two rates</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Torus_knot">Torus knots</a>
+          on a <a href="https://en.wikipedia.org/wiki/Torus">torus</a>
+          · <a href="https://en.wikipedia.org/wiki/Knot_theory">Knot theory</a></span>
+      </div>
+      <div class="item">
+        <span class="mine">counting crossings in a projection</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Crossing_number_(knot_theory)">Crossing number</a>
+          — the minimum over all diagrams, which is why ours is only an upper bound</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The fold</h2>
+    <p class="lead">Anti-diagonals, mirror symmetry, and inversion in a circle.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">constant along anti-diagonals</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Hankel_matrix">Hankel matrices</a></span>
+      </div>
+      <div class="item">
+        <span class="mine">the fold-mirror <code>J Aᵀ J</code></span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Persymmetric_matrix">Persymmetric matrices</a>
+          — symmetric about the anti-diagonal</span>
+      </div>
+      <div class="item">
+        <span class="mine">fixes the Fold, swaps Inner and Outer, undoes itself</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Inversive_geometry">Inversion in a circle</a>
+          — those three properties <i>are</i> its definition</span>
+      </div>
+      <div class="item open">
+        <span class="mine">laying a digit string along the anti-diagonals and cutting it into
+          Inner / Fold / Outer, so the three sum back to the number exactly</span>
+        <span class="theirs">Not placed. Anti-diagonal traversal is a stock algorithm and folding a
+          matrix over a diagonal is patented, but neither does this partition.
+          <br><span class="who">Held loosely — a few searches is thin evidence, and this sort of thing
+          hides in course notes and personal sites.</span></span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Every link above goes to Wikipedia. The parts are old; the instrument is not. Nobody arrives at
+    Avizienis by staring at grids, or at Conway by colouring sticks, or at the FFT by asking why the
+    rings came out scrambled — but that is the route this took, and the rooms were furnished when we
+    got there.
+  </footer>
+</div>
+</body>
+</html>

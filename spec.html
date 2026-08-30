@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spec sheet · chronochromatic.org</title>
+<meta name="description" content="The chronochromatic convention, editable in place.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/base.css">
+<style>
+.wrap{max-width:900px; margin:0 auto; padding:40px 24px 80px; display:flex; flex-direction:column; gap:24px}
+.mast{display:flex; flex-direction:column; gap:10px; padding-bottom:20px; border-bottom:2px solid var(--ink)}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:clamp(1.9rem,5vw,2.6rem);
+  line-height:1.05; margin:0; letter-spacing:-.02em}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.bar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+button{font-family:"IBM Plex Mono",monospace; font-size:.74rem; padding:7px 13px; cursor:pointer;
+  background:transparent; color:var(--ink2); border:1px solid var(--rule2); border-radius:2px}
+button:hover{border-color:var(--brass); color:var(--brass)}
+button.act{background:var(--brass); border-color:var(--brass); color:var(--panel); font-weight:600}
+button:disabled{opacity:.45; cursor:default}
+.status{font-family:"IBM Plex Mono",monospace; font-size:.74rem; color:var(--ink3)}
+.status.bad{color:var(--red)} .status.good{color:var(--green)}
+textarea{width:100%; min-height:70vh; resize:vertical; padding:16px;
+  font-family:"IBM Plex Mono",monospace; font-size:.84rem; line-height:1.7;
+  background:var(--sunk); color:var(--ink); border:1px solid var(--rule2); border-radius:3px}
+textarea:focus{outline:2px solid var(--brass); outline-offset:1px}
+.doc{background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:26px 30px;
+  box-shadow:var(--shadow)}
+.doc h1{font-size:1.9rem; margin:0 0 6px}
+.doc h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.3rem; font-weight:500; margin:26px 0 0;
+  padding-bottom:6px; border-bottom:1px solid var(--rule)}
+.doc h3{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:600; margin:18px 0 0}
+.doc p{margin:11px 0; line-height:1.65; max-width:70ch}
+.doc em{color:var(--ink3)}
+.doc ul{margin:11px 0; padding-left:22px; line-height:1.65; max-width:70ch}
+.doc li{margin:5px 0}
+.doc code{font-family:"IBM Plex Mono",monospace; font-size:.86em;
+  background:var(--sunk); padding:1px 5px; border-radius:2px}
+.doc pre{overflow-x:auto; background:var(--sunk); border:1px solid var(--rule); border-radius:3px;
+  padding:13px 15px; margin:13px 0}
+.doc pre code{background:none; padding:0; font-size:.82rem; line-height:1.6}
+.doc table{border-collapse:collapse; margin:14px 0; font-size:.88rem; display:block; overflow-x:auto}
+.doc th,.doc td{border:1px solid var(--rule); padding:6px 12px; text-align:left}
+.doc th{background:var(--sunk); font-family:"IBM Plex Mono",monospace; font-size:.7rem;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); font-weight:600}
+.doc hr{border:0; border-top:1px solid var(--rule); margin:22px 0}
+.hide{display:none}
+.foot{border-top:1px solid var(--rule); padding-top:18px; color:var(--ink3); font-size:.84rem}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="/">Home</a>
+    <a href="/spectrometer.html">Spectrometer</a>
+    <a href="/atlas.html">Atlas</a>
+    <a href="/wub.html">Wub</a>
+    <a href="/spec.html" class="cur" aria-current="page">Spec</a>
+    <a href="/inspirations.html">Inspirations</a>
+  </nav>
+</header>
+<div class="wrap">
+  <header class="mast">
+    <span class="eyebrow">Living document</span>
+    <h1>Spec sheet</h1>
+  </header>
+
+  <div class="bar">
+    <button id="edit">Edit</button>
+    <button id="save" class="act hide">Save</button>
+    <button id="cancel" class="hide">Cancel</button>
+    <span class="status" id="status">loading…</span>
+  </div>
+
+  <div class="doc" id="doc"></div>
+  <textarea id="src" class="hide" spellcheck="false" aria-label="Markdown source"></textarea>
+
+  <footer class="foot">Saved straight to <code>spec.md</code> on disk. Nothing else on the site is writable.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+let ORIGINAL = "";
+
+/* a small markdown renderer: headings, fenced code, tables, lists, rules,
+   and inline code / bold / italic. enough for a spec sheet, nothing more. */
+function inline(s){
+  return esc(s)
+    .replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`)
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/(^|[\s(])\*([^*]+)\*/g, "$1<em>$2</em>");
+}
+function render(md){
+  const lines = md.replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  let i = 0;
+  const flushRow = r => r.split("|").slice(1, -1).map(c => c.trim());
+  while(i < lines.length){
+    const L = lines[i];
+    if(/^```/.test(L)){
+      const body = [];
+      i++;
+      while(i < lines.length && !/^```/.test(lines[i])) body.push(lines[i++]);
+      i++;
+      out.push(`<pre><code>${esc(body.join("\n"))}</code></pre>`);
+      continue;
+    }
+    const h = L.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ const n = h[1].length; out.push(`<h${n}>${inline(h[2])}</h${n}>`); i++; continue; }
+    if(/^(-{3,}|\*{3,})\s*$/.test(L)){ out.push("<hr>"); i++; continue; }
+    if(/^\|.*\|\s*$/.test(L) && /^\|[\s:|-]+\|\s*$/.test(lines[i+1] || "")){
+      const head = flushRow(L);
+      i += 2;
+      const rows = [];
+      while(i < lines.length && /^\|.*\|\s*$/.test(lines[i])) rows.push(flushRow(lines[i++]));
+      out.push(`<table><thead><tr>${head.map(c => `<th>${inline(c)}</th>`).join("")}</tr></thead>`
+        + `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+      continue;
+    }
+    if(/^\s*[-*]\s+/.test(L)){
+      const items = [];
+      while(i < lines.length && /^\s*[-*]\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*[-*]\s+/, ""));
+      out.push(`<ul>${items.map(t => `<li>${inline(t)}</li>`).join("")}</ul>`);
+      continue;
+    }
+    if(!L.trim()){ i++; continue; }
+    const para = [];
+    while(i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|\||\s*[-*]\s|-{3,})/.test(lines[i]))
+      para.push(lines[i++]);
+    out.push(`<p>${inline(para.join(" "))}</p>`);
+  }
+  return out.join("\n");
+}
+
+function say(msg, kind){ const s = $("status"); s.textContent = msg; s.className = "status " + (kind || ""); }
+
+async function load(){
+  try{
+    const r = await fetch("/spec.md", {cache: "no-store"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    ORIGINAL = await r.text();
+    $("doc").innerHTML = render(ORIGINAL);
+    say(`${ORIGINAL.split("\n").length} lines`);
+  }catch(e){ say("could not load spec.md — " + e.message, "bad"); }
+}
+
+function mode(editing){
+  $("doc").classList.toggle("hide", editing);
+  $("src").classList.toggle("hide", !editing);
+  $("edit").classList.toggle("hide", editing);
+  $("save").classList.toggle("hide", !editing);
+  $("cancel").classList.toggle("hide", !editing);
+}
+
+$("edit").addEventListener("click", () => { $("src").value = ORIGINAL; mode(true); $("src").focus(); });
+$("cancel").addEventListener("click", () => { mode(false); say("unchanged"); });
+$("save").addEventListener("click", async () => {
+  const body = $("src").value;
+  $("save").disabled = true;
+  say("saving…");
+  try{
+    const r = await fetch("/spec.md", {method: "PUT", headers: {"Content-Type": "text/markdown"}, body});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    ORIGINAL = body;
+    $("doc").innerHTML = render(ORIGINAL);
+    mode(false);
+    say("saved", "good");
+  }catch(e){
+    say("save failed — " + e.message + " (is serve.py running?)", "bad");
+  }finally{ $("save").disabled = false; }
+});
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>chronochromatic.org</title>
+<meta name="description" content="Folding integers onto an anti-diagonal grid: Inner, Fold, Outer — and the sphere they turn out to be.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/base.css">
+<style>
+.wrap{max-width:1000px; margin:0 auto; padding:52px clamp(16px,4vw,34px) 90px;
+  display:flex; flex-direction:column; gap:46px}
+.hero{display:flex; flex-direction:column; gap:14px; padding-bottom:30px; border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; margin:0; letter-spacing:-.025em;
+  font-size:clamp(2.4rem,7vw,4.2rem); line-height:.98; text-wrap:balance}
+.lede{color:var(--ink2); max-width:60ch; margin:0; font-size:1.06rem}
+h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.45rem; font-weight:500; margin:0 0 4px;
+  letter-spacing:-.01em}
+section{display:flex; flex-direction:column; gap:16px}
+p{margin:0; max-width:66ch; color:var(--ink2)}
+code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sunk);
+  padding:1px 5px; border-radius:2px; color:var(--ink)}
+
+.split{display:flex; gap:34px; flex-wrap:wrap; align-items:flex-start}
+.dg{display:grid; grid-template-columns:repeat(5,42px); gap:3px; flex:none}
+.dc{height:42px; display:flex; align-items:center; justify-content:center; border-radius:2px;
+  font-family:"IBM Plex Mono",monospace; font-size:.58rem; border:1px solid transparent}
+.dc.i{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
+.dc.f{background:transparent; color:var(--brass); border-color:var(--brass); border-width:2px; font-weight:600}
+.dc.o{background:var(--red-w); color:var(--red); border-color:var(--red)}
+.dc.a{background:transparent; color:var(--brass); border-color:var(--brass); border-style:dashed}
+.key{display:flex; flex-direction:column; gap:11px; flex:1; min-width:260px}
+.krow{display:flex; gap:11px; align-items:baseline}
+.kname{font-family:"Zilla Slab",serif; font-weight:700; font-size:1.02rem; min-width:64px}
+.kname.i{color:var(--blue)} .kname.f{color:var(--brass)} .kname.o{color:var(--red)}
+.list{display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:14px}
+.item{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  padding:12px; display:flex; flex-direction:column; gap:9px; align-items:center}
+.ik{font-family:"Zilla Slab",serif; font-weight:700; font-size:1.15rem; align-self:flex-start;
+  display:flex; gap:9px; align-items:baseline}
+.ib{font-family:"IBM Plex Mono",monospace; font-size:.76rem; letter-spacing:.06em; color:var(--ink3)}
+.ib i{font-style:normal} .ib i.b{color:var(--blue); font-weight:600} .ib i.g{color:var(--green); opacity:.8}
+.ng{display:grid; gap:2px}
+.nc{width:19px; height:19px; border-radius:2px; border:1px solid transparent}
+.nc.b{background:var(--blue-w); border-color:var(--blue)}
+.nc.g{background:var(--green-w); border-color:var(--green); opacity:.55}
+.nc.a{background:transparent; border-color:var(--brass); border-style:dashed}
+.nc.f{box-shadow:inset 0 0 0 2px var(--brass)}
+.kdesc{color:var(--ink3); font-size:.88rem}
+
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:22px;
+  display:flex; flex-direction:column; gap:9px; text-decoration:none; box-shadow:var(--shadow);
+  border-top:3px solid var(--brass)}
+.card:hover{border-color:var(--brass)}
+.card:focus-visible{outline:2px solid var(--brass); outline-offset:3px}
+.card h3{font-family:"Zilla Slab",serif; font-size:1.25rem; margin:0; color:var(--ink); font-weight:700}
+.card p{font-size:.9rem; color:var(--ink2)}
+.card .go{font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--brass); margin-top:3px}
+
+.facts{display:flex; flex-direction:column; gap:0; border:1px solid var(--rule); border-radius:4px;
+  overflow:hidden; background:var(--rule)}
+.fact{background:var(--panel); padding:14px 18px; display:flex; gap:16px; align-items:baseline;
+  flex-wrap:wrap; border-bottom:1px solid var(--rule)}
+.fact:last-child{border-bottom:0}
+.fact b{font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--brass); min-width:120px}
+.fact span{color:var(--ink2); font-size:.9rem; flex:1; min-width:240px}
+.foot{border-top:1px solid var(--rule); padding-top:22px; color:var(--ink3); font-size:.84rem}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="/" class="cur" aria-current="page">Home</a>
+    <a href="/spectrometer.html">Spectrometer</a>
+    <a href="/atlas.html">Atlas</a>
+    <a href="/wub.html">Wub</a>
+    <a href="/spec.html">Spec</a>
+    <a href="/inspirations.html">Inspirations</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <span class="eyebrow">Blue–Red Hackenbush · anti-diagonal folds · inversive geometry</span>
+    <h1>Numbers have a shape.</h1>
+    <p class="lede">Write an integer in signed digits — <b>red −1, green 0, blue +1</b> — and lay them along
+      the anti-diagonals of a square grid, smallest place value first. Negating a number just recolours it.
+      The three regions sum back to the integer exactly. And what comes out is a sphere, with an equator
+      that decides which way it turns.</p>
+  </section>
+
+  <section>
+    <h2>The fold</h2>
+    <p>A square grid splits into three parts along its main anti-diagonal, where <code>r + c = n − 1</code>.
+      Every cell above it has a partner below, and the fold sends each to the other. Cells fill in
+      Hankel order — anti-diagonal by anti-diagonal, each read from the bottom-left corner upward — so
+      the grid is indexed the way a Hankel matrix is, constant along the diagonals the fold cares about.</p>
+    <p><b>A1 is reserved.</b> It is always green, never a digit. The number&rsquo;s bits begin at B1 and run
+      in that same order, written exactly as they are — most significant first, no reordering. Whatever
+      is left over at the end is padded green. Negating a number flips every colour and nothing else.</p>
+    <div class="split">
+      <div class="dg" role="img" aria-label="A 5 by 5 grid split into Inner above the anti-diagonal, Fold on it, and Outer below">
+        <div class="dc a">A1</div><div class="dc i">B2</div><div class="dc i">C3</div><div class="dc i">D4</div><div class="dc f">Fold</div>
+        <div class="dc i">B1</div><div class="dc i">C2</div><div class="dc i">D3</div><div class="dc f">Fold</div><div class="dc o">·</div>
+        <div class="dc i">C1</div><div class="dc i">D2</div><div class="dc f">Fold</div><div class="dc o">·</div><div class="dc o">·</div>
+        <div class="dc i">D1</div><div class="dc f">Fold</div><div class="dc o">·</div><div class="dc o">·</div><div class="dc o">·</div>
+        <div class="dc f">Fold</div><div class="dc o">·</div><div class="dc o">·</div><div class="dc o">·</div><div class="dc o">nA1</div>
+      </div>
+      <div class="key">
+        <div class="krow"><span class="kname i">Inner</span>
+          <span class="kdesc">the low place values — the interior of the circle, one hemisphere</span></div>
+        <div class="krow"><span class="kname f">Fold</span>
+          <span class="kdesc">the middle place values — the circle of inversion, the equator</span></div>
+        <div class="krow"><span class="kname o">Outer</span>
+          <span class="kdesc">the high place values — the exterior, the other hemisphere</span></div>
+        <p style="font-size:.88rem">The map <code>(r,c) ↦ (n−1−c, n−1−r)</code> is the anti-transpose
+          <code>J Aᵀ J</code>. It fixes the Fold, swaps Inner with Outer, and undoes itself — which are
+          precisely the three defining properties of inversion in a circle.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Laying a number down</h2>
+    <p class="lede" style="font-size:1rem">The bit string, as written, poured into the grid from B1
+      onward. Blue is 1, green is 0, and the greens at the end are padding — the grid grows to the next
+      square that fits. The brass outline marks the Fold; the dashed cell is the reserved A1.</p>
+    <div class="list" id="list"></div>
+    <p class="pnote" style="color:var(--ink3); font-size:.86rem">A trailing zero and a padding green land
+      in the same cell, so <b>1, 2 and 4 draw identically</b>, as do 3 and 6. Across 1…1023 that merges
+      379 integers into 644 distinct grids. It is a picture of the bit pattern, not an address.</p>
+  </section>
+
+  <section>
+    <h2>Two instruments</h2>
+    <div class="cards">
+      <a class="card" href="/spectrometer.html">
+        <h3>Fold Spectrometer</h3>
+        <p>One integer, in full. Its stalk, its surreal value, the Inner / Fold / Outer split, the Fold read
+          as a signed radius, its Hankel matrix and spectrum, and the sphere it wraps onto.</p>
+        <span class="go">Open →</span>
+      </a>
+      <a class="card" href="/atlas.html">
+        <h3>Fold Atlas</h3>
+        <p>All 1023 integers from −511 to 511 at once. Negatives red, positives blue, exact colour-inverses
+          across the divider — plus the square wave that decides which way each one spins.</p>
+        <span class="go">Open →</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>What holds</h2>
+    <p>Everything below was checked by computation, not assumed. Where a guess failed, it is not listed.</p>
+    <div class="facts">
+      <div class="fact"><b>Negation</b><span>Negating an integer negates every digit and leaves the zeros
+        alone: <code>grid(−k) = −grid(k)</code>, exactly, at every size.</span></div>
+      <div class="fact"><b>Inversion</b><span>The fold-mirror fixes every Fold cell, swaps all
+        <code>n²−n</code> others, and is an involution — at n = 2, 3, 4, 5, 8, 12.</span></div>
+      <div class="fact"><b>Sphere</b><span>Arc sizes run 1, 2, … n … 2, 1: single-cell poles, widest ring at
+        the Fold, equal hemispheres, tiling <code>n²</code> exactly.</span></div>
+      <div class="fact"><b>Partition</b><span><code>Inner + Fold + Outer = k</code> exactly — verified for
+        every integer from −20,000 to 20,000. The three regions carve the number, they don't summarise it.</span></div>
+      <div class="fact"><b>Addition</b><span>One forward sweep along the walk, carrying as you go — no
+        aligning, no sign branch. 20,000 random signed pairs, none wrong.</span></div>
+      <div class="fact"><b>Not a compressor</b><span>The fold is a permutation, so it neither adds nor
+        destroys information. It is a layout, and it is fast at comparison and slow at arithmetic.</span></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>The construction — the Inner / Fold / Outer split, the place-value walk, reading the Fold as a
+      radius — is original. Signed-digit binary, Hankel matrices, Kronecker&rsquo;s theorem and inversive
+      geometry are not. The interest is in the coordinate system that puts them in one frame.</p>
+  </footer>
+</div>
+<script>
+/* Hankel order: anti-diagonal by anti-diagonal, each read bottom-left upward.
+   that is the A1 / B1 B2 / C1 C2 C3 naming, and A1 is skipped -- reserved. */
+function order(n){
+  const o = [];
+  for(let d = 0; d <= 2*(n-1); d++)
+    for(let r = Math.min(n-1, d); r >= 0; r--){ const c = d - r; if(c >= 0 && c < n) o.push([r, c]); }
+  return o;
+}
+function gridOf(k){
+  const bits = k.toString(2).split("").map(Number);      // as written, MSB first
+  let n = 1; while(n*n - 1 < bits.length) n++;
+  const g = Array.from({length: n}, () => Array(n).fill(0));
+  const o = order(n);
+  bits.forEach((b, i) => { const [r, c] = o[i+1]; g[r][c] = b; });
+  return {n, g, bits};
+}
+document.getElementById("list").innerHTML = Array.from({length: 24}, (_, i) => {
+  const k = i + 1, {n, g, bits} = gridOf(k);
+  const cells = [];
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){
+    const a1 = r === 0 && c === 0, fold = r + c === n - 1;
+    cells.push(`<div class="nc ${a1 ? "a" : g[r][c] ? "b" : "g"}${fold ? " f" : ""}"></div>`);
+  }
+  return `<div class="item"><div class="ik">${k}
+      <span class="ib">${bits.map(b => `<i class="${b ? "b" : "g"}">${b}</i>`).join("")}</span></div>
+    <div class="ng" style="grid-template-columns:repeat(${n},19px)">${cells.join("")}</div></div>`;
+}).join("");
+</script>
+</body>
+</html>

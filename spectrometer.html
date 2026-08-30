@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spectrometer · chronochromatic.org</title>
+<meta name="description" content="One integer as a stalk of halving place values, and the square it folds into.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/base.css">
+<style>
+html,body{height:100%}
+body{overflow:hidden; display:flex; flex-direction:column}
+.sitebar{flex:none}
+.wrap{flex:1; min-height:0; max-width:1500px; margin:0 auto; padding:14px 20px 16px;
+  display:flex; flex-direction:column; gap:12px}
+
+/* masthead on one line so the instrument gets the height */
+.mast{display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; flex:none;
+  padding-bottom:10px; border-bottom:2px solid var(--ink)}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.5rem; margin:0; letter-spacing:-.02em}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  box-shadow:var(--shadow); padding:14px}
+
+/* --- top row: input 1/5, stalk 4/5 --- */
+.top{display:grid; grid-template-columns:1fr 4fr; gap:12px; flex:none}
+@media (max-width:820px){ .top{grid-template-columns:1fr} }
+.entry{display:flex; flex-direction:column; gap:10px; justify-content:center}
+label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+input[type=text]{font-family:"IBM Plex Mono",monospace; font-size:1.15rem; padding:9px 10px; width:100%;
+  background:var(--sunk); color:var(--ink); border:1px solid var(--rule2); border-radius:2px}
+input[type=text]:focus{outline:2px solid var(--brass); outline-offset:1px}
+.numrow{position:relative; display:flex}
+.numrow input{flex:1; min-width:0; padding-right:26px}
+.spin{position:absolute; right:4px; top:4px; bottom:4px; display:flex; flex-direction:column; gap:1px}
+.spin button{flex:1; width:16px; padding:0; line-height:1; font-size:.42rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--panel); color:var(--ink3); border:1px solid var(--rule2); border-radius:2px}
+.spin button:hover{color:var(--brass); border-color:var(--brass)}
+.spin button:active{background:var(--brass); color:var(--panel); border-color:var(--brass)}
+.spin button:focus-visible{outline:2px solid var(--brass); outline-offset:1px}
+.forms{display:flex; gap:13px; align-items:center; flex-wrap:wrap}
+.opt{display:flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap;
+  font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3)}
+.opt input{accent-color:var(--brass); width:14px; height:14px; cursor:pointer; margin:0}
+.opt:has(input:checked){color:var(--brass)}
+.err{color:var(--red); font-family:"IBM Plex Mono",monospace; font-size:.72rem; min-height:1em}
+
+/* --- the stalk, with its four readings nested underneath --- */
+.stalkpanel{display:flex; flex-direction:column; gap:12px; min-width:0}
+/* one solid edge per cell, standing on the ground — a Hackenbush stalk */
+.stalkrow{display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; min-height:62px}
+.bars{display:flex; align-items:flex-end; gap:2px}
+.bar{width:var(--chip,14px); height:44px; border-radius:1px; flex:none}
+.bar.b{background:var(--blue)}
+.bar.r{background:var(--red)}
+.bar.g{background:var(--green); opacity:.5}
+.bar.a1{background:transparent; border:1px dashed var(--brass); box-sizing:border-box}
+.cma{align-self:flex-end; color:var(--ink3); font-family:"IBM Plex Mono",monospace;
+  font-size:1rem; line-height:.55; padding:0 3px; user-select:none; flex:none}
+.ground{height:3px; background:var(--ink); margin-top:5px}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:9px}
+@media (max-width:820px){ .stats{grid-template-columns:repeat(2,1fr)} }
+.stat{background:var(--sunk); border:1px solid var(--rule); border-left:3px solid var(--brass);
+  border-radius:3px; padding:9px 11px; display:flex; flex-direction:column; gap:3px; min-width:0}
+.skey{font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+.sval{font-family:"Zilla Slab",serif; font-size:1.1rem; font-weight:700; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:7px}
+.exbtn{font-family:"IBM Plex Mono",monospace; font-size:.6rem; padding:2px 6px; cursor:pointer; flex:none;
+  background:transparent; color:var(--ink3); border:1px solid var(--rule2); border-radius:2px}
+.exbtn:hover{border-color:var(--brass); color:var(--brass)}
+dialog{max-width:min(680px,90vw); border:1px solid var(--rule2); border-radius:3px;
+  background:var(--panel); color:var(--ink); padding:0}
+dialog::backdrop{background:#0008}
+.dhead{display:flex; align-items:baseline; gap:12px; padding:14px 18px; border-bottom:1px solid var(--rule)}
+.dhead h3{font-family:"Zilla Slab",serif; font-size:1.05rem; margin:0; font-weight:600}
+.dhead .sub{font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink3)}
+.dbody{padding:16px 18px; display:flex; flex-direction:column; gap:12px}
+.exnum{font-family:"IBM Plex Mono",monospace; font-size:.76rem; line-height:1.6; word-break:break-all;
+  background:var(--sunk); border:1px solid var(--rule); border-radius:3px; padding:11px;
+  max-height:38vh; overflow-y:auto}
+.drow{display:flex; gap:9px; align-items:center; flex-wrap:wrap}
+body.pip{overflow:auto; padding:0; background:var(--panel)}
+body.pip #expanel{height:100%; display:flex; flex-direction:column}
+body.pip .exnum{max-height:none; flex:1}
+.sfoot{font-size:.68rem; color:var(--ink3); line-height:1.4}
+
+/* --- the square, taking whatever height is left --- */
+.sqsec{flex:1; min-height:0; display:flex; flex-direction:column; gap:9px}
+.phead{display:flex; align-items:baseline; gap:12px; flex:none; flex-wrap:wrap}
+h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; margin:0}
+.pnote{color:var(--ink3); font-size:.74rem; margin:0}
+.sqbody{flex:1; min-height:0; display:grid; grid-template-columns:auto minmax(240px,1fr);
+  gap:20px; align-items:start; overflow:hidden}
+@media (max-width:820px){ .sqbody{grid-template-columns:1fr} }
+.side{align-self:start}
+.sqhold{display:flex; align-items:flex-start; justify-content:flex-start; min-width:0}
+.sq{display:grid; gap:3px; width:max-content}
+.sc{width:var(--sc,48px); height:var(--sc,48px); display:flex; align-items:center; justify-content:center;
+  border-radius:2px; border:1px solid transparent; font-family:"IBM Plex Mono",monospace;
+  font-size:calc(var(--sc,48px) * .38); font-weight:600}
+.sc.b{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
+.sc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
+.sc.g{background:var(--green-w); color:var(--green); border-color:var(--green); opacity:.6}
+.sc.a1{border-style:dashed; border-color:var(--brass); color:var(--brass); background:transparent; opacity:1}
+.sc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
+.side{display:flex; flex-direction:column; gap:9px; min-width:0}
+.side .stats{grid-template-columns:repeat(2,1fr)}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
+  font-size:.66rem; color:var(--ink2)}
+.viz{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto auto auto; gap:9px; align-items:stretch}
+@media (max-width:1150px){ .viz{grid-template-columns:repeat(3,minmax(0,1fr))} }
+#unit,#helix{width:var(--wh,86px); height:var(--wh,86px); display:block; margin:0 auto}
+#helix{width:calc(var(--wh,86px) * 1.5)}
+#latmode{font-family:"IBM Plex Mono",monospace; font-size:.56rem; padding:2px 4px; width:100%;
+  background:var(--sunk); color:var(--ink2); border:1px solid var(--rule2); border-radius:2px}
+.vbox{padding:10px 12px; display:flex; flex-direction:column; gap:7px; min-width:0}
+.vtitle{font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+.vfoot{font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3)}
+#wavex,#wavey,#wavez{width:100%; height:var(--wh,86px); display:block}
+/* the symbol is pure black and white, so it gets its own pale disc to sit on
+   or half of it vanishes into whichever theme is running */
+.yy{width:var(--wh,86px); height:var(--wh,86px); border-radius:50%; background:#D9DEE6;
+  border:1px solid var(--brass-soft); overflow:hidden; align-self:center}
+.yy img{width:100%; height:100%; display:block; transform-origin:50% 50%}
+@media (prefers-reduced-motion:reduce){ .yy img{transform:none !important} }
+.sw{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="/">Home</a>
+    <a href="/spectrometer.html" class="cur" aria-current="page">Spectrometer</a>
+    <a href="/atlas.html">Atlas</a>
+    <a href="/wub.html">Wub</a>
+    <a href="/spec.html">Spec</a>
+    <a href="/inspirations.html">Inspirations</a>
+  </nav>
+</header>
+<div class="wrap">
+  <header class="mast">
+    <span class="eyebrow">One integer</span>
+    <h1>Spectrometer</h1>
+    <p class="pnote" style="max-width:64ch">Bits written as <b>hex</b>, so they arrive padded to a
+      whole nibble — the leading zeros <i>are</i> the padding. Laid most significant first, row by
+      row; cell <i>i</i> weighs 2<sup>−(<i>i</i>+1)</sup>, so the value is <i>k</i>/2<sup>4·nibbles</sup>.</p>
+  </header>
+
+  <div class="top">
+    <div class="panel entry">
+      <div>
+        <label for="num">Integer</label>
+        <span class="numrow">
+          <input type="text" id="num" value="5" spellcheck="false" autocomplete="off">
+          <span class="spin">
+            <button id="inc" tabindex="-1" aria-label="Increase by one">&#9650;</button>
+            <button id="dec" tabindex="-1" aria-label="Decrease by one">&#9660;</button>
+          </span>
+        </span>
+      </div>
+      <div class="forms">
+        <label class="opt"><input type="radio" name="form" id="f_plain" checked><span>Plain</span></label>
+        <label class="opt"><input type="radio" name="form" id="f_push"><span>Pushed</span></label>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div class="panel stalkpanel">
+      <div class="stalkrow" id="stalk"></div>
+      <div class="stats" id="vstats"></div>
+    </div>
+  </div>
+
+  <section class="sqsec">
+    <div class="phead"><h2>The square</h2>
+      <p class="pnote">Row major, most significant first — the hex string poured in left to right.
+        Only the square is padded green.</p></div>
+    <div class="sqbody" id="sqbody">
+      <div class="sqhold"><div class="sq" id="sq"></div></div>
+      <div class="side">
+        <div class="stats" id="rstats"></div>
+        <div class="viz">
+          <div class="panel vbox">
+            <div class="vtitle">Wub · Re — cos(kx)</div>
+            <canvas id="wavey"></canvas>
+            <div class="vfoot" id="wyfoot"></div>
+          </div>
+<div class="panel vbox">
+            <div class="vtitle">Wub · Im — sin(kx)</div>
+            <canvas id="wavez"></canvas>
+            <div class="vfoot" id="wzfoot"></div>
+          </div>
+<div class="panel vbox">
+            <div class="vtitle">Wub · e^(ikx)</div>
+            <canvas id="wavex"></canvas>
+            <div class="vfoot" id="wavefoot"></div>
+          </div>
+          <div class="panel vbox">
+            <div class="vtitle">Helix</div>
+            <canvas id="helix" role="img"
+              aria-label="The wave as a helix, seen in three dimensions"></canvas>
+            <div class="vfoot" id="helixfoot"></div>
+          </div>
+          <div class="panel vbox">
+            <div class="vtitle">Unit sphere</div>
+            <canvas id="unit" role="img"
+              aria-label="The integer as a point on the unit sphere"></canvas>
+            <select id="latmode" aria-label="Where the latitude comes from">
+              <option value="area">equal area</option>
+              <option value="io">inner − outer</option>
+              <option value="golden">golden angle</option>
+            </select>
+            <div class="vfoot" id="unitfoot"></div>
+          </div>
+          <div class="panel vbox">
+            <div class="vtitle">Spin</div>
+            <div class="yy"><img id="yy" src="/yinyang.svg" alt="Yin-yang, turning at the number's frequency"></div>
+            <div class="vfoot" id="spinfoot"></div>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--blue)"></i>+1 · blue</span>
+          <span><i class="sw" style="background:var(--red)"></i>−1 · red</span>
+          <span><i class="sw" style="background:var(--green)"></i>0 · green</span>
+          <span style="color:var(--brass)">▢ the Fold, and the reserved A1</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <dialog id="dlg">
+    <div id="expanel">
+      <div class="dhead"><h3>Exact value</h3><span class="sub" id="dsub"></span></div>
+      <div class="dbody">
+        <div class="exnum" id="dnum"></div>
+        <div class="drow"><span class="skey">over</span>
+          <span class="sval" style="font-size:.95rem"><span id="dden"></span></span></div>
+        <div class="drow">
+          <button id="copy">Copy numerator</button>
+          <button id="close">Close</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<script src="/stalk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const FORM = () => $("f_push").checked ? "push" : "plain";
+const col = k => getComputedStyle(document.body).getPropertyValue(k).trim();
+function statBlock(el, rows){
+  el.innerHTML = rows.map(([k, v, f]) =>
+    `<div class="stat"><span class="skey">${k}</span><span class="sval">${v}</span>`
+    + `<span class="sfoot">${f}</span></div>`).join("");
+}
+
+let LAST = null;   // {shown, groups, n} — kept so resize can refit without re-parsing
+
+/* chips and square cells are sized to the box they are in, so the page never
+   scrolls: everything shrinks until it fits, down to a floor where a cell is
+   still a visible mark. */
+function fit(){
+  if(!LAST) return;
+  const {shown, groups, n} = LAST;
+  const row = $("stalk");
+  const w = row.clientWidth || 900;
+  const per = (w - groups.length * 12) / Math.max(1, shown.length);
+  const chip = Math.max(2, Math.min(15, Math.floor(per) - 2));
+  row.style.setProperty("--chip", chip + "px");
+
+  const body = $("sqbody");
+  const top = body.getBoundingClientRect ? body.getBoundingClientRect().top : 0;
+  const availH = (window.innerHeight || 800) - top - 18;   // what is left below the fold
+  const availW = (body.clientWidth || 900) - 260;          // the side column keeps 240 + gap
+  const box = Math.max(60, Math.min(availH, availW));
+  const sc = Math.max(7, Math.min(48, Math.floor((box - (n - 1) * 3) / n)));
+  $("sq").style.setProperty("--sc", sc + "px");
+}
+
+function draw(){
+  let p;
+  try{ p = parse($("num").value); $("err").textContent = ""; }
+  catch(e){ $("err").textContent = e.message; return; }
+
+  const {n, raw, cells} = hexSequence(p.v, p.neg);
+  const shown = FORM() === "push" ? pushLeft(raw) : raw;
+  const groups = [];                        // rows of the square, not anti-diagonals
+  for(let gi = 0; gi < shown.length; gi += n) groups.push(shown.slice(gi, gi + n));
+  LAST = {shown, groups, n};
+
+  const out = [];
+  let i = 0;
+  groups.forEach((g, gi) => {
+    if(gi) out.push(`<span class="cma">,</span>`);
+    g.forEach(v => {
+      out.push(`<div class="bar ${cls(v)}" title="2^-${i + 1}"></div>`);
+      i++;
+    });
+  });
+  $("stalk").innerHTML = `<div class="bars">${out.join("")}</div><div class="ground"></div>`;
+
+  const f = hexValue(shown), plainF = hexValue(raw);
+  statBlock($("vstats"), [
+    ["Value", `<span>${sciText(f)}</span>`
+      + `<button class="exbtn" id="exact" title="pop the exact fraction out into its own window">exact ⧉</button>`,
+      `${dec(f).toFixed(9)} · over 2${sup(log2den(f.den))}`],
+    ["Cells", `${raw.length}`,
+      `${raw.length/4} nibble${raw.length === 4 ? "" : "s"}, ${n*n - raw.length} padded in the square`],
+    ["Commas", groups.map(g => g.length).join(" · "), `rows of the ${n}×${n} square`],
+    ["Push", FORM() === "push" ? "on" : "off",
+      fmt(f) === fmt(plainF) ? "value unchanged — only the colours moved" : "MISMATCH — this is a bug"],
+  ]);
+
+  const padded = FORM() === "push" ? shown.concat(cells.slice(raw.length)) : cells;
+  const g2 = rowMajor(padded, n);
+  const sq = [];
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){
+    const fold = r + c === n - 1;
+    sq.push(`<div class="sc ${cls(g2[r][c])}${fold ? " fold" : ""}">${glyph(g2[r][c])}</div>`);
+  }
+  const el = $("sq");
+  el.style.gridTemplateColumns = `repeat(${n},var(--sc,48px))`;
+  el.innerHTML = sq.join("");
+
+  const R = hexRegions(padded, n);
+  const sum = a => a.reduce((t, s) => t + s.v * Math.pow(2, -(s.i + 1)), 0);
+  AMPI = sum(R.inner); AMPO = sum(R.outer);
+  WAVEVAL = dec(f);
+  const mode = ($("latmode") && $("latmode").value) || "area";
+  drawSphereDot(dec(f) * Math.PI, latOf(mode, dec(f), AMPI, AMPO, p.neg ? -p.v : p.v));
+  $("wyfoot").textContent = "the real shadow";
+  $("wzfoot").textContent = "the imaginary shadow";
+  statBlock($("rstats"), [
+    ["Inner", sum(R.inner).toFixed(6), `${R.inner.length} cells above the fold`],
+    ["Fold", sum(R.fold).toFixed(6), `${R.fold.length} cells on r+c = n−1`],
+    ["Outer", sum(R.outer).toFixed(6), `${R.outer.length} cells below`],
+    ["Together", (sum(R.inner) + sum(R.fold) + sum(R.outer)).toFixed(6),
+      `the value is ${dec(f).toFixed(6)}`],
+  ]);
+
+  setFreq(p.v, p.neg);
+  EXACT = f;
+  const b = document.getElementById("exact");
+  if(b) b.addEventListener("click", showExact);
+  if(PIP && !PIP.closed) fillExact();          // keep the popout live while typing
+  fit();
+}
+
+/* the full fraction never lives in the card — it pops out into its own
+   picture-in-picture window, which stays on top while you keep typing.
+   Browsers without Document PiP (Firefox, today) get the dialog instead. */
+let EXACT = null, PIP = null;
+function fillExact(){
+  const num = EXACT.num.toString(), e = log2den(EXACT.den);
+  $("dnum").textContent = num;
+  $("dsub").textContent = `${num.replace("-", "").length} digits over 2^${e}`;
+  $("dden").textContent = EXACT.den === 1n ? "1" : `2^${e}`;
+}
+function carryStyles(doc){
+  for(const sheet of document.styleSheets){
+    try{
+      const css = [...sheet.cssRules].map(r => r.cssText).join("\n");
+      const el = doc.createElement("style");
+      el.textContent = css;
+      doc.head.appendChild(el);
+    }catch(err){                       // cross-origin sheet: link it instead
+      if(!sheet.href) continue;
+      const l = doc.createElement("link");
+      l.rel = "stylesheet"; l.href = sheet.href;
+      doc.head.appendChild(l);
+    }
+  }
+}
+function homePanel(){                  // put the panel back where it belongs
+  const panel = $("expanel");
+  if(panel && panel.ownerDocument !== document) $("dlg").appendChild(panel);
+  PIP = null;
+}
+async function showExact(){
+  if(!EXACT) return;
+  fillExact();
+  const api = window.documentPictureInPicture;
+  if(api && api.requestWindow){
+    try{
+      if(PIP && !PIP.closed){ PIP.focus(); return; }
+      const w = await api.requestWindow({width: 460, height: 340});
+      carryStyles(w.document);
+      w.document.body.classList.add("pip");
+      w.document.body.appendChild($("expanel"));
+      w.addEventListener("pagehide", homePanel);
+      PIP = w;
+      return;
+    }catch(err){ homePanel(); }        // denied or unsupported — fall through
+  }
+  $("dlg").showModal();
+}
+
+/* ---- the wub, and the wheel ----
+   one frequency drives both: the integer itself. drawn cycles are capped so a
+   huge k renders as a wave rather than as aliased noise, and the cap is stated
+   rather than hidden. the sign of k sets which way the wheel turns, the same
+   way negating flips every colour. */
+const CYCLE_CAP = 64;
+let FREQ = 1, SIGN = 1, RPS = 1n;      // RPS is |k| exactly, as a BigInt
+let AMPI = 0, AMPO = 0;                // Inner and Outer, the X and Y amplitudes
+let WAVEVAL = 0;                       // the stalk value, which sets the colour
+
+function setFreq(v, neg){
+  const bits = v === 0n ? 0 : v.toString(2).length;
+  FREQ = v === 0n ? 0 : Number(v > BigInt(CYCLE_CAP) ? BigInt(CYCLE_CAP) : v);
+  SIGN = neg ? -1 : 1;
+  RPS = v;
+  const capped = v > BigInt(CYCLE_CAP);
+  $("wavefoot").textContent = v === 0n ? "no wave — zero"
+    : `${FREQ} cycle${FREQ === 1 ? "" : "s"}${capped ? ` (capped, ${bits} bits)` : ""}`
+      + ` · ${Math.round(nmOf(WAVEVAL))} nm`;
+  /* a 60 Hz screen can only resolve half a turn per frame, so past 30 rev/s
+     what you see is an alias, not the real rate. said, not silently capped. */
+  const alias = v > 30n;
+  /* a 70-bit rate is 21 digits of footer, so past five figures show the
+     mantissa. the phase itself is still computed from the exact BigInt. */
+  const rate = v > 99999n ? sciText({num: v, den: 1n}) : v.toString();
+  $("spinfoot").textContent = v === 0n ? "still"
+    : `${rate} rev/s · ${SIGN > 0 ? "clockwise" : "widdershins"}${alias ? " · aliased" : ""}`;
+}
+
+let PHASE = 0, T0 = null;
+function frame(t){
+  if(T0 === null) T0 = t;
+  const dt = Math.min(0.05, (t - T0) / 1000);
+  T0 = t;
+  PHASE += dt * 2 * Math.PI * SIGN;
+
+  /* three channels of the same walk. X and Y carry the Inner and Outer
+     amplitudes, and Z is what the unit sphere forces on them:
+       X = I sin(kx),  Y = O cos(ky),  Z = sqrt(1 - X^2 - Y^2)
+     I and O are both well under 1, so Z never leaves the real line. */
+  /* ---- e^(ikx) is a helix; a sine wave is one of its shadows ----
+     the corkscrew is (x, cos kx, sin kx). drawn obliquely, the cosine
+     supplies the depth and the sine the height, so the curve visibly winds
+     rather than lying flat. the two flat panels are its two silhouettes. */
+  function flat(id, fn, colour){
+    const cv = $(id); if(!cv || !cv.getContext) return;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = cv.clientWidth || 260, h = cv.clientHeight || 86;
+    if(cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+    const g = cv.getContext("2d");
+    g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+    const mid = h/2, amp = h/2 - 6;
+    g.beginPath(); g.moveTo(0, mid); g.lineTo(w, mid);
+    g.strokeStyle = col("--rule2"); g.lineWidth = 1; g.stroke();
+    if(FREQ <= 0) return;
+    g.beginPath();
+    for(let px = 0; px <= w; px++){
+      const x = px / w * 2 * Math.PI;
+      const y = mid - fn(FREQ * x + PHASE) * amp;
+      px ? g.lineTo(px, y) : g.moveTo(px, y);
+    }
+    g.strokeStyle = col(colour); g.lineWidth = 1.6; g.stroke();
+  }
+  drawHelix(FREQ, nmToRGB(nmOf(WAVEVAL)), t);
+  flat("wavey", Math.cos, "--red");         // the electric shadow
+  flat("wavez", Math.sin, "--blue");        // the magnetic one, a quarter turn on
+
+  const cv = $("wavex");
+  if(cv && cv.getContext){
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = cv.clientWidth || 260, h = cv.clientHeight || 86;
+    if(cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+    const g = cv.getContext("2d");
+    g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+    const mid = h/2, amp = h/2 - 7, lean = amp * 0.42;   // how far the depth tips
+    g.beginPath(); g.moveTo(0, mid); g.lineTo(w, mid);
+    g.strokeStyle = col("--rule2"); g.lineWidth = 1; g.stroke();
+    if(FREQ > 0){
+      const N = Math.max(240, Math.min(1600, FREQ * 48));
+      const glow = nmToRGB(nmOf(WAVEVAL));
+      const pt = i => {
+        const t = i / N * 2 * Math.PI, a = FREQ * t + PHASE;
+        const re = Math.cos(a), im = Math.sin(a);
+        return {x: i / N * w + re * lean * 0.16, y: mid - im * amp - re * lean * 0.30, d: re};
+      };
+      for(let i = 0; i < N; i++){                       // fade the far half
+        const p0 = pt(i), p1 = pt(i + 1);
+        g.globalAlpha = 0.30 + 0.70 * ((Math.max(p0.d, p1.d) + 1) / 2);
+        g.strokeStyle = glow;
+        g.lineWidth = 1.7;
+        g.beginPath(); g.moveTo(p0.x, p0.y); g.lineTo(p1.x, p1.y); g.stroke();
+      }
+      g.globalAlpha = 1;
+    }
+  }
+
+  /* the fractional part of |k| revolutions, computed in BigInt so the phase
+     stays exact even when |k| has seventy bits and a double would not. */
+  const img = $("yy");
+  if(img && img.style){
+    let deg = 0;
+    if(RPS !== 0n){
+      const ms = BigInt(Math.max(0, Math.round(t)));
+      deg = SIGN * Number((RPS * ms) % 1000n) / 1000 * 360;
+    }
+    img.style.transform = `rotate(${deg.toFixed(2)}deg)`;
+  }
+
+  requestAnimationFrame(frame);
+}
+
+$("close").addEventListener("click", () => {
+  if(PIP && !PIP.closed){ PIP.close(); homePanel(); } else { $("dlg").close(); }
+});
+$("copy").addEventListener("click", async () => {
+  try{ await navigator.clipboard.writeText($("dnum").textContent); $("copy").textContent = "Copied"; }
+  catch(e){ $("copy").textContent = "Copy blocked"; }
+  setTimeout(() => { $("copy").textContent = "Copy numerator"; }, 1400);
+});
+/* step in BigInt so a seventy-bit number still increments exactly. a hex or
+   binary entry comes back as decimal, which is the honest result of adding. */
+function step(d){
+  let p;
+  try{ p = parse($("num").value); }
+  catch(e){ return; }
+  $("num").value = ((p.neg ? -p.v : p.v) + BigInt(d)).toString();
+  draw();
+}
+$("inc").addEventListener("click", () => step(1));
+$("dec").addEventListener("click", () => step(-1));
+$("num").addEventListener("keydown", e => {
+  if(e.key === "ArrowUp"){ step(1); e.preventDefault(); }
+  if(e.key === "ArrowDown"){ step(-1); e.preventDefault(); }
+});
+/* ---- the integer as a point on the unit sphere ----
+   Inner and Outer give x and y; the radius is pegged at 1, so z follows —
+   z = sqrt(1 - x^2 - y^2), and the Fold decides which hemisphere it lands in.
+   Inner^2 + Outer^2 never reaches 1 (16382/16382 checked), so z is real. */
+/* ---- the integer on the unit sphere ----
+   two angles, not two coordinates: the parametric form cannot fail, covers
+   both hemispheres, and needs no square root that might go negative.
+       x = cos(phi) cos(theta)   y = cos(phi) sin(theta)   z = sin(phi)
+   longitude always comes from the value. latitude has three sources:
+     equal area   asin(2|value| - 1), which compensates for the fact that
+                  bands near a pole hold less surface — the evenest of the
+                  three that still reads the number  (0.77)
+     inner-outer  Inner pulls north, Outer south. true to the fold's own
+                  language, but Outer is nearly always starved, so it piles
+                  the points onto the caps  (0.28)
+     golden angle a fixed step per integer. perfectly even  (1.00), but it
+                  ignores the number entirely — k is only an index. */
+const clamp1 = t => Math.max(-1, Math.min(1, t));
+
+/* ---- the integer as a colour ----
+   the stalk value lands in (0,1), so it maps straight onto the visible band.
+   this is a mapping, not physics: a real optical frequency is ~10^14 Hz and
+   no integer here is anywhere near it. what carries over is the ORDER —
+   a bigger value is a longer wave, and the same number always gives the
+   same colour. wavelength to RGB by the usual piecewise fit. */
+const VIS_LO = 380, VIS_HI = 730;
+const nmOf = val => VIS_LO + Math.min(1, Math.abs(val)) * (VIS_HI - VIS_LO);
+function nmToRGB(nm){
+  let r = 0, g = 0, b = 0;
+  if(nm < 440){ r = -(nm - 440) / 60; b = 1; }
+  else if(nm < 490){ g = (nm - 440) / 50; b = 1; }
+  else if(nm < 510){ g = 1; b = -(nm - 510) / 20; }
+  else if(nm < 580){ r = (nm - 510) / 70; g = 1; }
+  else if(nm < 645){ r = 1; g = -(nm - 645) / 65; }
+  else { r = 1; }
+  /* the eye gives out at both ends; fade rather than clip */
+  let f = 1;
+  if(nm < 420) f = 0.3 + 0.7 * (nm - 380) / 40;
+  else if(nm > 700) f = 0.3 + 0.7 * (730 - nm) / 30;
+  const ch = v => Math.round(255 * Math.pow(Math.max(0, v) * f, 0.8));
+  return `rgb(${ch(r)} ${ch(g)} ${ch(b)})`;
+}
+function latOf(mode, val, I, O, k){
+  if(mode === "io"){ const d = Math.abs(I) + Math.abs(O);
+    return Math.asin(d ? clamp1((I - O) / d) : 0); }
+  if(mode === "golden"){ const kk = Math.abs(Number(k)) || 1;
+    return Math.asin(clamp1(2 * (((kk * 0.618033988749895) % 1)) - 1)); }
+  return Math.asin(clamp1(2 * Math.abs(val) - 1)) * (Math.sign(val) || 1);
+}
+
+/* ---- the wave in three dimensions ----
+   the axis runs away from you, the circle winds around it, and the whole thing
+   turns slowly so the depth is unmistakable. this is the same curve the flat
+   panels are shadows of: (t, cos kt, sin kt) on a cylinder of radius 1. */
+let HSPIN = 0;
+function drawHelix(freq, colour, t){
+  const cv = $("helix"); if(!cv || !cv.getContext) return;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = cv.clientWidth || 130, H = cv.clientHeight || 86;
+  if(cv.width !== Math.round(W*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  if(freq <= 0){ $("helixfoot").textContent = "no wave"; return; }
+  HSPIN = t * 0.00035;
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W, H) * 0.30;          // the cylinder's radius on screen
+  const L = W * 0.40;                       // half the length of the axis
+  const ca = Math.cos(HSPIN), sa = Math.sin(HSPIN);
+  const TILT = 0.55, ct = Math.cos(TILT), st = Math.sin(TILT);
+  /* (u along the axis, v and z around it), spun about the vertical then tipped */
+  const proj = (u, v, z) => {
+    const x = u*ca - v*sa, d = u*sa + v*ca;
+    return {px: cx + x, py: cy - (z*ct - d*st), d};
+  };
+  const A = proj(-L, 0, 0), B = proj(L, 0, 0);       // the axis it winds about
+  g.beginPath(); g.moveTo(A.px, A.py); g.lineTo(B.px, B.py);
+  g.strokeStyle = col("--rule2"); g.lineWidth = 1;
+  g.setLineDash([3,3]); g.stroke(); g.setLineDash([]);
+  const N = Math.max(300, Math.min(2000, freq * 90));
+  let prev = null;
+  for(let i = 0; i <= N; i++){
+    const f = i / N, a = freq * f * 2 * Math.PI;
+    const q = proj(-L + 2*L*f, Math.cos(a)*R, Math.sin(a)*R);
+    if(prev){
+      g.globalAlpha = 0.25 + 0.75 * ((Math.max(prev.d, q.d) / (L||1)) + 1) / 2;
+      g.strokeStyle = colour; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(prev.px, prev.py); g.lineTo(q.px, q.py); g.stroke();
+    }
+    prev = q;
+  }
+  g.globalAlpha = 1;
+  $("helixfoot").textContent = `${freq} turn${freq === 1 ? "" : "s"} · radius 1`;
+}
+
+function drawSphereDot(theta, phi){
+  const cv = $("unit"); if(!cv || !cv.getContext) return;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = cv.clientWidth || 86, H = cv.clientHeight || W;
+  if(cv.width !== Math.round(W*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const cx = W/2, cy = H/2, S = Math.min(W, H) * 0.42;
+  const x = Math.cos(phi) * Math.cos(theta);
+  const y = Math.cos(phi) * Math.sin(theta);
+  const z = Math.sin(phi);
+  const TILT = 0.42, ct = Math.cos(TILT), st = Math.sin(TILT);
+  /* tilt so the equator reads as an ellipse; y is depth, z is up */
+  const px = cx + x*S, py = cy - (z*ct - y*st)*S, depth = z*st + y*ct;
+
+  g.beginPath(); g.arc(cx, cy, S, 0, 7);
+  g.strokeStyle = col("--rule2"); g.lineWidth = 1; g.stroke();
+  for(const lat of [-0.9, -0.45, 0, 0.45, 0.9]){
+    const rr = Math.cos(lat), zz = Math.sin(lat);
+    g.beginPath();
+    for(let i = 0; i <= 48; i++){ const a = i/48 * Math.PI*2;
+      const qx = cx + rr*Math.cos(a)*S, qy = cy - (zz*ct - rr*Math.sin(a)*st)*S;
+      i ? g.lineTo(qx, qy) : g.moveTo(qx, qy); }
+    g.strokeStyle = col("--rule2");
+    g.lineWidth = lat === 0 ? 1.1 : 0.6;
+    g.globalAlpha = lat === 0 ? .9 : .45; g.stroke(); g.globalAlpha = 1;
+  }
+  g.beginPath(); g.moveTo(cx, cy); g.lineTo(px, py);
+  g.strokeStyle = col("--brass"); g.lineWidth = 1.2;
+  g.globalAlpha = depth < 0 ? .35 : .9; g.stroke(); g.globalAlpha = 1;
+  g.beginPath(); g.arc(px, py, 4, 0, 7);
+  g.fillStyle = z >= 0 ? col("--blue") : col("--red");
+  g.strokeStyle = col("--panel"); g.lineWidth = 1.6;
+  g.globalAlpha = depth < 0 ? .5 : 1;
+  g.fill(); g.stroke(); g.globalAlpha = 1;
+  $("unitfoot").textContent =
+    `${(theta*180/Math.PI).toFixed(0)}\u00b0 lon · ${(phi*180/Math.PI).toFixed(0)}\u00b0 lat`;
+}
+
+function drawUnitOld(x, y, foldSign){
+  const cv = $("unit"); if(!cv || !cv.getContext) return;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = cv.clientWidth || 86, H = cv.clientHeight || W;
+  if(cv.width !== Math.round(W*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const cx = W/2, cy = H/2, S = Math.min(W, H) * 0.44;
+  const q = x*x + y*y;
+  const z = q <= 1 ? (foldSign < 0 ? -1 : 1) * Math.sqrt(1 - q) : 0;
+
+  g.beginPath(); g.arc(cx, cy, S, 0, 7);          // the sphere, seen down z
+  g.strokeStyle = col("--rule2"); g.lineWidth = 1; g.stroke();
+  g.beginPath(); g.ellipse(cx, cy, S, S * 0.34, 0, 0, 7);
+  g.strokeStyle = col("--rule2"); g.globalAlpha = .7; g.stroke(); g.globalAlpha = 1;
+  g.beginPath(); g.moveTo(cx - S, cy); g.lineTo(cx + S, cy);
+  g.moveTo(cx, cy - S); g.lineTo(cx, cy + S);
+  g.strokeStyle = col("--rule2"); g.globalAlpha = .5; g.stroke(); g.globalAlpha = 1;
+
+  const px = cx + x*S, py = cy - y*S;
+  g.beginPath(); g.moveTo(cx, cy); g.lineTo(px, py);
+  g.strokeStyle = col("--brass"); g.lineWidth = 1.4; g.stroke();
+  const r = 3 + 2.6 * Math.abs(z);                 // nearer the pole, larger
+  g.beginPath(); g.arc(px, py, r, 0, 7);
+  g.fillStyle = z >= 0 ? col("--blue") : col("--red");
+  g.strokeStyle = col("--panel"); g.lineWidth = 1.6;
+  g.fill(); g.stroke();
+  $("unitfoot").textContent = `z ${z >= 0 ? "+" : "\u2212"}${Math.abs(z).toFixed(4)}`;
+}
+
+$("latmode").addEventListener("change", draw);
+$("num").addEventListener("input", draw);
+$("f_plain").addEventListener("change", draw);
+$("f_push").addEventListener("change", draw);
+addEventListener("resize", fit);
+draw();
+if(typeof requestAnimationFrame === "function") requestAnimationFrame(frame);
+</script>
+</body>
+</html>

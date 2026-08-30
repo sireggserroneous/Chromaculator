@@ -1,0 +1,53 @@
+/* chronochromatic.org — shared tokens and chrome */
+:root{
+  --paper:#E9EDF3; --panel:#F7F9FC; --sunk:#DEE4EC;
+  --ink:#131923; --ink2:#4C5A6E; --ink3:#7B889B;
+  --rule:#CFD8E4; --rule2:#B9C4D3;
+  --brass:#9A6E24; --brass-soft:#C9A25A;
+  --blue:#2558C6; --red:#C13030; --green:#2C8A61;
+  --blue-w:#2558C622; --red-w:#C1303022; --green-w:#2C8A6122;
+  --wash-r:#C1303014; --wash-b:#2558C614;
+  --shadow:0 1px 2px #13192314, 0 8px 24px #1319230d;
+  --bar:#F7F9FCE6;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#0C1015; --panel:#151C26; --sunk:#0F151D;
+  --ink:#E7ECF3; --ink2:#9BA9BC; --ink3:#68758A;
+  --rule:#243040; --rule2:#33425A;
+  --brass:#D9A959; --brass-soft:#8A6A32;
+  --blue:#5E9CFF; --red:#FF6E6E; --green:#4FCE92;
+  --blue-w:#5E9CFF26; --red-w:#FF6E6E26; --green-w:#4FCE9226;
+  --wash-r:#FF6E6E1A; --wash-b:#5E9CFF1A;
+  --shadow:0 1px 2px #0006, 0 10px 30px #0004;
+  --bar:#151C26E6;
+} }
+:root[data-theme="dark"]{
+  --paper:#0C1015; --panel:#151C26; --sunk:#0F151D;
+  --ink:#E7ECF3; --ink2:#9BA9BC; --ink3:#68758A;
+  --rule:#243040; --rule2:#33425A;
+  --brass:#D9A959; --brass-soft:#8A6A32;
+  --blue:#5E9CFF; --red:#FF6E6E; --green:#4FCE92;
+  --blue-w:#5E9CFF26; --red-w:#FF6E6E26; --green-w:#4FCE9226;
+  --wash-r:#FF6E6E1A; --wash-b:#5E9CFF1A;
+  --shadow:0 1px 2px #0006, 0 10px 30px #0004;
+  --bar:#151C26E6;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+
+/* ---- site bar ---- */
+.sitebar{position:sticky; top:0; z-index:50; background:var(--bar);
+  backdrop-filter:saturate(1.4) blur(8px); border-bottom:1px solid var(--rule);
+  display:flex; align-items:center; gap:26px; flex-wrap:wrap;
+  padding:11px clamp(16px,4vw,34px)}
+.brand{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.02rem;
+  color:var(--ink); text-decoration:none; letter-spacing:-.01em; white-space:nowrap}
+.brand span{color:var(--brass); font-weight:400}
+.sitebar nav{display:flex; gap:20px; flex-wrap:wrap;
+  font-family:"IBM Plex Mono",monospace; font-size:.71rem; letter-spacing:.13em; text-transform:uppercase}
+.sitebar nav a{color:var(--ink3); text-decoration:none; padding:3px 0; border-bottom:1.5px solid transparent}
+.sitebar nav a:hover{color:var(--ink)}
+.sitebar nav a.cur{color:var(--brass); border-bottom-color:var(--brass)}
+.sitebar nav a:focus-visible,.brand:focus-visible{outline:2px solid var(--brass); outline-offset:3px}
