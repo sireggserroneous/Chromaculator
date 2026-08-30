@@ -202,3 +202,62 @@ function hexRegions(cells, n){
   }
   return {inner, fold, outer};
 }
+
+/* ---- the product grid ----
+   Multiply two stalks cell by cell and the answer is a rectangle. A runs along
+   the columns, B down the rows, so row r column c holds a_c * b_r and weighs
+   2^-(c+1) * 2^-(r+1) = 2^-(r+c+2). Summing the whole rectangle is the product,
+   exactly -- no carries, because nothing is ever added into the same place.
+
+   A with m cells times B with n cells is therefore n rows by m columns: the
+   operands keep their sides, so A*B and B*A are transposes of each other.
+
+   Weight depends only on r+c, so the anti-diagonals are the place values, just
+   as they are for a single stalk. The fold is the one through the last cell of
+   the shorter operand -- r+c = L-1, L = min(m, n) -- which is the last
+   anti-diagonal that still reaches both edges of the rectangle. */
+function hexProduct(A, B){
+  const cols = A.length, rows = B.length;
+  const cells = [];
+  for(let r = 0; r < rows; r++)
+    for(let c = 0; c < cols; c++) cells.push(A[c] * B[r]);
+  return {rows, cols, cells, foldAt: Math.min(rows, cols) - 1};
+}
+function productRegions(P){
+  const inner = [], fold = [], outer = [];
+  for(let i = 0; i < P.cells.length; i++){
+    const r = Math.floor(i / P.cols), c = i % P.cols;
+    const slot = {v: P.cells[i], r, c, i, w: r + c + 2};   // the cell weighs 2^-w
+    (r + c < P.foldAt ? inner : r + c === P.foldAt ? fold : outer).push(slot);
+  }
+  return {inner, fold, outer};
+}
+/* exact, over 2^(rows+cols) — the largest weight any cell can carry */
+function productValue(P){
+  const D = P.rows + P.cols;
+  let num = 0n;
+  for(let i = 0; i < P.cells.length; i++){
+    const v = P.cells[i];
+    if(!v) continue;
+    const r = Math.floor(i / P.cols), c = i % P.cols;
+    num += BigInt(v) * (1n << BigInt(D - (r + c + 2)));
+  }
+  const den = 1n << BigInt(D);
+  const g = (a, b) => { a = a < 0n ? -a : a; while(b){ [a, b] = [b, a % b]; } return a || 1n; };
+  const d = g(num, den);
+  return {num: num / d, den: den / d};
+}
+/* the grid read back out as a plain stalk, so a product can be an operand
+   again. rows+cols cells, because that is what the value is over. */
+function productDigits(P){
+  const D = P.rows + P.cols;
+  let num = 0n;
+  for(let i = 0; i < P.cells.length; i++){
+    const v = P.cells[i];
+    if(!v) continue;
+    const r = Math.floor(i / P.cols), c = i % P.cols;
+    num += BigInt(v) * (1n << BigInt(D - (r + c + 2)));
+  }
+  const sgn = num < 0n ? -1 : 1, mag = num < 0n ? -num : num;
+  return mag.toString(2).padStart(D, "0").split("").map(ch => ch === "1" ? sgn : 0);
+}

@@ -18,6 +18,7 @@ always a dyadic rational strictly inside (−1, 1).
 | **Spectrometer** | one integer in full: its stalk, its square, its three regions, its value as a light wave, and its point on the unit sphere |
 | **Atlas** | every integer as a ring of dyadics, ordered by value. Ring *r* is the 2<sup>r+1</sup> roots of unity; selecting one draws a radius and lights the path down to it |
 | **Wub** | integers as phasors summed tip to tail, each riding an ellipsoid, tracing one closed curve. Torus knots, crossing counts, and a curve you can export |
+| **Wub ×** | multiplication as a rectangle; an ordered sequence of operands |
 | **Spec** | the convention, editable in the page |
 | **Inspirations** | who found each piece of this first |
 
@@ -34,10 +35,12 @@ becomes read-only.
 ## Checking a change
 
 ```
-node tools/run.js wub.html
+node tools/run.js wub.html      # does the page's JavaScript actually run?
+node tools/product.test.js      # the product grid, against the arithmetic
+node tools/wubx.test.js         # Wub x, including the parts run.js cannot reach
 ```
 
-Runs a page's JavaScript against a stand-in DOM. A 200 from the server says
+`run.js` runs a page's JavaScript against a stand-in DOM. A 200 from the server says
 nothing about whether the page's scripts executed; this does. See `tools/`.
 
 ## What is original here
