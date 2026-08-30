@@ -31,6 +31,15 @@ Static files plus one `PUT` endpoint so `spec.md` can be edited from the Spec pa
 Only that one file is writable. On a static host the site still works; the Spec page
 becomes read-only.
 
+## Checking a change
+
+```
+node tools/run.js wub.html
+```
+
+Runs a page's JavaScript against a stand-in DOM. A 200 from the server says
+nothing about whether the page's scripts executed; this does. See `tools/`.
+
 ## What is original here
 
 Very little of the mathematics. Signed digits are Booth and Avizienis, the stalks are
