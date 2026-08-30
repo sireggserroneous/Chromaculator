@@ -43,6 +43,7 @@ node tools/gizmo.test.js        # the corner gizmo points where it says
 node tools/divide.test.js       # A = 2^e x Q x B + R, at every width
 node tools/wubdiv.test.js       # Wub div, including the parts run.js cannot reach
 node tools/load.test.js         # all three Wub pages under a full rack
+node tools/bulk.test.js         # 10,000 integers through both grids (~20s)
 ```
 
 `run.js` runs a page's JavaScript against a stand-in DOM. A 200 from the server says

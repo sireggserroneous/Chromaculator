@@ -291,6 +291,13 @@ Every claim below was measured, not assumed. Where a guess failed it is not list
 | ring `r` is `2^(r+1)` roots of unity | spacing exactly `360/2^(r+1)` |
 | the grid's turn-walk matches the Atlas angle | 20000/20000, both spellings |
 
+A bulk pass over **10,000 integers** — magnitudes 1 to 10,479,538,502, a third of them negative,
+grids up to 36 cells wide — checks every invariant above plus the edges (0, ±1, `2^k`, `2^k−1`,
+`2^40−1`) and 1,000 five-deep chains of each operation. **298,545 checks, all passing.** It found
+one real defect: `hexSequence(0)` returned an empty stalk while its own `cells` said one green
+cell, which gave `hexProduct` a 0×0 rectangle with `foldAt = −1`. Zero is a number and its stalk
+is one green cell.
+
 ## Open questions
 
 - Whether `over > n·↑` for all `n`, which the ordering above assumes. Everything else in the chain is now cited to Winning Ways vol. 1 p. 126, but over is a loopy game and lives in ch. 11, *Games Infinite and Indefinite* — volume 2, which is not on the shelf. ONAG ch. 11 covers the same ground.

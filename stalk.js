@@ -170,7 +170,10 @@ const slotOfK = (k, r) => (bitrev(Math.abs(k), r + 1) - 1) / 2;
 function hexSequence(v, neg){
   const b = v === 0n ? "" : v.toString(2);
   const nib = Math.ceil(b.length / 4) * 4;
-  const raw = (b ? b.padStart(nib, "0") : "").split("")
+  /* zero is a number and its stalk is one green cell, not none. `cells` always
+     said so -- it pads to a 1x1 square -- while `raw` came back empty, and the
+     two disagreeing gave hexProduct a 0x0 rectangle with foldAt = -1. */
+  const raw = v === 0n ? [0] : b.padStart(nib, "0").split("")
     .map(c => (c === "1" ? 1 : 0) * (neg ? -1 : 1));
   const n = Math.max(1, Math.ceil(Math.sqrt(raw.length)));
   const cells = raw.slice();
