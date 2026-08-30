@@ -1,6 +1,6 @@
-# chronochromatic.org
+# Chromaculator
 
-An instrument for looking at integers.
+An instrument for looking at integers. Lives at **chronochromatic.org**.
 
 Write a number in hex, so its bits arrive padded to a whole nibble. Lay them most
 significant first into the smallest square that holds them, and fold that square
