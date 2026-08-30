@@ -34,6 +34,14 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
 .theirs a:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
 .who{color:var(--ink3); font-size:.82rem}
 .open{background:var(--sunk); border-left-color:var(--green)}
+.explain{background:var(--sunk); border:1px solid var(--rule); border-radius:3px;
+  padding:14px 16px; display:flex; flex-direction:column; gap:10px}
+.explain p{margin:0; color:var(--ink2); font-size:.9rem; line-height:1.62; max-width:72ch}
+.explain b{color:var(--ink)}
+.chain{font-family:"IBM Plex Mono",monospace; font-size:.76rem; color:var(--ink);
+  background:var(--panel); border:1px solid var(--rule2); border-radius:3px;
+  padding:9px 11px; overflow-x:auto; white-space:pre; line-height:1.6}
+.chain .lo{color:var(--red)} .chain .hi{color:var(--blue)} .chain .mid{color:var(--ink3)}
 .foot{border-top:1px solid var(--rule); padding-top:18px; color:var(--ink3);
   font-size:.86rem; line-height:1.6; max-width:74ch}
 </style>
@@ -116,9 +124,104 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     </div>
   </section>
 
+
+  <section>
+    <h2>The anatomy of 0</h2>
+    <p class="lead">Where the digits come from — and why they cannot start any earlier.</p>
+
+    <div class="explain">
+      <p><b>0 is not a point.</b> Between &minus;0 and +0 sits an entire structure of games, and
+        the numbers on the rest of this site only begin once you are out of it. The order, Red to
+        Blue, with every step ascending:</p>
+      <div class="chain"><span class="lo">&minus;0</span>  &lt;  tiny-on  &lt;  tiny  &lt;  up  &lt;  over  &lt;  <span class="mid">+&epsilon;  &lt;  [ every real ]  &lt;  &plusmn;&omega;  &lt;  [ every real ]  &lt;  &minus;&epsilon;</span>  &lt;  under  &lt;  down  &lt;  miny  &lt;  miny-on  &lt;  <span class="hi">+0</span></div>
+      <p><b>It is not linearly ordered, and that is the point.</b> The game
+        <code>&lowast; = {0 | 0}</code> is not less than 0, not greater than 0, and not equal to
+        it — it is <i>confused</i> with it. Trichotomy fails, so there is no side to be on.
+        <b>Left</b> and <b>right</b> are total-order words and cannot be used in here. <b>Red</b>
+        and <b>Blue</b> can, because they name whose advantage rather than which direction — which
+        is also the Winning Ways convention: b<b>L</b>ue is Left, <b>R</b>ed is Right. The
+        vocabulary did not happen to fit. It is the only vocabulary that can.</p>
+      <p><b>The rim is made of the centre.</b> <code>tiny-on</code> is not tiny stacked on tiny.
+        <code>on = {on |}</code> is a game, pronounced <i>omega</i>, and it is above everything;
+        <code>tiny-on</code> is tiny <i>parameterised by</i> it — the smallest thing you can build,
+        made out of the biggest thing there is. So the structure closes on itself. Stretch the
+        pinhole at 0 open and look down, and <code>on</code> is what is at the bottom, because it
+        was the material all along. That is inversion in a circle: the map that swaps a disc&rsquo;s
+        centre with its boundary. Every positive infinitesimal is greater than <code>1/on</code>,
+        so the floor of the whole zoo is the reciprocal of what sits at its middle.</p>
+      <p><b>Zero is doubled and &omega; is unified</b>, and that asymmetry is a choice. Floating
+        point doubles both; the Riemann sphere unifies both. Doubling only zero is what makes this
+        a disc with a centre rather than a sphere, and what turns the chain above into a closed
+        loop rather than a line.</p>
+      <p><b>The bits cannot start until you are out.</b> A sign expansion is a <i>number&rsquo;s</i>
+        address, and <code>&lowast;</code>, <code>&uarr;</code> and <code>tiny</code> are not
+        numbers — they have no position for a bit string to point at. Everything else on this site
+        begins exactly where this zoo ends, and that is forced by the theory rather than chosen.
+        Meanwhile everything ordinarily called a number — the counting numbers, the reals, the
+        irrationals, all of analysis — is the single greyed band above, between &epsilon; and
+        &omega;. One step of thirteen. All the structure is at the two ends.</p>
+    </div>
+
+    <div class="items">
+      <div class="item">
+        <span class="mine">a game confused with 0 — neither side of it</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Star_(game_theory)">Star</a>
+          · <a href="https://en.wikipedia.org/wiki/Nimber">Nimbers</a>, its family
+          <br><span class="who">Which is why the ordering is a
+          <a href="https://en.wikipedia.org/wiki/Partially_ordered_set">partial order</a> and
+          <a href="https://en.wikipedia.org/wiki/Trichotomy_(mathematics)">trichotomy</a> fails.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">up, down, and the infinitesimals below every number</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Up_(game_theory)">Up</a>
+          · <a href="https://en.wikipedia.org/wiki/Infinitesimal">Infinitesimals</a>
+          <br><span class="who">&uarr; is positive and smaller than every positive number — below
+          1/&omega;, below 1/&omega;&sup2;, below all of them.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">tiny, miny, over, under, on</span>
+        <span class="theirs">Berlekamp&ndash;Conway&ndash;Guy,
+          <a href="https://en.wikipedia.org/wiki/Winning_Ways_for_Your_Mathematical_Plays">Winning Ways</a>
+          for tiny and miny; Conway,
+          <a href="https://en.wikipedia.org/wiki/On_Numbers_and_Games">On Numbers and Games</a>
+          for the loopy games over, under and on
+          <br><span class="who">miny is exactly &minus;tiny, so the two halves of the disc are one
+          negation apart.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">Red and Blue instead of left and right</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Combinatorial_game_theory">Combinatorial game theory</a>
+          names the players b<b>L</b>ue and <b>R</b>ed
+          <br><span class="who">The colour convention here is theirs, arrived at for the same
+          reason: a partial order has no directions, only players.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">&minus;0 and +0 as two places, outside the disc</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Signed_zero">Signed zero</a>
+          · <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a> has both, and
+          <code>1/+0 = +&infin;</code> while <code>1/&minus;0 = &minus;&infin;</code>
+          <br><span class="who">The reciprocal sends the two outer rings to the centre. Floating
+          point got there for engineering reasons.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">one &omega; in the middle, the line closed into a loop</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Real_projective_line">Real projective line</a>
+          · <a href="https://en.wikipedia.org/wiki/Riemann_sphere">Riemann sphere</a>
+          · <a href="https://en.wikipedia.org/wiki/Ordinal_number">&omega; and the ordinals</a></span>
+      </div>
+      <div class="item">
+        <span class="mine">looking through the pinhole to see the centre</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Inversive_geometry">Inversion in a circle</a>
+          · a <a href="https://en.wikipedia.org/wiki/Conformal_map">conformal map</a>
+          exchanging the origin with the boundary</span>
+      </div>
+    </div>
+  </section>
+
   <section>
     <h2>The atlas</h2>
-    <p class="lead">Rings of integers, ordered by value — which turned out to be an FFT and a machine part.</p>
+    <p class="lead">Rings of integers, ordered by value — which turned out to be an FFT, a machine
+      part, and a hyperbolic plane.</p>
     <div class="items">
       <div class="item">
         <span class="mine">bits reversed over 2<sup>L</sup></span>
@@ -141,6 +244,15 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
           · often in <a href="https://en.wikipedia.org/wiki/Gray_code">Gray code</a> so only one track changes at a time
           <br><span class="who">Engineers machined this geometry into shafts because it is the efficient way to read an angle.</span></span>
       </div>
+      <div class="item">
+        <span class="mine">big in the middle, small at the rim, a boundary never reached</span>
+        <span class="theirs">The <a href="https://en.wikipedia.org/wiki/Poincar%C3%A9_disk_model">Poincar&eacute; disc model</a>
+          of <a href="https://en.wikipedia.org/wiki/Hyperbolic_geometry">hyperbolic geometry</a>
+          · the rim is an <a href="https://en.wikipedia.org/wiki/Ideal_point">ideal point</a> at infinite distance
+          <br><span class="who">Linear radius against a population that doubles each ring is the
+          signature: circumference growing like e^(r&nbsp;ln&nbsp;2) puts the curvature at
+          &minus;(ln&nbsp;2)&sup2; &asymp; &minus;0.48. That is why it is a horizon, not a wall.</span></span>
+      </div>
     </div>
   </section>
 
@@ -161,6 +273,45 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
       <div class="item">
         <span class="mine">a binary tree of every rational</span>
         <span class="theirs"><a href="https://en.wikipedia.org/wiki/Stern%E2%80%93Brocot_tree">Stern–Brocot tree</a></span>
+      </div>
+    </div>
+  </section>
+
+
+  <section>
+    <h2>Multiplication and division</h2>
+    <p class="lead">One is a rectangle you read; the other is the same rectangle, searched for.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">every cell of A against every cell of B, no carries</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Grid_method_multiplication">The grid method</a>
+          — the box taught in primary school
+          · <a href="https://en.wikipedia.org/wiki/Outer_product">Outer product</a>
+          · <a href="https://en.wikipedia.org/wiki/Multiplication_algorithm">Multiplication algorithms</a>
+          <br><span class="who">It works because a product of sums expands. Division has no such
+          expansion, which is the whole difference.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">rows of B, shifted and subtracted, one yes-or-no each</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Long_division">Long division</a>
+          — the tableau is the multiplication rectangle sheared, so its anti-diagonals become
+          columns you can subtract one at a time</span>
+      </div>
+      <div class="item">
+        <span class="mine">stopping early and keeping the odd chunk out</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Euclidean_division">Euclidean division</a>
+          — quotient and remainder, exact at every width, instead of an expansion that never ends
+          <br><span class="who">The oldest idea on this page, and still the one doing the most
+          work.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">a stalk in (&minus;1,1) with a multiplier on the boundary</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Floating-point_arithmetic">Floating point</a>
+          · the <a href="https://en.wikipedia.org/wiki/Significand">significand</a> normalised into a
+          band, the exponent naming which band
+          <br><span class="who">Arrived at from the other direction, which suggests the layout is
+          forced. The difference: floating point rounds inside the band and forgets. This keeps the
+          remainder.</span></span>
       </div>
     </div>
   </section>
