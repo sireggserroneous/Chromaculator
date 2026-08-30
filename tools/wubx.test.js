@@ -31,14 +31,18 @@ console.log(`  3 operands -> ${run("M.N")} grids, shapes `
     return {row: {querySelector: s => s === ".body" ? body : dot}, body, dot};
   };
   const a = mk(); run("paintRow")(0, a.row);
-  ok(/the seed/.test(a.body.innerHTML), "row 0 should say it is the seed");
+  ok(/gcap">seed</.test(a.body.innerHTML), "row 0's square should be captioned as the seed");
+  ok(/nothing above it/.test(a.body.innerHTML), "row 0 should say why it has no grid");
   const b = mk(); run("paintRow")(1, b.row);
-  const cells = (b.body.innerHTML.match(/<i class="[brg]/g) || []).length;
+  const cells = (b.body.innerHTML.match(/class="gsc /g) || []).length;
   const p = run("M.P[0]");
-  const want = p.rows * p.cols + run("operandDigits(KS[1]).length");
-  ok(cells === want, `grid drew ${cells} cells, wanted ${want}`);
-  ok(/gbits/.test(b.body.innerHTML), "no grid element");
-  const folds = (b.body.innerHTML.match(/ f"/g) || []).length;
+  ok(cells === p.rows * p.cols, `grid drew ${cells} boxes, wanted ${p.rows * p.cols}`);
+  ok(/--sc:\d+px/.test(b.body.innerHTML), "the square should carry its own cell size");
+  const sz = +b.body.innerHTML.match(/--sc:(\d+)px/)[1];
+  ok(sz >= 6 && sz <= 34, `cell size ${sz}px is outside the drawable range`);
+  ok(/class="gcol"/.test(b.body.innerHTML) && /class="tcol"/.test(b.body.innerHTML),
+     "the card needs a square column and a text column");
+  const folds = (b.body.innerHTML.match(/ fold"/g) || []).length;
   ok(folds === Math.min(p.rows, p.cols), `${folds} fold cells, wanted ${Math.min(p.rows, p.cols)}`);
   ok(b.dot.style.background, "row 1 should take the grid's colour");
   console.log(`  paintRow: ${p.rows}×${p.cols} grid drawn, ${folds} cells on the fold, dot coloured`);
@@ -94,7 +98,7 @@ console.log(`  3 operands -> ${run("M.N")} grids, shapes `
 
   const card = {innerHTML: ""};
   run("paintRow")(1, {querySelector: s => s === ".body" ? card : {style: {}}});
-  ok(/gbits/.test(card.innerHTML), "the plain rectangle must survive");
+  ok((card.innerHTML.match(/class="gsc /g) || []).length > 0, "the plain rectangle must survive");
   ok(/class="ans"/.test(card.innerHTML), "pushed row should carry an answer block");
   ok(/squash/.test(card.innerHTML), "the anti-diagonal sums should be shown");
 

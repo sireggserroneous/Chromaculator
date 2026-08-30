@@ -65,7 +65,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 
 /* every card is exactly one row tall, whatever it holds, so a card can never
    change its neighbours' geometry. three rows visible, the rest scrolls. */
-.rack{--cardh:206px;
+.rack{--cardh:220px;
   display:grid; grid-template-columns:1fr;        /* one integer per row */
   grid-auto-rows:var(--cardh); gap:10px; align-items:stretch;
   max-height:calc(var(--cardh)*3 + 20px);
@@ -76,7 +76,24 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .row{display:flex; flex-direction:column; gap:5px; padding:8px 9px; height:100%; overflow:hidden;
   background:var(--sunk); border:1px solid var(--rule); border-left:3px solid var(--brass); border-radius:3px}
 .row .body{flex:1; min-height:0; overflow:hidden;
-  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:12px}
+  display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start}
+.gcol{min-width:0; overflow:auto; align-self:start}
+.gcol::-webkit-scrollbar{display:none}
+.tcol{min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:3px}
+.tcol::-webkit-scrollbar{width:5px}
+.tcol::-webkit-scrollbar-thumb{background:var(--rule2); border-radius:3px}
+/* cells as the spectrometer draws them: a bordered, tinted box per digit */
+.gsq{display:grid; gap:2px; width:max-content}
+.gsc{width:var(--sc,14px); height:var(--sc,14px); display:flex; align-items:center;
+  justify-content:center; border-radius:2px; border:1px solid transparent;
+  font-family:"IBM Plex Mono",monospace; font-size:calc(var(--sc,14px) * .62);
+  font-weight:600; line-height:1}
+.gsc.b{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
+.gsc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
+.gsc.g{background:var(--green-w); color:var(--green); border-color:var(--green); opacity:.6}
+.gsc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
+.gcap{font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3); padding-top:3px}
 .form{min-width:0; display:flex; flex-direction:column; gap:3px; justify-content:flex-start}
 .rhead,.row .speedrow{flex:none}
 .rhead{display:flex; align-items:center; gap:7px}
@@ -950,43 +967,61 @@ function drawSphere(tip, joints){
 /* ---- the rack ---- */
 /* the rectangle, one character per cell. the fold is underlined, so you can
    see it land on the last cell of the shorter operand. */
-function gridHTML(p){
-  const cells = p.shown.map((v, i) => {
-    const r = Math.floor(i / p.cols), c = i % p.cols;
-    return `<i class="${cls(v)}${r + c === p.foldAt ? " f" : ""}">${glyph(v)}</i>`;
+/* one bordered, tinted box per digit -- the spectrometer's square, sized to
+   whatever room the card has. Below about 9px the glyph is unreadable, so the
+   colour carries it alone rather than printing a smudge. */
+function boxes(cells, cols, rows, foldAt){
+  /* width and height are budgeted separately -- sizing off max(rows, cols)
+     made a tall narrow tableau as tall as a wide one is wide */
+  const sz = Math.max(6, Math.min(34, Math.floor(150 / cols), Math.floor(118 / rows)));
+  const gl = sz >= 9;
+  const body = cells.map((v, i) => {
+    const r = Math.floor(i / cols), c = i % cols;
+    return `<div class="gsc ${cls(v)}${r + c === foldAt ? " fold" : ""}">${gl ? glyph(v) : ""}</div>`;
   }).join("");
-  return `<div class="gbits" style="grid-template-columns:repeat(${p.cols},1ch)">${cells}</div>`;
+  return `<div class="gsq" style="--sc:${sz}px;`
+    + ` grid-template-columns:repeat(${cols},var(--sc))">${body}</div>`;
+}
+const gridHTML = p => boxes(p.shown, p.cols, p.rows, p.foldAt);
+/* a plain stalk folded into its own square, the way the spectrometer shows one */
+function stalkSquareHTML(digits){
+  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
+  const cells = digits.slice();
+  while(cells.length < n * n) cells.push(0);
+  return boxes(cells, n, n, n - 1);
 }
 function paintRow(i, row){
   const e = KS[i];
   const d = operandDigits(e);
-  const parts = [
-    `<div class="rval"><b>${i ? "\u00d7 " : ""}${e.k}</b> \u2192 `
-    + `${d.map(v => `<i class="${cls(v)}">${glyph(v)}</i>`).join("")}`
-    + ` \u00b7 ${d.length} cells \u00b7 ${fmt(hexValue(d))}</div>`,
-  ];
   const p = M.P[i - 1];
+  const text = [
+    `<div class="rval"><b>${i ? "\u00d7 " : ""}${e.k}</b> \u00b7 ${d.length} cells`
+    + ` \u00b7 ${fmt(hexValue(d))}</div>`,
+  ];
+  let square;
   if(i && p){
-    parts.push(`<div class="rval dim">${p.rows} rows \u00d7 ${p.cols} cols`
-      + ` \u00b7 fold on anti-diagonal ${p.foldAt + 1}, weight 2<sup>\u2212${p.foldAt + 2}</sup></div>`);
-    parts.push(gridHTML(p));
+    square = `<div class="gcol">${gridHTML(p)}`
+      + `<div class="gcap">${p.rows}\u00d7${p.cols} grid</div></div>`;
     const K = knotOf(p);
-    parts.push(`<div class="rval">= ${fmt(p.value)} \u00b7 ${Math.round(p.nm)} nm`
+    text.push(`<div class="rval dim">fold on anti-diagonal ${p.foldAt + 1},`
+      + ` weight 2<sup>\u2212${p.foldAt + 2}</sup></div>`);
+    text.push(`<div class="rval">= ${fmt(p.value)} \u00b7 ${Math.round(p.nm)} nm`
       + ` \u00b7 ${p.greens} green</div>`);
-    parts.push(`<div class="rval">I ${p.inner.toExponential(2)} \u00b7 F ${p.fold.toExponential(2)}`
+    text.push(`<div class="rval">I ${p.inner.toExponential(2)} \u00b7 F ${p.fold.toExponential(2)}`
       + ` \u00b7 O ${p.outer.toExponential(2)}</div>`);
-    parts.push(`<div class="rval dim">${K.a}\u00d7${K.b} \u2014 ${K.name}`
+    text.push(`<div class="rval dim">${K.a}\u00d7${K.b} \u2014 ${K.name}`
       + `${K.knotted ? `, ${K.crossings} cr` : ""}</div>`);
-  } else if(i === 0){
-    parts.push(`<div class="rval dim">the seed \u2014 nothing above it to multiply by</div>`);
+  } else {
+    square = `<div class="gcol">${stalkSquareHTML(d)}<div class="gcap">seed</div></div>`;
+    text.push(`<div class="rval dim">nothing above it to multiply by</div>`);
   }
   if(e.push){
-    parts.push(`<div class="ans">`
+    text.push(`<div class="ans">`
       + (p ? squashHTML(p.grid) : "")
       + answerHTML(p ? productDigits(p.grid) : d)
       + `</div>`);
   }
-  row.querySelector(".body").innerHTML = parts.join("");
+  row.querySelector(".body").innerHTML = square + `<div class="tcol">${text.join("")}</div>`;
   row.querySelector(".dot").style.background = p ? p.col : "transparent";
 }
 

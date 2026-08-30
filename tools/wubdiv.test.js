@@ -99,13 +99,16 @@ function identity(){
   };
   setRack([3, 10, 200], 8);
   const a = mk(); run("paintRow")(0, a.row);
-  ok(/the dividend/.test(a.body.innerHTML), "row 0 should name itself the dividend");
+  ok(/gcap">dividend</.test(a.body.innerHTML), "row 0's square should be captioned as the dividend");
+  ok(/nothing above it/.test(a.body.innerHTML), "row 0 should say why it has no tableau");
   const b = mk(); run("paintRow")(1, b.row);
   const p = run("M.P[0]");
-  ok(/gbits/.test(b.body.innerHTML), "no tableau drawn");
-  ok(/>Q</.test(b.body.innerHTML) && /># R|>R</.test(b.body.innerHTML), "Q and R should both be shown");
+  ok((b.body.innerHTML.match(/class="gsc /g) || []).length === p.rows * p.cols, "no tableau drawn");
+  ok(/>Q</.test(b.body.innerHTML) && />R</.test(b.body.innerHTML), "Q and R should both be shown");
   ok(/ring 2/.test(b.body.innerHTML), "the ring should be named");
-  const folds = (b.body.innerHTML.match(/ f"/g) || []).length;
+  ok(/class="gcol"/.test(b.body.innerHTML) && /class="tcol"/.test(b.body.innerHTML),
+     "the card needs a square column and a text column");
+  const folds = (b.body.innerHTML.match(/ fold"/g) || []).length;
   ok(folds === Math.min(p.rows, p.cols), `${folds} fold cells, wanted ${Math.min(p.rows, p.cols)}`);
   ok(b.dot.style.background, "row should take its colour");
   console.log(`  paintRow: ${p.rows}×${p.cols} tableau, ${folds} on the fold, Q, ring and R all shown`);
@@ -145,7 +148,7 @@ function identity(){
   run("paintRow")(1, {querySelector: s => s === ".body" ? card : {style: {}}});
   ok(/class="ans"/.test(card.innerHTML), "pushed row should carry an answer block");
   ok(/vector/.test(card.innerHTML) && /pushed/.test(card.innerHTML), "vector and pushed both shown");
-  ok(/gbits/.test(card.innerHTML), "the plain rectangle must survive");
+  ok((card.innerHTML.match(/class="gsc /g) || []).length > 0, "the plain rectangle must survive");
 
   /* and the pushed spelling has to be the same number */
   const same = run(`(() => {
