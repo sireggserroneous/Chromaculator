@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wub × · chronochromatic.org</title>
-<meta name="description" content="Multiplication as a rectangle of cells: an ordered sequence of integers, each product grid drawn as a phasor.">
+<title>Wub ÷ · chronochromatic.org</title>
+<meta name="description" content="Division that refuses to round: a quotient grid, a multiplier on the boundary, and the remainder drawn as the part that did not fit.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -162,8 +162,8 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
     <a href="/spectrometer.html">Spectrometer</a>
     <a href="/atlas.html">Atlas</a>
     <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html" class="cur" aria-current="page">Wub ×</a>
-    <a href="/wubdiv.html">Wub ÷</a>
+    <a href="/wubx.html">Wub ×</a>
+    <a href="/wubdiv.html" class="cur" aria-current="page">Wub ÷</a>
     <a href="/spec.html">Spec</a>
     <a href="/inspirations.html">Inspirations</a>
   </nav>
@@ -172,22 +172,22 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 <div class="stage">
   <aside class="left">
   <header class="mast">
-    <span class="eyebrow">a × b is a rectangle · one grid per step · order is kept</span>
-    <h1>Wub ×</h1>
-    <p class="sub">Multiply two stalks cell by cell and nothing has to carry: every cell of
-      <b>A</b> meets every cell of <b>B</b>, and the pair weighs
-      2<sup>−(<i>i</i>+<i>j</i>+2)</sup>. The answer is a rectangle — <b>A</b> along the columns,
-      <b>B</b> down the rows, so <i>m</i> cells times <i>n</i> cells is <i>n</i> rows by <i>m</i>
-      columns — and summing the whole rectangle is the product, exactly. Weight still depends only
-      on <i>i</i>+<i>j</i>, so the anti-diagonals are still the place values and the fold is still
-      one of them: the anti-diagonal through the last cell of the shorter operand, the last one that
-      still reaches both edges. <b>Fold</b> is the equator, <b>Inner</b> reaches north,
-      <b>Outer</b> south. The rack is a sequence, taken left to right — each row after the first
-      multiplies everything above it, so it is one rectangle and one phasor, and its grid is read
-      back out as a stalk for the row below. Reorder with the arrows: the product cannot move, but
-      every grid under the row you moved does. The phasors sit <span id="spacing">120°</span> apart
-      and sum tip to tail. Each rides a torus, so it is a <b>(p,q) torus knot</b> — p its row width,
-      q its runs of like colour, reduced.</p>
+    <span class="eyebrow">A = 2ᵉ · Q · B + R · exact at every width</span>
+    <h1>Wub ÷</h1>
+    <p class="sub">Division will not fit a grid the way multiplication does, and most quotients
+      do not terminate at all. Both problems go away by refusing to round: run the division only as
+      far as the grid allows and keep what is left over, so
+      <b>A</b> = 2<sup><i>e</i></sup>·<b>Q</b>·<b>B</b> + <b>R</b> holds <i>exactly</i> at every
+      width. <b>Q</b> is an ordinary stalk inside (−1,1), so it draws like any other number.
+      <b>e</b> is the multiplier on the boundary — the shift that brings the quotient back inside,
+      normalised so the leading cell is never wasted. <b>R</b> is a stalk too, and it is what the
+      repeating digits would have been. The grid drawn is the <b>tableau</b>: the rows of <b>B</b>
+      that got subtracted, which is the same rectangle <a href="/wubx.html">Wub ×</a> draws — only
+      solved for rather than read off. <b>Fold</b> is the equator, <b>Inner</b> reaches north,
+      <b>Outer</b> south. Mantissas carry down the rack and exponents add, so the running
+      <b>ring</b> is where the answer actually sits; colour comes from the mantissa, radius from the
+      ring. The faint green dot on each arm is <b>R</b> — the part that did not fit. Widen the grid
+      and watch it fall back toward the arm it came from.</p>
   </header>
 
     <div class="panel controls">
@@ -197,6 +197,10 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
         <button class="add ghost" id="resetbtn">Reset</button>
         <button class="add ghost" id="expbtn">Export curve</button>
       </div>
+      <div class="speedrow"><label for="wid">Digits</label>
+        <input type="range" id="wid" min="1" max="24" step="1" value="8"
+               aria-label="Quotient cells">
+        <span class="rv" id="widval">8 cells</span></div>
       <div class="speedrow"><label for="speed">Sweep</label>
         <input type="range" id="speed" min="0" max="1.5" step="0.01" value="0.12"
                aria-label="Sweep frequency in laps per second">
@@ -222,6 +226,10 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
         <label class="chip" style="margin-left:auto"><input type="checkbox" id="pulse" checked><span>pulse</span></label>
         <label class="chip"><input type="checkbox" id="autospin" checked><span>auto-spin</span></label>
       </div>
+      <div class="zoomrow"><label>Show</label>
+        <label class="chip"><input type="checkbox" id="rings" checked><span>rings</span></label>
+        <label class="chip"><input type="checkbox" id="showr" checked><span>remainder</span></label>
+      </div>
       <div class="zoomrow"><label for="zoom">Zoom</label>
         <input type="range" id="zoom" min="0" max="100" step="0.5" value="34" aria-label="Zoom">
         <span class="rv" id="zoomval">1.0×</span></div>
@@ -231,6 +239,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
         <span>colour is each grid&rsquo;s wavelength — violet 380 nm to red 730 nm</span>
         <span><i class="sw" style="background:var(--ink)"></i>the average</span>
         <span><i class="sw" style="background:var(--brass)"></i>the summed trace</span>
+        <span><i class="sw" style="background:var(--green)"></i>the remainder — the part that did not fit</span>
         <span>drag the sphere to turn it — the corner cross snaps to an axis, its middle comes home</span>
       </div>
       <div class="stats" id="stats"></div>
@@ -297,44 +306,53 @@ function operandDigits(e){
   const raw = hexSequence(v, neg).raw;
   return e.push ? pushLeft(raw) : raw;
 }
-/* the rack is a sequence and the product is taken left to right, so a rack of
-   n rows is n-1 rectangles. Each grid is read back out as a plain stalk to be
-   the next step's left operand, which is where order gets its teeth: the value
-   is the same however you shuffle, but every grid below a moved row changes. */
+/* the rack is a sequence divided left to right: A / B / C. Each step hands its
+   quotient down as the next dividend and adds its exponent to a running ring,
+   which is floating point exactly -- mantissas carry, exponents add. The
+   remainder is not carried. That is what makes it a remainder: it is shown, and
+   the step it belongs to owns it. */
 function steps(){
   const out = [];
   if(!KS.length) return out;
-  let acc = operandDigits(KS[0]);
+  let acc = operandDigits(KS[0]), E = 0;
   for(let i = 1; i < KS.length; i++){
-    const g = hexProduct(acc, operandDigits(KS[i]));
-    out.push(g);
-    acc = productDigits(g);
+    const B = operandDigits(KS[i]);
+    const d = divide(acc, B, WIDTH);
+    if(!d){ out.push(null); continue; }        // a green divides into nothing
+    E += d.e;
+    out.push({d, B, E, dividend: acc, tab: hexProduct(B, d.Q)});
+    acc = d.Q;
   }
   return out;
 }
-function stepPhasor(g, i){
-  const R = productRegions(g);
-  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
-  const value = productValue(g);
+function stepPhasor(s, i){
+  const g = s.tab, R = productRegions(g);
+  /* the ring is where this step's answer actually sits. turn it off and every
+     step is drawn at its own scale -- shape without size. */
+  const ring = RINGS ? Math.pow(2, s.E) : 1;
+  const inner = settled(R.inner) * ring, outer = settled(R.outer) * ring,
+        fold  = settled(R.fold)  * ring;
   const runs = g.cells.reduce((c, d, j) => c + (j && d !== g.cells[j-1] ? 1 : 0), g.cells.length ? 1 : 0);
+  const qv = hexValue(s.d.Q);
+  const rem = Math.abs(Number(s.d.R.num)) / Number(s.d.R.den);
+  const dvd = Math.abs(dec(hexValue(s.dividend))) || 1;
   return {
-    label: KS.slice(0, i + 2).map(e => `${e.k}${e.push ? "P" : ""}`).join("\u00d7"),
+    label: KS.slice(0, i + 2).map(e => `${e.k}${e.push ? "P" : ""}`).join("\u00f7"),
     grid: g, n: g.cols, rows: g.rows, cols: g.cols, foldAt: g.foldAt,
-    shown: g.cells, R,
+    shown: g.cells, R, ring,
+    Q: s.d.Q, e: s.d.e, E: s.E, rem: s.d.R, exact: s.d.exact, B: s.B,
+    /* how much of the dividend did not fit. the remainder dot rides this far up
+       its own arm, so widening the grid walks it back to where the arm began. */
+    rratio: Math.min(1, rem / dvd),
     inner, outer, fold,
     greens: g.cells.filter(d => d === 0).length,
-    spread: spreadOf(R.outer),
+    spread: spreadOf(R.outer) * ring,
     amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
-    /* handedness reverses with the sign, always. Fold usually says which way,
-       but a rectangle's fold is exactly zero more often than a square's, so
-       the product's own sign is the fallback. */
-    dir: Math.sign(fold) || (value.num < 0n ? -1 : 1),
-    /* the long way round is the row width; the short way is the runs of like
-       colour, read row by row. Transposing the rectangle re-reads it, which is
-       how swapping two operands shows up in the curve at all. */
+    dir: Math.sign(fold) || (qv.num < 0n ? -1 : 1),
     rateA: Math.max(1, g.cols),
     rateB: Math.max(1, runs),
-    value,
+    /* colour is the mantissa -- the shape. size is the ring. */
+    value: qv,
   };
 }
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
@@ -476,17 +494,23 @@ function drawPoint(g, x, y, h, size, u, inverted){
   }
 }
 
+/* read by model(), so it has to be live before the first call */
+let WIDTH = 8, RINGS = true, SHOWR = true;
+
 let KS = [{k: 3, push: false, op: 0.55},
           {k: 10, push: false, op: 0.55},
           {k: 200, push: false, op: 0.55}];
 
 function model(){
   /* step i is produced by row i+1, so that row owns its opacity slider */
-  const P = steps().map((g, i) => {
+  const P = [];
+  steps().forEach((g, i) => {
+    if(!g) return;                            // the step that could not divide
     const q = stepPhasor(g, i);
+    q.row = i + 1;
     const e = KS[i + 1];
     q.opacity = e && e.op !== undefined ? e.op : 0.55;
-    return q;
+    P.push(q);
   });
   const N = P.length;
   P.forEach((p, j) => {
@@ -654,7 +678,8 @@ function draw(ts){
   const stale = !DRAWN || DRAWN.length !== M.P.length;
   const roll = () => M.P.map(p => still() || !p.greens
     ? {N: p.inner, S: p.outer, E: p.fold}
-    : {N: rolled(p.R.inner), S: rolled(p.R.outer), E: rolled(p.R.fold)});
+    : {N: rolled(p.R.inner) * p.ring, S: rolled(p.R.outer) * p.ring,
+       E: rolled(p.R.fold) * p.ring});
   if(still()){ DRAWN = M.P.map(p => ({N: p.inner, S: p.outer, E: p.fold})); PREV = DRAWN; }
   else if(!DIVS){ if(stale){ DRAWN = roll(); PREV = DRAWN; } }
   else if(slot !== LASTSLOT || stale){
@@ -903,6 +928,29 @@ function drawSphere(tip, joints){
   ctx.globalAlpha = .5; ctx.setLineDash([3,3]); ctx.stroke();
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 
+  /* ---- the remainder: how far up its own arm the step actually got ----
+     R = 0 puts the dot exactly on the arm's base, so widening the grid walks
+     every dot back to where its arm began. */
+  if(SHOWR && joints) M.P.forEach((p, j) => {
+    const a = joints[j], b = joints[j + 1];
+    if(!a || !b || p.opacity <= 0) return;
+    const f = p.rratio;
+    const q = proj({x: a.x + (b.x - a.x) * f,
+                    y: a.y + (b.y - a.y) * f,
+                    z: a.z + (b.z - a.z) * f}, unit);
+    const base = proj(a, unit);
+    ctx.globalAlpha = .5 * p.opacity;
+    ctx.strokeStyle = col("--green"); ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(base.px, base.py); ctx.lineTo(q.px, q.py); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = .85;
+    ctx.beginPath(); ctx.arc(q.px, q.py, 3, 0, 7);
+    ctx.fillStyle = col("--green"); ctx.strokeStyle = col("--panel"); ctx.lineWidth = 1.2;
+    ctx.fill(); ctx.stroke();
+    ctx.globalAlpha = 1;
+  });
+
   /* ---- the points, in whichever style is chosen ---- */
   for(const {pr, p, u} of lit){
     const near = 0.65 + 0.35 * (pr.d + 1) / 2;   // smaller when it is behind
@@ -932,25 +980,27 @@ function gridHTML(p){
 function paintRow(i, row){
   const e = KS[i];
   const d = operandDigits(e);
+  const bits = v => v.map(x => `<i class="${cls(x)}">${glyph(x)}</i>`).join("");
   const parts = [
-    `<div class="rval"><b>${i ? "\u00d7 " : ""}${e.k}</b> \u2192 `
-    + `${d.map(v => `<i class="${cls(v)}">${glyph(v)}</i>`).join("")}`
+    `<div class="rval"><b>${i ? "\u00f7 " : ""}${e.k}</b> \u2192 ${bits(d)}`
     + ` \u00b7 ${d.length} cells \u00b7 ${fmt(hexValue(d))}</div>`,
   ];
-  const p = M.P[i - 1];
+  const p = M.P.find(q => q.row === i);
   if(i && p){
-    parts.push(`<div class="rval dim">${p.rows} rows \u00d7 ${p.cols} cols`
-      + ` \u00b7 fold on anti-diagonal ${p.foldAt + 1}, weight 2<sup>\u2212${p.foldAt + 2}</sup></div>`);
+    parts.push(`<div class="rval dim">tableau ${p.rows} rows \u00d7 ${p.cols} cols`
+      + ` \u00b7 fold on anti-diagonal ${p.foldAt + 1}</div>`);
     parts.push(gridHTML(p));
+    parts.push(`<div class="rval"><b>Q</b> ${bits(p.Q)} = ${fmt(p.value)}`
+      + ` \u00b7 ring 2<sup>${p.E}</sup>${p.e === p.E ? "" : ` (step 2<sup>${p.e}</sup>)`}</div>`);
+    parts.push(`<div class="rval"><b>R</b> ${bits(fracDigits(p.rem))} = ${fmt(p.rem)}`
+      + ` \u00b7 ${p.exact ? "ran out exactly" : `${(p.rratio * 100).toFixed(2)}% of the dividend left`}</div>`);
     const K = knotOf(p);
-    parts.push(`<div class="rval">= ${fmt(p.value)} \u00b7 ${Math.round(p.nm)} nm`
-      + ` \u00b7 ${p.greens} green</div>`);
-    parts.push(`<div class="rval">I ${p.inner.toExponential(2)} \u00b7 F ${p.fold.toExponential(2)}`
-      + ` \u00b7 O ${p.outer.toExponential(2)}</div>`);
-    parts.push(`<div class="rval dim">${K.a}\u00d7${K.b} \u2014 ${K.name}`
-      + `${K.knotted ? `, ${K.crossings} cr` : ""}</div>`);
+    parts.push(`<div class="rval dim">${Math.round(p.nm)} nm \u00b7 ${p.greens} green`
+      + ` \u00b7 ${K.a}\u00d7${K.b} ${K.name}${K.knotted ? `, ${K.crossings} cr` : ""}</div>`);
   } else if(i === 0){
-    parts.push(`<div class="rval dim">the seed \u2014 nothing above it to multiply by</div>`);
+    parts.push(`<div class="rval dim">the dividend \u2014 nothing above it to divide by</div>`);
+  } else {
+    parts.push(`<div class="rval dim">this one is zero \u2014 nothing divides by green</div>`);
   }
   row.querySelector(".body").innerHTML = parts.join("");
   row.querySelector(".dot").style.background = p ? p.col : "transparent";
@@ -1008,7 +1058,7 @@ function rack(){
     const op = row.querySelector(".op");
     if(op) op.addEventListener("input", ev => {
       KS[i].op = parseFloat(ev.target.value);
-      if(M.P[i - 1]) M.P[i - 1].opacity = KS[i].op;
+      const q = M.P.find(x => x.row === i); if(q) q.opacity = KS[i].op;
     });
     /* order is the whole point, so moving a row rewrites every grid below it */
     const swap = j => { const t = KS[i]; KS[i] = KS[j]; KS[j] = t; refresh(); };
@@ -1031,8 +1081,12 @@ function stats(){
     ["Greens", `${tot}`, tot
       ? `rerolled ${DIVS || "once"}${DIVS ? " /lap" : ""} · ${Math.round((BIAS + 1) / 2 * 100)}% blue`
       : "nothing undecided"],
-    ["Product", M.N ? sciText(M.P[M.N - 1].value) : "\u2014",
-      M.N ? `${fmt(M.P[M.N - 1].value)} \u2014 the same whatever the order` : "one operand only"],
+    ["Quotient", M.N ? `${sciText(M.P[M.N - 1].value)} \u00b7 2^${M.P[M.N - 1].E}` : "\u2014",
+      M.N ? `mantissa ${fmt(M.P[M.N - 1].value)} on ring ${M.P[M.N - 1].E}` : "one operand only"],
+    ["Remainder", M.N ? sciText(M.P[M.N - 1].rem) : "\u2014",
+      M.N ? (M.P.every(p => p.exact) ? "every step ran out exactly"
+        : `${M.P.filter(p => p.exact).length} of ${M.N} steps ran out exactly \u00b7 widen to shrink the rest`)
+        : "nothing divided"],
     ["Knots", `${M.P.filter(p => knotOf(p).knotted).length} / ${M.N}`,
       M.N ? M.P.map(p => knotOf(p).name).join(" · ") : "no phasors"],
     ["Crossings", BOUND === null ? "measuring\u2026" : `\u2264 ${BOUND}`,
@@ -1056,15 +1110,17 @@ $("randbtn").addEventListener("click", () => {
 });
 $("resetbtn").addEventListener("click", () => {
   KS = [{k:3, push:false}, {k:10, push:false}, {k:200, push:false}];
+  WIDTH = 8; $("wid").value = 8; $("widval").textContent = "8 cells";
   refresh();
 });
 /* the sampled curve as plain xyz, for feeding to something that can actually
    classify it — SnapPy, KnotPlot, or anything that takes a polygonal knot. */
 $("expbtn").addEventListener("click", () => {
   const head = [
-    `# chronochromatic wub \u00d7 curve`,
-    `# sequence: ${KS.map(e => `${e.k}${e.push ? "(pushed)" : ""}`).join(" \u00d7 ")}`,
-    `# product: ${M.N ? fmt(M.P[M.N - 1].value) : "\u2014"}`,
+    `# chronochromatic wub \u00f7 curve`,
+    `# sequence: ${KS.map(e => `${e.k}${e.push ? "(pushed)" : ""}`).join(" \u00f7 ")}`,
+    `# quotient: ${M.N ? `${fmt(M.P[M.N - 1].value)} x 2^${M.P[M.N - 1].E}` : "\u2014"}`,
+    `# remainder: ${M.N ? fmt(M.P[M.N - 1].rem) : "\u2014"} at ${WIDTH} cells`,
     `# phasors: ${M.N}, period ${M.period} rad, samples ${CURVE.length}`,
     `# grids: ${M.P.map(p => `${p.label}:${p.rows}x${p.cols},A=${p.rateA},B=${p.rateB}`).join(" ")}`,
     `# crossing bound found here: ${BOUND === null ? "not measured" : `<= ${BOUND} (best of ${CROSS_DIRS} projections)`}`,
@@ -1075,7 +1131,7 @@ $("expbtn").addEventListener("click", () => {
   const blob = new Blob([head + "\n" + body + "\n"], {type: "text/plain"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `wubx-${KS.map(e => e.k).join("x")}.xyz`;
+  a.download = `wubdiv-${KS.map(e => e.k).join("_")}.xyz`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 });
@@ -1096,6 +1152,13 @@ $("bias").addEventListener("input", e => {
   $("biasval").textContent = blue === 50 ? "50 / 50"
     : blue > 50 ? `${blue}% blue` : `${100 - blue}% red`;
 });
+$("wid").addEventListener("input", e => {
+  WIDTH = parseInt(e.target.value, 10);
+  $("widval").textContent = `${WIDTH} cell${WIDTH === 1 ? "" : "s"}`;
+  refresh();
+});
+$("rings").addEventListener("change", e => { RINGS = e.target.checked; refresh(); });
+$("showr").addEventListener("change", e => { SHOWR = e.target.checked; });
 $("shell").addEventListener("input", e => {
   SHELL = parseFloat(e.target.value);
   $("shellval").textContent = Math.round(SHELL * 100) + "%";

@@ -19,6 +19,7 @@ always a dyadic rational strictly inside (−1, 1).
 | **Atlas** | every integer as a ring of dyadics, ordered by value. Ring *r* is the 2<sup>r+1</sup> roots of unity; selecting one draws a radius and lights the path down to it |
 | **Wub** | integers as phasors summed tip to tail, each riding an ellipsoid, tracing one closed curve. Torus knots, crossing counts, and a curve you can export |
 | **Wub ×** | multiplication as a rectangle; an ordered sequence of operands |
+| **Wub ÷** | division kept exact: quotient, a multiplier on the boundary, and the remainder drawn |
 | **Spec** | the convention, editable in the page |
 | **Inspirations** | who found each piece of this first |
 
@@ -40,6 +41,7 @@ node tools/product.test.js      # the product grid, against the arithmetic
 node tools/wubx.test.js         # Wub x, including the parts run.js cannot reach
 node tools/gizmo.test.js        # the corner gizmo points where it says
 node tools/divide.test.js       # A = 2^e x Q x B + R, at every width
+node tools/wubdiv.test.js       # Wub div, including the parts run.js cannot reach
 ```
 
 `run.js` runs a page's JavaScript against a stand-in DOM. A 200 from the server says
