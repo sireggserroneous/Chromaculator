@@ -176,9 +176,35 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .dnum{font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3)}
 .dgut .dot{width:11px; height:11px; border-radius:50%; flex:none}
 .dmain{min-width:0; display:flex; flex-direction:column; gap:5px; padding:7px 9px 6px}
-.dhead{display:flex; align-items:center; gap:7px}
+.dhead{display:flex; align-items:center; gap:5px; flex-wrap:wrap}
 .dpg{display:flex; flex-direction:column; gap:4px; min-height:112px}
 .dpg[hidden]{display:none}
+.p1{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start}
+.gcol{min-width:0; overflow:auto} .gcol::-webkit-scrollbar{display:none}
+.tcol{min-width:0}
+.gsq{display:grid; gap:2px; width:max-content}
+.gsc{width:var(--sc,14px); height:var(--sc,14px); display:flex; align-items:center;
+  justify-content:center; border-radius:2px; border:1px solid transparent;
+  font-family:"IBM Plex Mono",monospace; font-size:calc(var(--sc,14px) * .62);
+  font-weight:600; line-height:1}
+.gsc.b{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
+.gsc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
+.gsc.g{background:var(--green-w); color:var(--green); border-color:var(--green); opacity:.6}
+.gsc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
+.gcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3); padding-top:3px}
+/* plain | pushed | operand, and the operator when it is one */
+.seg{display:inline-flex; border:1px solid var(--rule2); border-radius:3px; overflow:hidden; flex:none}
+.sg{font-family:"IBM Plex Mono",monospace; font-size:.56rem; letter-spacing:.08em;
+  text-transform:uppercase; padding:3px 6px; border:0; border-right:1px solid var(--rule2);
+  background:transparent; color:var(--ink3); cursor:pointer}
+.sg:last-child{border-right:0}
+.sg:hover:not(:disabled){color:var(--ink)}
+.sg.on{background:var(--brass); color:var(--panel)}
+.sg:disabled{opacity:.3; cursor:default}
+.opsel{font-family:"IBM Plex Mono",monospace; font-size:.8rem; padding:2px 4px;
+  background:var(--panel); color:var(--ink); border:1px solid var(--rule2); border-radius:3px}
+.opsel[hidden]{display:none}
 .dgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
 .dgrid canvas{width:100%; height:88px; display:block; background:var(--sunk);
   border:1px solid var(--rule); border-radius:2px}
@@ -222,6 +248,10 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 
       <div class="gal">
         <div class="galpg" data-p="0">
+          <div class="speedrow"><label for="wid">Digits</label>
+            <input type="range" id="wid" min="1" max="24" step="1" value="8"
+                   aria-label="Quotient cells for division">
+            <span class="rv" id="widval">8 cells</span></div>
           <div class="speedrow"><label for="speed">Sweep</label>
             <input type="range" id="speed" min="0" max="1.5" step="0.01" value="0.12"
                    aria-label="Sweep frequency in laps per second">
@@ -297,42 +327,80 @@ const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
    the stalk's three regions each become a channel. a green is undecided, so
    rolling it red-or-blue gives one concrete draw from inside that region's
    range; with no greens the region is a single number and never jitters. */
-const wOf = c => c.v * Math.pow(2, -(c.i + 1));
+const wOf = c => c.v * Math.pow(2, -c.w);
 const settled = cells => cells.reduce((s, c) => s + wOf(c), 0);
 /* a green is undecided, so it is rolled. BIAS leans that coin: -1 always red,
    +1 always blue, 0 an even chance. */
 let BIAS = 0;
 const coin = () => (Math.random() < (BIAS + 1) / 2 ? 1 : -1);
 const rolled = cells => cells.reduce((s, c) =>
-  s + (c.v !== 0 ? wOf(c) : coin() * Math.pow(2, -(c.i + 1))), 0);
-const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -(c.i + 1)) : 0), 0);
+  s + (c.v !== 0 ? wOf(c) : coin() * Math.pow(2, -c.w)), 0);
+const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c.w) : 0), 0);
 
-function phasor(k, push){
-  const {v, neg} = parse(String(k));
-  const {n, raw, cells} = hexSequence(v, neg);
-  const shown = push ? pushLeft(raw) : raw;
-  const full = shown.concat(cells.slice(raw.length));
+/* Every card yields exactly one phasor, whether it came from a stalk folded
+   into a square or from a rectangle. Both are read the same way: the three
+   regions, scaled by whatever ring the running value sits on. */
+const runsIn = c => c.reduce((t, d, j) => t + (j && d !== c[j-1] ? 1 : 0), c.length ? 1 : 0);
+
+function stalkPhasor(digits, E, rateA){
+  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
+  const full = digits.slice();
+  while(full.length < n * n) full.push(0);
   const R = hexRegions(full, n);
-  const runs = full.reduce((c, d, i) => c + (i && d !== full[i-1] ? 1 : 0), full.length ? 1 : 0);
-  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
+  const ring = Math.pow(2, E);
+  const inner = settled(R.inner) * ring, outer = settled(R.outer) * ring,
+        fold  = settled(R.fold)  * ring;
+  const value = hexValue(digits);
   return {
-    k, push, n, R, shown,
+    kind: "square", n, R, shown: full, cells: full, ring, E,
+    rows: n, cols: n, foldAt: n - 1,
     inner, outer, fold,
     greens: full.filter(d => d === 0).length,
-    spread: spreadOf(R.outer),
+    spread: spreadOf(R.outer) * ring,
     amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
-    /* handedness must reverse with the sign, always. the Fold usually says
-       which way, but it can be exactly zero — then the integer's own sign
-       does, rather than defaulting everything to one direction. */
-    dir: Math.sign(fold) || (neg ? -1 : 1),
+    dir: Math.sign(fold) || (value.num < 0n ? -1 : 1),
     /* the hex string is nibble-quantised, so its length alone would put every
-       integer under 16 on the same rate. the bit length is what actually
-       varies, and it is what the stalk length stood for before. */
-    rateA: Math.max(1, v === 0n ? 1 : v.toString(2).length),
-    rateB: Math.max(1, runs),                // one per run of like colour
-    value: hexValue(shown),
+       integer under 16 on the same rate. A card that IS an integer passes its
+       bit length in; a result of an operation has no such quantisation and its
+       own length is the honest rate. */
+    rateA: Math.max(1, rateA === undefined ? digits.length : rateA),
+    rateB: Math.max(1, runsIn(full)),
+    value,
+    vec: digits,                       // the 1D stalk this value lives on
   };
 }
+function gridPhasor(g, E){
+  const R = productRegions(g);
+  const ring = Math.pow(2, E);
+  const inner = settled(R.inner) * ring, outer = settled(R.outer) * ring,
+        fold  = settled(R.fold)  * ring;
+  const value = productValue(g);
+  return {
+    kind: "grid", n: g.cols, R, shown: g.cells, cells: g.cells, ring, E,
+    rows: g.rows, cols: g.cols, foldAt: g.foldAt,
+    inner, outer, fold,
+    greens: g.cells.filter(d => d === 0).length,
+    spread: spreadOf(R.outer) * ring,
+    amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
+    dir: Math.sign(fold) || (value.num < 0n ? -1 : 1),
+    rateA: Math.max(1, g.cols),
+    rateB: Math.max(1, runsIn(g.cells)),
+    value,
+    /* the squash: a grid cell weighs 2^-(r+c+2), so reading the rectangle as a
+       stalk is a different number. This is the one the value lives on. */
+    vec: productDigits(g),
+  };
+}
+
+/* the digits a card contributes, as written */
+function ownDigits(e){
+  const {v, neg} = parse(String(e.k));
+  const raw = hexSequence(v, neg).raw;
+  return e.mode === "pushed" ? pushLeft(raw) : raw;
+}
+const OPNAME = {"+": "plus", "-": "minus", "*": "times", "/": "over"};
+const OPSYM  = {"+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7"};
+
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 
 /* a curve on a torus that turns p times the long way while turning q times the
@@ -474,15 +542,62 @@ function drawPoint(g, x, y, h, size, u, inverted){
 
 /* one card per integer. `pg` is which page of that card is showing; TOPPAGE
    is which page of the pinned gallery is. Only what is showing gets drawn. */
-let KS = [{k: 3, pg: 0}, {k: 5, pg: 0}, {k: 7, pg: 0}];
+let KS = [{k: 3, pg: 0, mode: "plain", op: "+"},
+          {k: 5, pg: 0, mode: "plain", op: "+"},
+          {k: 7, pg: 0, mode: "plain", op: "+"}];
 let TOPPAGE = 0;
+let WIDTH = 8;                     // cells the quotient gets when a card divides
 let CV = [];                       // per-card canvases, rebuilt with the list
 
+/* Walk the rack carrying a running value -- a stalk inside (-1,1) and the ring
+   it sits on. A plain or pushed card is a number in its own right and starts
+   the running value over; an operand card transforms it. Either way the card
+   yields exactly one phasor, so every page below works unchanged. */
 function model(){
-  /* one phasor per card, plain spelling. The pushed form is a fact on the
-     card rather than a second phasor -- push conserves the value, so it would
-     ride the same curve anyway. */
-  const P = KS.map(e => { const q = phasor(e.k, false); q.opacity = 0.55; return q; });
+  const P = [];
+  let acc = null;
+  KS.forEach((e, i) => {
+    const mode = i === 0 && e.mode === "op" ? "plain" : (e.mode || "plain");
+    const own = ownDigits(e);
+    let q = null, note = null;
+    if(mode !== "op" || !acc){
+      const bits = Math.abs(e.k) ? Math.abs(e.k).toString(2).length : 1;
+      q = stalkPhasor(own, 0, bits);
+      acc = {d: own, E: 0};
+    } else {
+      const sym = e.op || "+";
+      const opd = ownDigits({k: e.k, mode: "plain"});
+      if(sym === "*"){
+        const g = hexProduct(acc.d, opd);
+        q = gridPhasor(g, acc.E);
+        q.grid = g;
+        acc = {d: productDigits(g), E: acc.E};
+      } else if(sym === "/"){
+        const dv = divide(acc.d, opd, WIDTH);
+        if(!dv){ note = "nothing divides by green"; }
+        else {
+          const g = hexProduct(opd, dv.Q);
+          q = gridPhasor(g, acc.E + dv.e);
+          /* the tableau is B x Q, but the number this card produced is Q --
+             that is what the ring carries and what the colour should read */
+          q.value = hexValue(dv.Q);
+          q.vec = dv.Q;
+          q.grid = g; q.rem = dv.R; q.exact = dv.exact; q.step = dv.e; q.Q = dv.Q;
+          acc = {d: dv.Q, E: acc.E + dv.e};
+        }
+      } else {
+        const A = stalkFrac(acc.d, acc.E), B = stalkFrac(opd, 0);
+        const n = sym === "+" ? A.num * B.den + B.num * A.den
+                              : A.num * B.den - B.num * A.den;
+        const st = fracToStalk(n, A.den * B.den);
+        q = stalkPhasor(st.d, st.E);
+        acc = st;
+      }
+      if(q){ q.op = sym; q.operand = opd; }
+    }
+    if(q){ q.k = e.k; q.mode = mode; q.row = i; q.opacity = 0.55; P.push(q); }
+    else KS[i]._note = note;
+  });
   const N = P.length;
   P.forEach((p, j) => {
     p.phase = TAU * j / N;                 // position in the ring stays positional
@@ -763,7 +878,8 @@ function draw(ts){
   const stale = !DRAWN || DRAWN.length !== M.P.length;
   const roll = () => M.P.map(p => still() || !p.greens
     ? {N: p.inner, S: p.outer, E: p.fold}
-    : {N: rolled(p.R.inner), S: rolled(p.R.outer), E: rolled(p.R.fold)});
+    : {N: rolled(p.R.inner) * p.ring, S: rolled(p.R.outer) * p.ring,
+       E: rolled(p.R.fold) * p.ring});
   if(still()){ DRAWN = M.P.map(p => ({N: p.inner, S: p.outer, E: p.fold})); PREV = DRAWN; }
   else if(!DIVS){ if(stale){ DRAWN = roll(); PREV = DRAWN; } }
   else if(slot !== LASTSLOT || stale){
@@ -1055,19 +1171,53 @@ function drawSphere(tip, joints){
 /* ---- the cards ----
    One numbered card per integer, the way a graphing calculator lists its
    expressions, each paged by its own dots. Nothing off-page is drawn. */
-function factsHTML(p){
+/* the spectrometer's cells, sized to the room the card has */
+function boxes(cells, cols, rows, foldAt){
+  const sz = Math.max(6, Math.min(22, Math.floor(104 / cols), Math.floor(96 / rows)));
+  const gl = sz >= 9;
+  const body = cells.map((v, i) => {
+    const r = Math.floor(i / cols), c = i % cols;
+    return `<div class="gsc ${cls(v)}${r + c === foldAt ? " fold" : ""}">${gl ? glyph(v) : ""}</div>`;
+  }).join("");
+  return `<div class="gsq" style="--sc:${sz}px;`
+    + ` grid-template-columns:repeat(${cols},var(--sc))">${body}</div>`;
+}
+function page1HTML(p, e){
+  const cap = p.kind === "grid"
+    ? `${p.rows}\u00d7${p.cols} ${p.op === "/" ? "tableau" : "grid"}`
+    : (p.mode === "op" ? `${OPNAME[p.op]}` : `${p.n}\u00d7${p.n}`);
+  return `<div class="p1"><div class="gcol">`
+    + boxes(p.cells, p.cols, p.rows, p.foldAt)
+    + `<div class="gcap">${cap}</div></div>`
+    + `<div class="tcol">${factsHTML(p, e)}</div></div>`;
+}
+function factsHTML(p, e){
   const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
   const bits = d => d.map(gl).join("");
-  const grouped = commas(p.shown, p.n).map(g => bits(g)).join(`<i class="cma">,</i>`);
-  const U = pushLeft(p.shown);
+  /* commas fall on the anti-diagonals of a square. A rectangle has no such
+     arcs, so its rows are the honest grouping. */
+  /* Cells, Commas and Push all describe the number, which lives on the vector
+     -- for a rectangle that is its squash, not its cells read left to right. */
+  const vec = p.vec || p.shown;
+  const vn = Math.max(1, Math.ceil(Math.sqrt(vec.length)));
+  const grouped = commas(vec, vn).map(g => bits(g)).join(`<i class="cma">,</i>`);
+  const U = pushLeft(vec);
+  const opLine = p.mode === "op"
+    ? `<dt>Op</dt><dd><b>${OPSYM[p.op]} ${e.k}</b>`
+      + (p.E ? ` \u00b7 ring 2<sup>${p.E}</sup>` : "")
+      + (p.op === "/" && p.rem
+          ? ` \u00b7 R ${fmt(p.rem)}${p.exact ? " (exact)" : ""}` : "")
+      + `</dd>`
+    : "";
   return `<dl class="facts">`
+    + opLine
     + `<dt>Inner</dt><dd>${p.inner.toFixed(6)}</dd>`
     + `<dt>Fold</dt><dd>${p.fold.toFixed(6)}</dd>`
     + `<dt>Outer</dt><dd>${p.outer.toFixed(6)}</dd>`
     + `<dt>Value</dt><dd><b>${fmt(p.value)}</b> \u00b7 ${Math.round(p.nm)} nm`
       + ` \u00b7 ${p.greens} green</dd>`
-    + `<dt>Cells</dt><dd class="bits">${bits(p.shown)}`
-      + ` \u00b7 ${p.shown.length} in ${p.n}\u00d7${p.n}</dd>`
+    + `<dt>Cells</dt><dd class="bits">${bits(vec)} \u00b7 ${vec.length}`
+      + `${p.kind === "grid" ? ` squashed from ${p.rows}\u00d7${p.cols}` : ` in ${p.n}\u00d7${p.n}`}</dd>`
     + `<dt>Commas</dt><dd class="bits">${grouped}</dd>`
     + `<dt>Push</dt><dd class="bits">${bits(U)} = ${fmt(hexValue(U))}</dd>`
     + `</dl>`;
@@ -1078,6 +1228,9 @@ function showPage(card, q){
   card.querySelectorAll(".dots .dt").forEach(d =>
     d.classList[+d.dataset.p === q ? "add" : "remove"]("on"));
 }
+
+let REPAINT = [];
+function repaintAll(){ REPAINT.forEach(f => f()); }
 
 function cards(){
   const el = $("cards");
@@ -1094,6 +1247,16 @@ function cards(){
               <button class="kdn" tabindex="-1" aria-label="Decrease by one">&#9660;</button>
             </span>
           </span>
+          <span class="seg" role="group" aria-label="How this card reads">
+            ${["plain", "pushed", "op"].map(m =>
+              `<button class="sg${(e.mode || "plain") === m ? " on" : ""}" data-m="${m}"`
+              + `${i === 0 && m === "op" ? " disabled" : ""}>`
+              + `${m === "op" ? "operand" : m}</button>`).join("")}
+          </span>
+          <select class="opsel" aria-label="Operator"${(e.mode || "plain") === "op" ? "" : " hidden"}>
+            ${["+", "-", "*", "/"].map(o =>
+              `<option value="${o}"${(e.op || "+") === o ? " selected" : ""}>${OPSYM[o]}</option>`).join("")}
+          </select>
           <button class="rm" aria-label="Remove">\u00d7</button>
         </div>
         <div class="dpg" data-p="0"></div>
@@ -1115,30 +1278,30 @@ function cards(){
       </div>
     </div>`).join("");
 
-  CV = [];
+  CV = []; REPAINT = [];
   el.querySelectorAll(".dcard").forEach(card => {
     const i = +card.dataset.i, p = M.P[i];
-    card.querySelector(`.dpg[data-p="0"]`).innerHTML = p ? factsHTML(p) : "";
-    const dot = card.querySelector(".dgut .dot");
-    if(dot) dot.style.background = p ? p.col : "transparent";
+    const paint = () => {
+      const q = M.P.find(x => x.row === i);
+      card.querySelector(`.dpg[data-p="0"]`).innerHTML = q ? page1HTML(q, KS[i])
+        : `<div class="rval dim">${KS[i]._note || "nothing to show"}</div>`;
+      const dt = card.querySelector(".dgut .dot");
+      if(dt) dt.style.background = q ? q.col : "transparent";
+    };
+    paint();
+    REPAINT.push(paint);
 
     const cv = {};
     card.querySelectorAll("canvas").forEach(c => { cv[c.dataset.k] = c; });
     CV[i] = cv;
 
     const kin = card.querySelector(".kin");
-    const setK = v => { KS[i].k = v; kin.value = v; recompute();
-      const q = M.P[i];
-      card.querySelector(`.dpg[data-p="0"]`).innerHTML = q ? factsHTML(q) : "";
-      if(dot) dot.style.background = q ? q.col : "transparent";
-      TRAILS = []; };
+    /* an integer downstream of an operand changes every card below it, so a
+       keystroke repaints the whole list rather than just this one */
+    const setK = v => { KS[i].k = v; kin.value = v; refresh(); };
     kin.addEventListener("input", ev => {
       const v = parseInt(ev.target.value, 10);
-      if(!isNaN(v)){ KS[i].k = v; recompute();
-        const q = M.P[i];
-        card.querySelector(`.dpg[data-p="0"]`).innerHTML = q ? factsHTML(q) : "";
-        if(dot) dot.style.background = q ? q.col : "transparent";
-        TRAILS = []; }
+      if(!isNaN(v)){ KS[i].k = v; recompute(); repaintAll(); TRAILS = []; }
     });
     kin.addEventListener("keydown", ev => {
       if(ev.key === "ArrowUp"){ setK((parseInt(kin.value, 10) || 0) + 1); ev.preventDefault(); }
@@ -1149,6 +1312,12 @@ function cards(){
     card.querySelector(".rm").addEventListener("click", () => {
       if(KS.length > 1){ KS.splice(i, 1); refresh(); }
     });
+    card.querySelectorAll(".seg .sg").forEach(b => {
+      if(b.disabled) return;
+      b.addEventListener("click", () => { KS[i].mode = b.dataset.m; refresh(); });
+    });
+    const osel = card.querySelector(".opsel");
+    if(osel) osel.addEventListener("change", ev => { KS[i].op = ev.target.value; refresh(); });
     card.querySelectorAll(".dots .dt").forEach(d => {
       d.addEventListener("click", () => { KS[i].pg = +d.dataset.p; showPage(card, KS[i].pg); });
     });
@@ -1181,7 +1350,7 @@ function stats(){
 function refresh(){ recompute(); cards(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = []; }
 
 $("addbtn").addEventListener("click", () => {
-  KS.push({k: KS.length + 2, pg: 0});
+  KS.push({k: KS.length + 2, pg: 0, mode: "plain", op: "+"});
   refresh();
   const el = $("cards");
   el.scrollTop = el.scrollHeight;       // bring the one just added into view
@@ -1190,7 +1359,8 @@ $("randbtn").addEventListener("click", () => {
   KS = KS.map(e => ({...e, k: Math.floor(Math.random()*127) - 63 || 1})); refresh();
 });
 $("resetbtn").addEventListener("click", () => {
-  KS = [{k:3, pg:0}, {k:5, pg:0}, {k:7, pg:0}];
+  KS = [{k:3, pg:0, mode:"plain", op:"+"}, {k:5, pg:0, mode:"plain", op:"+"},
+        {k:7, pg:0, mode:"plain", op:"+"}];
   refresh();
 });
 /* the sampled curve as plain xyz, for feeding to something that can actually
@@ -1198,7 +1368,8 @@ $("resetbtn").addEventListener("click", () => {
 $("expbtn").addEventListener("click", () => {
   const head = [
     `# chronochromatic wub curve`,
-    `# integers: ${KS.map(e => e.k).join(", ")}`,
+    `# sequence: ${KS.map((e, i) => (i && e.mode === "op" ? OPSYM[e.op] + " " : "")
+        + e.k + (e.mode === "pushed" ? "(pushed)" : "")).join(" ")}`,
     `# phasors: ${M.N}, period ${M.period} rad, samples ${CURVE.length}`,
     `# rates: ${M.P.map(p => `${p.k}:A=${p.rateA},B=${p.rateB}`).join(" ")}`,
     `# crossing bound found here: ${BOUND === null ? "not measured" : `<= ${BOUND} (best of ${CROSS_DIRS} projections)`}`,
@@ -1224,6 +1395,11 @@ function setZoom(z, moveSlider){
   if(moveSlider) $("zoom").value = sliderFromZ(ZOOM);
   $("zoomval").textContent = (ZOOM < 10 ? ZOOM.toFixed(2) : ZOOM.toFixed(1)) + "×";
 }
+$("wid").addEventListener("input", e => {
+  WIDTH = parseInt(e.target.value, 10);
+  $("widval").textContent = `${WIDTH} cell${WIDTH === 1 ? "" : "s"}`;
+  refresh();
+});
 $("topdots").addEventListener("click", e => {
   const b = e.target.closest ? e.target.closest(".dt") : null;
   if(!b) return;

@@ -200,7 +200,7 @@ function hexRegions(cells, n){
   const inner = [], fold = [], outer = [];
   for(let i = 0; i < n*n; i++){
     const r = Math.floor(i/n), c = i % n;
-    const slot = {v: cells[i] || 0, r, c, i};
+    const slot = {v: cells[i] || 0, r, c, i, w: i + 1};   // the cell weighs 2^-w
     (r + c < n - 1 ? inner : r + c === n - 1 ? fold : outer).push(slot);
   }
   return {inner, fold, outer};
@@ -338,4 +338,33 @@ function squashDiagonals(P){
   for(let i = 0; i < P.cells.length; i++)
     S[Math.floor(i / P.cols) + (i % P.cols)] += P.cells[i];
   return S;                                   // S[d] rides weight 2^-(d+2)
+}
+
+/* ---- a running value: 2^E times a stalk ----
+   Multiplication and division already produce a mantissa and a ring. Addition
+   does too the moment it crosses 1 -- 15/16 + 15/16 is 15/8, outside the disc
+   every stalk lives in. So all four operations carry the same pair: a stalk
+   inside (-1,1), and the exponent that says which ring it sits on. */
+function stalkFrac(d, E){
+  const v = hexValue(d);                       // den is a power of two
+  let num = v.num, den = v.den;
+  if(E >= 0) num <<= BigInt(E); else den <<= BigInt(-E);
+  const g = (a, b) => { a = a < 0n ? -a : a; while(b){ [a, b] = [b, a % b]; } return a || 1n; };
+  const h = g(num, den);
+  return {num: num / h, den: den / h};
+}
+/* the inverse: an exact dyadic back to a stalk and a ring, normalised so the
+   leading cell is lit and nothing is truncated. */
+function fracToStalk(num, den){
+  if(num === 0n) return {d: [0], E: 0};
+  const abs = x => x < 0n ? -x : x;
+  const k = den.toString(2).length - 1;        // den = 2^k
+  /* e is the smallest exponent with |num/den| < 2^e */
+  let e = abs(num).toString(2).length - k;
+  const under = x => x >= 0 ? abs(num) < (den << BigInt(x)) : (abs(num) << BigInt(-x)) < den;
+  while(!under(e)) e++;
+  while(under(e - 1)) e--;
+  const L = k + e;                             // cells in the mantissa
+  const sgn = num < 0n ? -1 : 1, mag = abs(num);
+  return {d: mag.toString(2).padStart(L, "0").split("").map(c => c === "1" ? sgn : 0), E: e};
 }

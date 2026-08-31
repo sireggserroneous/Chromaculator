@@ -105,4 +105,87 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   console.log(`  helix fits: ${cases} canvas/frequency combinations, worst overflow`
     + ` ${worst.toFixed(2)}px`);
 }
+/* 7. the point of the page: it reproduces the other three exactly.
+      Wubba Dub also draws its seed, which Wub × and Wub ÷ do not, so those two
+      are compared from the first operand onward. */
+{
+  const {loadPage: lp} = require(__dirname + "/domharness.js");
+  /* Wub ± phasors have no rows/cols -- they were never rectangles -- so the
+     square comparison drops those two fields. */
+  const shape = (r, skip, box) => r(`JSON.stringify(M.P.slice(${skip}).map(p =>`
+    + ` [p.inner, p.fold, p.outer, p.rateA, p.rateB, fmt(p.value)`
+    + (box ? `, p.rows, p.cols` : ``) + `]))`);
+  const ks = [3, 10, 200];
+
+  const A = lp(__dirname + "/../wub.html");
+  A.run(`KS = ${JSON.stringify(ks.map(k => ({k, plain: true, push: false, op: .55})))}; refresh();`);
+  run(`KS = ${JSON.stringify(ks.map(k => ({k, pg: 0, mode: "plain", op: "+"})))}; refresh();`);
+  ok(shape(A.run, 0, false) === shape(run, 0, false), "all-plain must reproduce Wub ±");
+
+  for(const [page, sym] of [["wubx.html", "*"], ["wubdiv.html", "/"]]){
+    const O = lp(__dirname + "/../" + page);
+    O.run(`WIDTH = 8; KS = ${JSON.stringify(ks.map(k => ({k, push: false, op: .55})))}; refresh();`);
+    run(`WIDTH = 8; KS = ${JSON.stringify(ks.map((k, i) =>
+      ({k, pg: 0, mode: i ? "op" : "plain", op: sym})))}; refresh();`);
+    ok(shape(O.run, 0, true) === shape(run, 1, true), `seed + all-${sym} must reproduce ${page}`);
+  }
+  console.log("  reproduces Wub ± exactly, and Wub × and Wub ÷ step for step");
+}
+
+/* 8. + and − are exact, and carry a ring when they leave the disc */
+{
+  const exact = run(`(() => {
+    const abs = x => x < 0n ? -x : x;
+    const gg = (a,b) => { a = abs(a); while(b){ [a,b] = [b, a % b]; } return a || 1n; };
+    const red = (n,d) => { const h = gg(n,d); return [n/h, d/h]; };
+    let bad = 0, rings = 0, n = 0;
+    for(const sym of ["+", "-"]) for(const a of [3, 200, 255, 4095]) for(const b of [5, 60, 255, 1000]){
+      KS = [{k:a,pg:0,mode:"plain",op:"+"}, {k:b,pg:0,mode:"op",op:sym}];
+      refresh();
+      const p = M.P[1];
+      const A = stalkFrac(ownDigits({k:a,mode:"plain"}), 0);
+      const B = stalkFrac(ownDigits({k:b,mode:"plain"}), 0);
+      const want = red(sym === "+" ? A.num*B.den + B.num*A.den : A.num*B.den - B.num*A.den,
+                       A.den * B.den);
+      const got = stalkFrac(p.shown.slice(0, p.shown.length), p.E);
+      const g2 = stalkFrac(p.cells, p.E);
+      if(g2.num !== want[0] || g2.den !== want[1]) bad++;
+      if(p.E !== 0) rings++;
+      n++;
+    }
+    return {bad, rings, n};
+  })()`);
+  ok(exact.bad === 0, `${exact.bad} of ${exact.n} sums were wrong`);
+  console.log(`  + and −: ${exact.n - exact.bad}/${exact.n} exact,`
+    + ` ${exact.rings} needed a ring to stay inside the disc`);
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+}
+
+/* 9. a card cannot be an operand with nothing above it */
+{
+  run(`KS = [{k:3,pg:0,mode:"op",op:"*"},{k:5,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  ok(run("M.N") === 2, "an operand in row 0 should still yield a phasor");
+  ok(run(`M.P[0].kind`) === "square" && run(`M.P[0].op === undefined`),
+     "row 0 must fall back to being a plain number");
+  console.log("  an operand in row 0 falls back to plain — there is nothing above it");
+}
+/* 10. the facts describe the number, not the rectangle. A grid cell weighs
+       2^-(r+c+2), so reading a rectangle left to right is a different value --
+       Cells, Commas and Push all have to use the squashed vector. */
+{
+  run(`WIDTH = 8; KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"},
+       {k:200,pg:0,mode:"op",op:"+"},{k:6,pg:0,mode:"op",op:"/"}]; refresh();`);
+  const rows = run(`M.P.map(p => { const v = hexValue(p.vec), u = hexValue(pushLeft(p.vec));
+    return [p.kind, fmt(p.value), fmt(v), fmt(u)]; })`);
+  rows.forEach((r, i) => {
+    ok(r[1] === r[2], `card ${i+1} (${r[0]}): vector reads ${r[2]}, value is ${r[1]}`);
+    ok(r[2] === r[3], `card ${i+1}: push changed the value to ${r[3]}`);
+  });
+  /* and a rectangle's vector must be shorter than its cells -- it is a squash */
+  const g = run(`M.P.filter(p => p.kind === "grid").map(p => [p.vec.length, p.cells.length])`);
+  ok(g.length > 0 && g.every(([v, c]) => v < c), "a grid's vector should be its squash");
+  console.log(`  facts: value == vector == pushed on all ${rows.length} cards;`
+    + ` grids squash ${g.map(([v,c]) => c + "\u2192" + v).join(", ")}`);
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+}
 console.log("\nall good.");
