@@ -412,3 +412,33 @@ function alignByWeight(sources){
   return {ws, rows, sums, owed: sums.filter(v => Math.abs(v) > 1).length,
           num: num / h, den: den / h, stalk: fracToStalk(num / h, den / h)};
 }
+
+/* ---- spread: the mirror of push, and where the bar comes in ----
+   Push moves a lit cell LEFT into a green, because 2^-i == 2^-(i-1) - 2^-i.
+   It runs to a canonical fixpoint after which no green is ever followed by a
+   lit cell -- every green left over is trailing, sitting to the RIGHT of the
+   last lit cell, and push cannot reach it: going that way would need
+   2^-i == 2^-(i+1) + 2^-(i+1), a digit of 2.
+
+   The exact move rightward is the geometric one, 2^-i == 2^-(i+1) + 2^-(i+2)
+   + ... , which only closes in the limit. So the last lit cell empties and
+   every trailing green takes its sign, with the final cell barred: it repeats
+   forever. Read as a finite string it falls short by exactly one place value
+   -- sign * 2^-L -- which is what the bar is for.
+
+   Returns {d, bar, at, short}: the digits, whether a bar is needed, the index
+   the repeat starts at, and the exact shortfall of the finite reading. */
+function spreadRight(cells){
+  const d = cells.slice();
+  const L = d.length;
+  let last = -1;
+  for(let i = L - 1; i >= 0; i--) if(d[i] !== 0){ last = i; break; }
+  if(last < 0 || last === L - 1) return {d, bar: false, at: -1, short: {num: 0n, den: 1n}};
+  for(let i = last + 1; i < L; i++) if(d[i] !== 0)
+    return {d, bar: false, at: -1, short: {num: 0n, den: 1n}};   // not a clean tail
+  const s = d[last];
+  d[last] = 0;
+  for(let i = last + 1; i < L; i++) d[i] = s;
+  return {d, bar: true, at: last + 1,
+          short: {num: BigInt(s), den: 1n << BigInt(L)}};
+}

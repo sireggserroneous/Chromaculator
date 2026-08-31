@@ -137,3 +137,43 @@ console.log("\nall good.");
   ok(bad2 === 0, `alignByWeight wrong on ${bad2} of ${n2} four-source racks`);
   console.log(`  alignByWeight: ${n2 - bad2}/${n2} four-source racks, one row kept per source`);
 }
+
+/* spreadRight — the mirror of push, and the only thing that reaches the greens
+   push leaves behind. Exact only in the limit, hence the bar. */
+{
+  const digs3 = k => { const {v, neg} = parse(String(k)); return hexSequence(v, neg).raw; };
+  const G2 = (a,b) => { a = a<0n?-a:a; while(b){ [a,b] = [b, a % b]; } return a || 1n; };
+  const red2 = (n,d) => { const h = G2(n,d); return [n/h, d/h]; };
+  let bad = 0, n = 0, barred = 0, trailing = 0, after = 0;
+  for(let k = -3000; k <= 3000; k++){
+    const p = pushLeft(digs3(k)), r = spreadRight(p);
+    n++; if(r.bar) barred++;
+    /* the finite reading plus the stated shortfall must be the true value */
+    const v = hexValue(p), f = hexValue(r.d);
+    const [sn, sd] = red2(f.num * r.short.den + r.short.num * f.den, f.den * r.short.den);
+    if(sn !== v.num || sd !== v.den) bad++;
+    /* push leaves a RUN of greens on the right; spread leaves at most one */
+    let t = 0; for(let i = p.length - 1; i >= 0 && p[i] === 0; i--) t++;
+    trailing += t;
+    let a = 0; for(let i = r.d.length - 1; i >= 0 && r.d[i] === 0; i--) a++;
+    after += a;
+    if(r.bar && a !== 0) bad++;                       // a barred tail is never green
+  }
+  ok(bad === 0, `spreadRight wrong on ${bad} of ${n}`);
+  ok(after < trailing, `spread should reduce trailing greens: ${trailing} -> ${after}`);
+  console.log(`  spreadRight: ${n - bad}/${n} exact in the limit, ${barred} needed a bar,`
+    + ` trailing greens ${trailing} -> ${after}`);
+
+  /* and a second push really is a no-op, in either scan direction */
+  let same = 0, canon = 0;
+  const ltr = c => { const d = c.slice(); let m = true;
+    while(m){ m = false; for(let i = 1; i < d.length; i++)
+      if(d[i] !== 0 && d[i-1] === 0){ d[i-1] = d[i]; d[i] = -d[i]; m = true; } } return d; };
+  for(let k = -3000; k <= 3000; k++){
+    const p = pushLeft(digs3(k));
+    if(pushLeft(p).join(",") === p.join(",")) same++;
+    if(ltr(digs3(k)).join(",") === p.join(",")) canon++;
+  }
+  ok(same === 6001 && canon === 6001, "push must be an idempotent, canonical fixpoint");
+  console.log(`  push: idempotent ${same}/6001, same fixpoint scanned either way ${canon}/6001`);
+}

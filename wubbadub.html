@@ -281,6 +281,8 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .facts dd::-webkit-scrollbar{display:none}
 .facts dd b{color:var(--ink)}
 .facts .bits i{font-style:normal}
+/* the barred tail repeats forever, so it wears a bar */
+.rep{border-top:1.5px solid var(--brass); padding-top:1px; margin-left:1px}
 </style>
 </head>
 <body>
@@ -1358,6 +1360,19 @@ function page1HTML(p, e){
     + `<div class="gcap">${cap}</div></div>`
     + `<div class="tcol">${factsHTML(p, e)}</div></div>`;
 }
+/* Push runs to a canonical fixpoint, so a second pass changes nothing -- but
+   it can only move weight left, and it leaves a run of greens to the right of
+   the last lit cell. Spread is the move the other way. It is exact only in the
+   limit, so the tail is barred: it repeats forever. */
+function spreadRow(pushed){
+  const r = spreadRight(pushed);
+  if(!r.bar) return `<dt>Spread</dt><dd class="dim">no trailing greens to fill</dd>`;
+  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
+  const head = r.d.slice(0, r.at).map(gl).join("");
+  const tail = r.d.slice(r.at).map(gl).join("");
+  return `<dt>Spread</dt><dd class="bits">${head}<span class="rep">${tail}</span>`
+    + ` \u00b7 the barred tail repeats</dd>`;
+}
 function factsHTML(p, e){
   const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
   const bits = d => d.map(gl).join("");
@@ -1387,6 +1402,7 @@ function factsHTML(p, e){
       + `${p.kind === "grid" ? ` squashed from ${p.rows}\u00d7${p.cols}` : ` in ${p.n}\u00d7${p.n}`}</dd>`
     + `<dt>Commas</dt><dd class="bits">${grouped}</dd>`
     + `<dt>Push</dt><dd class="bits">${bits(U)} = ${fmt(hexValue(U))}</dd>`
+    + spreadRow(U)
     + `</dl>`;
 }
 
