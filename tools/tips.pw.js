@@ -19,9 +19,17 @@ const ok = (name, pass, note) => {
   console.log(`  ${pass ? "ok  " : "FAIL"} ${name}${note ? "  — " + note : ""}`);
 };
 
+/* Ask the browser whether it is on screen, not whether a property says so.
+   Reading .hidden was the mistake that let a stuck tooltip pass every test
+   there was: the property was set correctly and an author display:flex beat
+   the user agent's [hidden]{display:none}, so the card never went anywhere. */
 const visible = page => page.evaluate(() => {
   const t = document.getElementById("cc-tip");
-  return !!t && !t.hidden;
+  if(!t) return false;
+  const cs = getComputedStyle(t);
+  const r = t.getBoundingClientRect();
+  return cs.display !== "none" && cs.visibility !== "hidden"
+      && parseFloat(cs.opacity) > 0.01 && r.width > 0 && r.height > 0;
 });
 /* wait for the card to go, up to `ms`, and report how long it took */
 async function goneWithin(page, ms){

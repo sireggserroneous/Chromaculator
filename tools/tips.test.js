@@ -165,4 +165,19 @@ const PAGES = ["index", "spectrometer", "atlas", "spec", "inspirations",
   console.log(`  every page with data-tip attributes also binds them`);
 }
 
+/* 9. the CSS must actually hide the card.
+      display:flex on .cc-tip is an author rule; [hidden]{display:none} is the
+      user agent's, and the author one wins. So `hidden = true` set the property
+      and the card stayed on screen -- for ever. Every test in this file read
+      the property and passed while the feature was visibly broken. The lesson
+      is cheap to keep: assert the stylesheet re-hides it. */
+{
+  const css = fs.readFileSync(__dirname + "/../base.css", "utf8");
+  ok(/\.cc-tip\{[^}]*display\s*:\s*flex/.test(css),
+     "the card is no longer display:flex; this check needs rewriting for whatever replaced it");
+  ok(/\.cc-tip\[hidden\]\s*\{[^}]*display\s*:\s*none/.test(css),
+     "nothing re-hides .cc-tip[hidden]: the author display beats [hidden] and the card never goes away");
+  console.log(`  the stylesheet re-hides the card, which the author display would otherwise defeat`);
+}
+
 console.log("tips ok");
