@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Inspirations · chronochromatic.org</title>
-<meta name="description" content="Who got to each piece of this first.">
+<meta name="description" content="Who got to each piece of this first. Maths is discovery, not invention; this page names the discoverers.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://chronochromatic.org/inspirations.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="chronochromatic.org">
+<meta property="og:title" content="Inspirations · chronochromatic.org">
+<meta property="og:description" content="Who got to each piece of this first. Maths is discovery, not invention; this page names the discoverers.">
+<meta property="og:url" content="https://chronochromatic.org/inspirations.html">
+<meta property="og:image" content="https://chronochromatic.org/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Inspirations · chronochromatic.org">
+<meta name="twitter:description" content="Who got to each piece of this first. Maths is discovery, not invention; this page names the discoverers.">
+<meta name="twitter:image" content="https://chronochromatic.org/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="base.css">
 <style>
 .wrap{max-width:960px; margin:0 auto; padding:34px 24px 80px; display:flex; flex-direction:column; gap:26px}
 .mast{display:flex; flex-direction:column; gap:9px; padding-bottom:18px; border-bottom:2px solid var(--ink)}
@@ -48,17 +60,17 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
 </head>
 <body>
 <header class="sitebar">
-  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
   <nav aria-label="Main">
-    <a href="/">Home</a>
-    <a href="/spectrometer.html">Spectrometer</a>
-    <a href="/atlas.html">Atlas</a>
-    <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
-    <a href="/spec.html">Spec</a>
-    <a href="/inspirations.html" class="cur" aria-current="page">Inspirations</a>
+    <a href="index.html">Home</a>
+    <a href="spectrometer.html">Spectrometer</a>
+    <a href="atlas.html">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html">Spec</a>
+    <a href="inspirations.html" class="cur" aria-current="page">Inspirations</a>
   </nav>
 </header>
 
@@ -71,7 +83,30 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
       names them. Arriving somewhere already furnished does not make the walk less real.</p>
   </header>
 
-  <section>
+  <div class="fig" style="margin-bottom:30px">
+    <canvas id="icv" aria-label="How many borrowings each part of the site rests on, by section."></canvas>
+    <div class="readout" id="iout"></div>
+    <div class="figbar">
+      <label class="ctl" for="isec" data-tip="t_isec">section
+        <select id="isec">
+          <option value="">all</option>
+          <option value="s-the-digits">the digits</option>
+          <option value="s-the-stalks">the stalks</option>
+          <option value="s-the-anatomy-of-0">the anatomy of 0</option>
+          <option value="s-the-atlas">the atlas</option>
+          <option value="s-shifting">shifting</option>
+          <option value="s-multiplication-and-division">multiplication and division</option>
+          <option value="s-the-wub">the wub ±</option>
+          <option value="s-the-fold">the fold</option>
+        </select></label>
+      <label class="ctl" for="iq" data-tip="t_ifind">find <input type="search" id="iq" placeholder="conway, fourier…"
+        style="font:inherit; text-transform:none; letter-spacing:0; color:var(--ink); background:var(--panel);
+               border:1px solid var(--rule2); border-radius:6px; padding:3px 8px; width:clamp(110px,20vw,180px)"></label>
+      <label class="ctl" for="iyear" data-tip="t_iyear">before <input type="range" id="iyear" min="1800" max="2025" step="1" value="2025"><b id="iyearv">2025</b></label>
+    </div>
+  </div>
+
+  <section id="s-the-digits">
     <h2>The digits</h2>
     <p class="lead">Red −1, green 0, blue +1 in base two — a redundant representation, where the
       same number has many spellings.</p>
@@ -101,7 +136,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     </div>
   </section>
 
-  <section>
+  <section id="s-the-stalks">
     <h2>The stalks</h2>
     <p class="lead">Blue and red edges read as a number, and the <code>+/−</code> address that names it.</p>
     <div class="items">
@@ -127,7 +162,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
   </section>
 
 
-  <section>
+  <section id="s-the-anatomy-of-0">
     <h2>The anatomy of 0</h2>
     <p class="lead">Where the digits come from — and why they cannot start any earlier.</p>
 
@@ -231,7 +266,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     </div>
   </section>
 
-  <section>
+  <section id="s-the-atlas">
     <h2>The atlas</h2>
     <p class="lead">Rings of integers, ordered by value — which turned out to be an FFT, a machine
       part, and a hyperbolic plane.</p>
@@ -269,7 +304,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     </div>
   </section>
 
-  <section>
+  <section id="s-shifting">
     <h2>Shifting</h2>
     <p class="lead">Move the point, or drop a digit — two different operations, both classical.</p>
     <div class="items">
@@ -291,7 +326,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
   </section>
 
 
-  <section>
+  <section id="s-multiplication-and-division">
     <h2>Multiplication and division</h2>
     <p class="lead">One is a rectangle you read; the other is the same rectangle, searched for.</p>
     <div class="items">
@@ -337,7 +372,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     </div>
   </section>
 
-  <section>
+  <section id="s-the-wub">
     <h2>The wub ±</h2>
     <p class="lead">Phasors summed tip to tail, riding surfaces, tying knots.</p>
     <div class="items">
@@ -362,7 +397,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     </div>
   </section>
 
-  <section>
+  <section id="s-the-fold">
     <h2>The fold</h2>
     <p class="lead">Anti-diagonals, mirror symmetry, and inversion in a circle.</p>
     <div class="items">
@@ -398,5 +433,140 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
     got there.
   </footer>
 </div>
+
+<script src="stalk.js"></script>
+<script src="chroma-ui.js"></script>
+<script src="glossary.js"></script>
+<script>
+/* ------------------------------------------------------- filtering the debts
+   A long list of attributions is only useful if you can find one. The bars are
+   the same data as the list, drawn: how much of each part of the site rests on
+   somebody else's work.
+
+   The list is read through querySelectorAll, which the DOM harness leaves
+   empty, so this code is written to hold up against nothing at all -- an empty
+   catalogue draws an empty chart and says so, rather than throwing. That is
+   also what a browser with the section markup removed would do. */
+const SECS = [
+  ["s-the-digits", "digits"], ["s-the-stalks", "stalks"],
+  ["s-the-anatomy-of-0", "zero"], ["s-the-atlas", "atlas"],
+  ["s-shifting", "shifting"], ["s-multiplication-and-division", "× ÷"],
+  ["s-the-wub", "wub"], ["s-the-fold", "fold"],
+];
+
+/* one pass over the markup, done once: each item with the section it sits in,
+   the text to search, and the year claimed for it if there is one */
+function catalogue(){
+  const out = [];
+  for(const [id, label] of SECS){
+    const sec = document.getElementById(id);
+    if(!sec || typeof sec.querySelectorAll !== "function") continue;
+    for(const el of Array.from(sec.querySelectorAll(".item"))){
+      const text = (el.textContent || "").toLowerCase();
+      const m = text.match(/\b(1[6-9]\d\d|20[0-2]\d)\b/);
+      out.push({el, id, label, text, year: m ? +m[1] : null});
+    }
+  }
+  return out;
+}
+const ITEMS = catalogue();
+
+/* the whole filter, as one predicate over a plain object. The catalogue is read
+   out of the markup with querySelectorAll, which the DOM harness leaves empty,
+   so keeping the decision here -- taking data, touching nothing -- is the only
+   way any of this is testable. tools/inspirations.test.js calls it directly.
+
+   An item with no year is never hidden by the year bar: the bar says "before
+   2025", and an undated debt has not been shown to fail that. */
+function keeps(it, sec, q, before){
+  return (!sec || sec === it.id)
+    && (!q || it.text.indexOf(q) >= 0)
+    && (it.year === null || it.year <= before);
+}
+
+function apply(){
+  const sec = iSec.get(), q = (iQ && iQ.value ? iQ.value : "").trim().toLowerCase();
+  const before = Math.round(iYear.get());
+  let shown = 0;
+  const per = new Map(SECS.map(([id]) => [id, {n: 0, hit: 0}]));
+  for(const it of ITEMS){
+    const bucket = per.get(it.id);
+    if(bucket) bucket.n++;
+    const ok = keeps(it, sec, q, before);
+    if(it.el && it.el.style) it.el.style.display = ok ? "" : "none";
+    if(ok){ shown++; if(bucket) bucket.hit++; }
+  }
+  /* a whole section with nothing left in it goes too, heading and all */
+  for(const [id] of SECS){
+    const el = document.getElementById(id), b = per.get(id);
+    if(el && el.style) el.style.display = (b && b.hit === 0 && ITEMS.length) ? "none" : "";
+  }
+  return {shown, per};
+}
+
+function iDraw(state){
+  const box = UI.fit(document.getElementById("icv"), 132);
+  if(!box) return;
+  const {ctx, w, h} = box, p = UI.palette();
+  ctx.clearRect(0, 0, w, h);
+  const per = state.per;
+  const pad = 14, top = 16, bot = 26;
+  const bw = (w - pad * 2) / SECS.length;
+  let max = 1;
+  for(const [id] of SECS) max = Math.max(max, (per.get(id) || {n: 0}).n);
+
+  ctx.textAlign = "center";
+  for(let i = 0; i < SECS.length; i++){
+    const [id, label] = SECS[i];
+    const b = per.get(id) || {n: 0, hit: 0};
+    const x = pad + i * bw, cw = bw * 0.62, cx = x + (bw - cw) / 2;
+    const full = (h - top - bot) * (b.n / max);
+    const hit = (h - top - bot) * (b.hit / max);
+    /* the whole debt in outline, the part still showing filled in */
+    ctx.globalAlpha = 0.18; ctx.fillStyle = p.ink3;
+    ctx.fillRect(cx, h - bot - full, cw, full);
+    ctx.globalAlpha = 1; ctx.fillStyle = b.hit ? p.brass : p.rule;
+    ctx.fillRect(cx, h - bot - hit, cw, hit);
+    ctx.fillStyle = p.ink3;
+    ctx.font = `500 9px "IBM Plex Mono",monospace`;
+    ctx.fillText(label, x + bw / 2, h - bot + 13);
+    if(b.n){
+      ctx.fillStyle = b.hit ? p.ink : p.ink3;
+      ctx.font = `600 10px "IBM Plex Mono",monospace`;
+      ctx.fillText(String(b.hit), x + bw / 2, h - bot - hit - 6);
+    }
+  }
+}
+
+function iSay(state){
+  const out = document.getElementById("iout");
+  if(!out) return;
+  if(!ITEMS.length){ out.textContent = "No catalogue on this page."; return; }
+  const dated = ITEMS.filter(i => i.year !== null);
+  const oldest = dated.length ? Math.min(...dated.map(i => i.year)) : null;
+  out.innerHTML = `<span class="hi">${state.shown}</span> of ${ITEMS.length} borrowings`
+    + (oldest ? `<span>oldest on the page: <span class="hi">${oldest}</span></span>` : "");
+}
+
+const iQ = document.getElementById("iq");
+function draw(){ const s = apply(); iDraw(s); iSay(s); }
+const iSec = UI.select("isec", {onChange: draw});
+const iYear = UI.slider("iyear", {out: "iyearv", onInput: draw});
+if(iQ && iQ.addEventListener) iQ.addEventListener("input", draw);
+draw();
+if(typeof addEventListener === "function") addEventListener("resize", draw);
+
+/* ------------------------------------------------ explaining the controls */
+UI.tips.add({
+  t_isec:  {title: "section", what: "Show only the borrowings behind one part of the site.",
+            why: "The bars above are the same counts. A tall bar is a part of this site resting on a lot of other people's work."},
+  t_ifind: {title: "find", what: "Keeps only the entries whose text contains what you type.",
+            why: "Try a name — conway, booth, avizienis — to see everything one person is behind."},
+  t_iyear: {title: "before", what: "Hide anything first published after this year.",
+            why: "Drag it back to 1950 to see how much of this was already known before computers. Undated entries always stay."},
+});
+UI.tips.scan();
+
+</script>
 </body>
 </html>

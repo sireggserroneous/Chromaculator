@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Atlas · chronochromatic.org</title>
-<meta name="description" content="Every integer as a ring of dyadics, laid out in value order.">
+<meta name="description" content="Every dyadic rational, once. Concentric rings of integers ordered by value, each ring one more bit of precision.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://chronochromatic.org/atlas.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="chronochromatic.org">
+<meta property="og:title" content="Atlas · chronochromatic.org">
+<meta property="og:description" content="Every dyadic rational, once. Concentric rings of integers ordered by value, each ring one more bit of precision.">
+<meta property="og:url" content="https://chronochromatic.org/atlas.html">
+<meta property="og:image" content="https://chronochromatic.org/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atlas · chronochromatic.org">
+<meta name="twitter:description" content="Every dyadic rational, once. Concentric rings of integers ordered by value, each ring one more bit of precision.">
+<meta name="twitter:image" content="https://chronochromatic.org/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="base.css">
 <style>
 html,body{height:100%}
 body{overflow:hidden; display:flex; flex-direction:column}
@@ -87,17 +99,17 @@ input[type=text]:focus,input[type=range]:focus-visible{outline:2px solid var(--b
 </head>
 <body>
 <header class="sitebar">
-  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
   <nav aria-label="Main">
-    <a href="/">Home</a>
-    <a href="/spectrometer.html">Spectrometer</a>
-    <a href="/atlas.html" class="cur" aria-current="page">Atlas</a>
-    <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
-    <a href="/spec.html">Spec</a>
-    <a href="/inspirations.html">Inspirations</a>
+    <a href="index.html">Home</a>
+    <a href="spectrometer.html">Spectrometer</a>
+    <a href="atlas.html" class="cur" aria-current="page">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html">Spec</a>
+    <a href="inspirations.html">Inspirations</a>
   </nav>
 </header>
 
@@ -111,12 +123,12 @@ input[type=text]:focus,input[type=range]:focus-visible{outline:2px solid var(--b
   </header>
 
   <div class="bar">
-    <label for="rings">Rings</label>
+    <label for="rings" data-tip="ring">Rings</label>
     <input type="range" id="rings" min="1" max="15" step="1" value="8" aria-label="Number of rings">
     <span class="rv" id="rv"></span>
-    <label class="opt"><input type="radio" name="form" id="f_plain" checked><span>Plain</span></label>
-    <label class="opt"><input type="radio" name="form" id="f_push"><span>Pushed</span></label>
-    <label class="opt"><input type="checkbox" id="allbits"><span>All bits</span></label>
+    <label class="opt"><input type="radio" name="form" id="f_plain" checked><span data-tip="plain">Plain</span></label>
+    <label class="opt"><input type="radio" name="form" id="f_push"><span data-tip="push">Pushed</span></label>
+    <label class="opt"><input type="checkbox" id="allbits"><span data-tip="allbits">All bits</span></label>
     <label for="jump">Jump to</label>
     <span class="numrow">
       <input type="text" id="jump" value="13" spellcheck="false" autocomplete="off">
@@ -125,8 +137,19 @@ input[type=text]:focus,input[type=range]:focus-visible{outline:2px solid var(--b
         <button id="dec" tabindex="-1" aria-label="Previous integer">&#9660;</button>
       </span>
     </span>
+    <label class="ctl" for="tour" style="margin-left:auto">tour
+      <input type="range" id="tour" min="0" max="1" step="0.0005" value="0"></label>
+    <button class="pbtn" id="tourplay" aria-pressed="false">&#9656; play</button>
+    <button class="pbtn" id="areset" title="Rings, form, the tour and the selection, back to how they started">reset</button>
+    <label class="ctl" for="tourring" data-tip="t_around">around
+      <select id="tourring">
+        <option value="outer">the outermost ring</option>
+        <option value="all">every ring, in turn</option>
+        <option value="value">by value, low to high</option>
+      </select></label>
   </div>
 
+  <div class="caption" id="acap" style="border:1px solid var(--rule); border-radius:3px; margin-bottom:2px"></div>
   <div class="body">
     <div class="fieldhold">
       <canvas id="field" tabindex="0" role="img"
@@ -150,7 +173,9 @@ input[type=text]:focus,input[type=range]:focus-visible{outline:2px solid var(--b
   </div>
 </div>
 
-<script src="/stalk.js"></script>
+<script src="stalk.js"></script>
+<script src="chroma-ui.js"></script>
+<script src="glossary.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const col = k => getComputedStyle(document.body).getPropertyValue(k).trim();
@@ -256,6 +281,7 @@ function buildField(W){
 }
 
 function drawField(){
+  if(typeof atlasCap === "function") atlasCap();
   const cv = $("field");
   const hold = cv.parentElement;
   const W = Math.max(120, Math.floor(Math.min(hold.clientWidth || 500, hold.clientHeight || 500)));
@@ -383,11 +409,22 @@ function select(k){
   el.style.gridTemplateColumns = `repeat(${n},var(--sc,30px))`;
   el.innerHTML = sq.join("");
 
+  /* The arc position and the value are two readings of the same integer,
+     and this panel used to imply they were one. `value` is the hex reading,
+     k / 2^(4 nibbles), which is what a ring counts upward in. `arc` is where
+     the tile actually sits on the half-turn: the odd fraction (2s+1)/2^(r+1).
+     For 13 those are 13/16 and 11/16 -- near enough to look like the same
+     number, far enough apart that the angle does not check out against the
+     wrong one. Both are on screen now, and the angle is stated from the arc. */
+  const slot = slotInRing(k, r);
+  const arcNum = 2 * slot + 1, arcDen = 1 << (r + 1);
   statBlock($("selstats"), [
     ["Ring", `${r}`, `${raw.length/4} nibble${raw.length === 4 ? "" : "s"} \u2014 denominator 2^${raw.length}`],
-    ["Slot", `${slotInRing(k, r) + 1} / ${1 << r}`, "position around the arc"],
+    ["Slot", `${slot + 1} / ${1 << r}`, "position around the arc"],
+    ["Arc", `${arcNum}/${arcDen}`,
+      "its dyadic position — each ring holds the odd numerators of one denominator"],
     ["Angle", `${(((angleOf(k)*180/Math.PI) % 360 + 360) % 360).toFixed(2)}°`,
-      "= value \u00d7 180\u00b0, from due east"],
+      `= (arc − ½) × 180° from due east${k < 0 ? ", plus half a turn for a negative" : ""}`],
     ["Value", sciText(value), `${dec(value).toFixed(9)}`],
     ["Radius hits", chainOf(k).slice(1).reverse().join(" · ") || "nothing below",
       "k with its lowest bit dropped, over and over"],
@@ -416,6 +453,81 @@ const local = e => {
   return {x: e.clientX - rect.left, y: e.clientY - rect.top};
 };
 $("field").addEventListener("click", e => { const p = local(e); select(hitTest(p.x, p.y)); });
+
+/* ------------------------------------------------------------- drag and tour
+   Clicking already picked one integer. Dragging picks whatever is under the
+   pointer as it moves, which turns the atlas from a lookup into something you
+   can sweep -- the ordering by value is only legible when neighbours arrive one
+   after another. hitTest returns null off the rings, and select(null) is a
+   no-op, so leaving the disc simply stops the scan rather than jumping. */
+UI.drag("field", {onMove: p => {
+  if(p.phase === "hover" || !p.inside) return;
+  const k = hitTest(p.x, p.y);
+  if(k !== null && k !== SEL) select(k);
+}});
+
+/* the same sweep, driven by a bar instead of a hand. Three itineraries: round
+   the outermost ring, through every ring from the middle out, or in order of
+   the value each integer stands for -- which is the claim the page makes, so
+   it is worth being able to watch. */
+function tourStops(){
+  const mode = TOURRING.get(), out = [];
+  if(mode === "outer"){
+    const r = RINGS - 1, N = 1 << r;
+    for(let i = 0; i < N; i++) out.push(kAtRing(i, r));
+  } else if(mode === "all"){
+    for(let r = 0; r < RINGS; r++){
+      const N = 1 << r;
+      for(let i = 0; i < N; i++) out.push(kAtRing(i, r));
+    }
+  } else {
+    /* by the value each stalk stands for, which is not ring order.
+
+       The key is computed once per integer and sorted alongside it. Doing it
+       inside the comparator instead would run stalkOf and valueOf on both
+       sides of every comparison -- at fifteen rings that is a quarter of a
+       million BigInt reductions, and the page stops answering while it works. */
+    const r = RINGS - 1, N = 1 << r;
+    const keyed = new Array(N);
+    for(let i = 0; i < N; i++){
+      const k = kAtRing(i, r);
+      keyed[i] = {k, v: dec(valueOf(stalkOf(BigInt(k), false).cells))};
+    }
+    keyed.sort((a, b) => a.v - b.v || a.k - b.k);
+    for(const e of keyed) out.push(e.k);
+  }
+  return out;
+}
+let STOPS = null;
+const TOURRING = UI.select("tourring", {onChange: () => { STOPS = null; }});
+const TOUR = UI.scrub("tour", {playId: "tourplay", period: 14000, onTick: t => {
+  if(!STOPS || !STOPS.length) STOPS = tourStops();
+  if(!STOPS.length) return;
+  const {done} = UI.phase(t, STOPS.length);
+  const k = STOPS[Math.min(done, STOPS.length - 1)];
+  if(k !== undefined && k !== SEL) select(k);
+}});
+/* One way back. The tour walks the selection somewhere on its own, and the
+   ring count changes what the disc even contains; between them it is easy to
+   end up looking at a picture you did not choose and cannot retrace. */
+function resetAtlas(){
+  TOUR.stop();
+  TOUR.set(0);
+  TOURRING.set("outer");
+  STOPS = null;
+  $("rings").value = "8";
+  setRings(8);
+  $("f_plain").checked = true;
+  $("allbits").checked = false;
+  KEY = "";
+  $("jump").value = "13";
+  select(13);
+  drawField();
+}
+if($("areset")) $("areset").addEventListener("click", resetAtlas);
+
+/* changing the ring count invalidates the itinerary it was built from */
+$("rings").addEventListener("input", () => { STOPS = null; });
 /* step by one, wrapping at the edge of what the rings currently cover */
 function step(d){
   const top = maxK();
@@ -433,6 +545,43 @@ $("field").addEventListener("keydown", e => {
 });
 addEventListener("resize", drawField);
 setRings(8);
+
+/* ------------------------------------------------ explaining the controls */
+UI.tips.add({
+  t_tour:   {title: "tour", what: "Walks the selection from one integer to the next on its own.",
+             why: "The ordering is the point of the atlas and it is hard to see by clicking. Let it run once and the pattern arrives."},
+  t_around: {title: "around", what: "Which route the tour takes: one ring, every ring from the middle out, or in order of value.",
+             why: "Ring order and value order are not the same, and watching the difference is the quickest way to see the bit reversal."},
+});
+UI.tips.scan();
+
+/* ---------------------------------------------------------- live caption */
+function atlasCap(){
+  const cap = $("acap");
+  if(!cap) return;
+  const r = RINGS - 1;
+  cap.innerHTML = `<b>${RINGS}</b> rings, holding every integer up to <b>&plusmn;${(1 << RINGS) - 1}</b>. `
+    + `Ring <i>r</i> carries the numbers of that width, spaced evenly round the circle. `
+    + `You have <b>${SEL}</b> selected; the radius through it crosses its own ancestry, `
+    + `each step dropping one bit.`;
+}
+
+
+/* ---------------------------------------------------------------- permalink */
+function saveHash(){
+  UI.hash.write({r: RINGS, k: SEL, f: FORM(), ab: ALL() ? 1 : ""});
+}
+(function loadHash(){
+  const st = UI.hash.read();
+  if(!Object.keys(st).length) return;
+  const r = Math.round(UI.hash.num(st, "r", RINGS, 1, 15));
+  $("rings").value = String(r); setRings(r);
+  if(st.f === "push") $("f_push").checked = true;
+  if(st.ab && $("allbits")) $("allbits").checked = true;
+  const k = Math.round(UI.hash.num(st, "k", SEL));
+  KEY = ""; $("jump").value = String(k); select(k);
+})();
+
 </script>
 </body>
 </html>

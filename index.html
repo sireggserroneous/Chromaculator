@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>chronochromatic.org</title>
-<meta name="description" content="Folding integers onto an anti-diagonal grid: Inner, Fold, Outer — and the sphere they turn out to be.">
+<meta name="description" content="Numbers have a shape. Fold an integer's signed digits along the anti-diagonals of a square: Inner, Fold and Outer add back to it exactly.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://chronochromatic.org/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="chronochromatic.org">
+<meta property="og:title" content="chronochromatic.org">
+<meta property="og:description" content="Numbers have a shape. Fold an integer's signed digits along the anti-diagonals of a square: Inner, Fold and Outer add back to it exactly.">
+<meta property="og:url" content="https://chronochromatic.org/">
+<meta property="og:image" content="https://chronochromatic.org/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="chronochromatic.org">
+<meta name="twitter:description" content="Numbers have a shape. Fold an integer's signed digits along the anti-diagonals of a square: Inner, Fold and Outer add back to it exactly.">
+<meta name="twitter:image" content="https://chronochromatic.org/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="base.css">
 <style>
 .wrap{max-width:1000px; margin:0 auto; padding:52px clamp(16px,4vw,34px) 90px;
   display:flex; flex-direction:column; gap:46px}
@@ -72,25 +84,52 @@ code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sun
   text-transform:uppercase; color:var(--brass); min-width:120px}
 .fact span{color:var(--ink2); font-size:.9rem; flex:1; min-width:240px}
 .foot{border-top:1px solid var(--rule); padding-top:22px; color:var(--ink3); font-size:.84rem}
+
+.path{margin:0; padding-left:0; list-style:none; counter-reset:step;
+  display:flex; flex-direction:column; gap:11px; max-width:70ch}
+.path li{counter-increment:step; position:relative; padding-left:40px;
+  color:var(--ink2); line-height:1.6}
+.path li::before{content:counter(step); position:absolute; left:0; top:1px;
+  width:25px; height:25px; border-radius:50%; border:1px solid var(--brass-soft);
+  color:var(--brass); font-family:"IBM Plex Mono",monospace; font-size:.72rem;
+  display:flex; align-items:center; justify-content:center}
+.path a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rule2); font-weight:600}
+.path a:hover{border-bottom-color:var(--brass); color:var(--brass)}
 </style>
 </head>
 <body>
 <header class="sitebar">
-  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
   <nav aria-label="Main">
-    <a href="/" class="cur" aria-current="page">Home</a>
-    <a href="/spectrometer.html">Spectrometer</a>
-    <a href="/atlas.html">Atlas</a>
-    <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
-    <a href="/spec.html">Spec</a>
-    <a href="/inspirations.html">Inspirations</a>
+    <a href="index.html" class="cur" aria-current="page">Home</a>
+    <a href="spectrometer.html">Spectrometer</a>
+    <a href="atlas.html">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html">Spec</a>
+    <a href="inspirations.html">Inspirations</a>
   </nav>
 </header>
 
 <div class="wrap">
+  <div class="orient" id="orient" hidden>
+    <div class="obody">
+      <h3>Three colours, one square.</h3>
+      <p>Every number here is written in <b><span class="term" tabindex="0" data-tip="digit">signed digits</span></b> and laid into a grid along its
+        <span class="term" tabindex="0" data-tip="fold">anti-diagonals</span>. The grid then splits in three, and the three parts add back to the number
+        exactly. Everything else on this site is that one idea, drawn differently.</p>
+      <div class="okeys">
+        <span><i class="osw" style="background:var(--blue)"></i>+1</span>
+        <span><i class="osw" style="background:var(--red)"></i>&minus;1</span>
+        <span><i class="osw" style="background:var(--green)"></i>0</span>
+        <span>Hover any dotted word or control for what it means.</span>
+      </div>
+    </div>
+    <button class="odismiss" id="odismiss">Got it</button>
+  </div>
+
   <section class="hero">
     <span class="eyebrow">Blue–Red Hackenbush · anti-diagonal folds · inversive geometry</span>
     <h1>Numbers have a shape.</h1>
@@ -104,18 +143,27 @@ code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sun
     <h2>The fold</h2>
     <p>A square grid splits into three parts along its main anti-diagonal, where <code>r + c = n − 1</code>.
       Every cell above it has a partner below, and the fold sends each to the other. Cells fill in
-      Hankel order — anti-diagonal by anti-diagonal, each read from the bottom-left corner upward — so
+      <span class="term" tabindex="0" data-tip="hankel">Hankel order</span> — anti-diagonal by anti-diagonal, each read from the bottom-left corner upward — so
       the grid is indexed the way a Hankel matrix is, constant along the diagonals the fold cares about.</p>
-    <p><b>A1 is reserved.</b> It is always green, never a digit. The number&rsquo;s bits begin at B1 and run
+    <p><b><span class="term" tabindex="0" data-tip="a1">A1 is reserved</span>.</b> It is always green, never a digit. The number&rsquo;s bits begin at B1 and run
       in that same order, written exactly as they are — most significant first, no reordering. Whatever
       is left over at the end is padded green. Negating a number flips every colour and nothing else.</p>
     <div class="split">
-      <div class="dg" role="img" aria-label="A 5 by 5 grid split into Inner above the anti-diagonal, Fold on it, and Outer below">
-        <div class="dc a">A1</div><div class="dc i">B2</div><div class="dc i">C3</div><div class="dc i">D4</div><div class="dc f">Fold</div>
-        <div class="dc i">B1</div><div class="dc i">C2</div><div class="dc i">D3</div><div class="dc f">Fold</div><div class="dc o">·</div>
-        <div class="dc i">C1</div><div class="dc i">D2</div><div class="dc f">Fold</div><div class="dc o">·</div><div class="dc o">·</div>
-        <div class="dc i">D1</div><div class="dc f">Fold</div><div class="dc o">·</div><div class="dc o">·</div><div class="dc o">·</div>
-        <div class="dc f">Fold</div><div class="dc o">·</div><div class="dc o">·</div><div class="dc o">·</div><div class="dc o">nA1</div>
+      <div class="fig">
+        <canvas id="foldcv" aria-label="A grid split into Inner above the anti-diagonal, Fold on it, and Outer below. Drag across it to name a cell; the fold slider swings Inner onto Outer."></canvas>
+        <div class="caption" id="foldcap"></div>
+        <div class="readout" id="foldout">Drag across the grid to name a cell.</div>
+        <div class="presets">
+          <span class="plabel">try</span>
+          <button class="preset" id="fp_swap">watch Inner become Outer</button>
+          <button class="preset" id="fp_small">the smallest square with a Fold</button>
+          <button class="preset" id="fp_big">a square where Fold is a thin seam</button>
+        </div>
+        <div class="figbar">
+          <label class="ctl" for="foldn" data-tip="t_width">width <input type="range" id="foldn" min="2" max="9" step="1" value="5"><b id="foldnv">5</b></label>
+          <label class="ctl" for="foldt" data-tip="t_foldbar">fold <input type="range" id="foldt" min="0" max="1" step="0.001" value="0"></label>
+          <button class="pbtn" id="foldplay" aria-pressed="false" data-tip="t_play">&#9656; play</button>
+        </div>
       </div>
       <div class="key">
         <div class="krow"><span class="kname i">Inner</span>
@@ -124,7 +172,7 @@ code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sun
           <span class="kdesc">the middle place values — the circle of inversion, the equator</span></div>
         <div class="krow"><span class="kname o">Outer</span>
           <span class="kdesc">the high place values — the exterior, the other hemisphere</span></div>
-        <p style="font-size:.88rem">The map <code>(r,c) ↦ (n−1−c, n−1−r)</code> is the anti-transpose
+        <p style="font-size:.88rem">The map <code>(r,c) ↦ (n−1−c, n−1−r)</code> is the <span class="term" tabindex="0" data-tip="antitranspose">anti-transpose</span>
           <code>J Aᵀ J</code>. It fixes the Fold, swaps Inner with Outer, and undoes itself — which are
           precisely the three defining properties of inversion in a circle.</p>
       </div>
@@ -136,6 +184,30 @@ code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sun
     <p class="lede" style="font-size:1rem">The bit string, as written, poured into the grid from B1
       onward. Blue is 1, green is 0, and the greens at the end are padding — the grid grows to the next
       square that fits. The brass outline marks the Fold; the dashed cell is the reserved A1.</p>
+    <div class="fig" style="margin-bottom:26px">
+      <canvas id="pourcv" aria-label="One integer's bits poured into the grid in Hankel order, one place value at a time."></canvas>
+      <div class="caption" id="pourcap"></div>
+      <div class="readout" id="pourout"></div>
+      <div class="presets">
+        <span class="plabel">try</span>
+        <button class="preset" id="pp_124">where 1, 2 and 4 draw alike</button>
+        <button class="preset" id="pp_fold">a number that lands on the Fold</button>
+        <button class="preset" id="pp_full">the widest number that still fits</button>
+      </div>
+      <div class="figbar">
+        <label class="ctl" for="pourk" data-tip="t_integer">integer <input type="range" id="pourk" min="1" max="1023" step="1" value="181"><b id="pourkv">181</b></label>
+        <label class="ctl" for="pourt" data-tip="t_poured">poured <input type="range" id="pourt" min="0" max="1" step="0.001" value="1"></label>
+        <button class="pbtn" id="pourplay" aria-pressed="false" data-tip="t_play">&#9656; play</button>
+        <label class="ctl" for="pourmode" data-tip="t_show">show
+          <select id="pourmode">
+            <option value="bits">bits as written</option>
+            <option value="weight">place values</option>
+            <option value="region">region only</option>
+          </select></label>
+      </div>
+    </div>
+    <p class="hint">Drag <b>poured</b> to lay the bits down one at a time, or press play. The regions
+      keep their running sums as it fills, and the three always add back to the integer.</p>
     <div class="list" id="list"></div>
     <p class="pnote" style="color:var(--ink3); font-size:.86rem">A trailing zero and a padding green land
       in the same cell, so <b>1, 2 and 4 draw identically</b>, as do 3 and 6. Across 1…1023 that merges
@@ -143,39 +215,85 @@ code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sun
   </section>
 
   <section>
+    <h2>Draw one yourself</h2>
+    <p>Every other view on this site runs one way: a number goes in, a picture comes out.
+      This one runs backwards. Click a cell to cycle it <b>green → blue → red</b> and read the
+      value off as you go. You learn a convention fastest by trying to break it.</p>
+    <div class="fig">
+      <canvas id="paintcv" aria-label="A grid you can paint. Click a cell to cycle it through green, blue and red; the value and the three regions are read back as you go."></canvas>
+      <div class="caption" id="paintcap"></div>
+      <div class="readout" id="paintout"></div>
+      <div class="presets">
+        <span class="plabel">try</span>
+        <button class="preset" id="xp_fold">light only the Fold</button>
+        <button class="preset" id="xp_inner">light only Inner</button>
+        <button class="preset" id="xp_neg">flip every colour</button>
+        <button class="preset" id="xp_clear">clear</button>
+      </div>
+      <div class="figbar">
+        <label class="ctl" for="paintn" data-tip="t_width">width <input type="range" id="paintn" min="2" max="6" step="1" value="3"><b id="paintnv">3</b></label>
+        <span class="ctl" style="text-transform:none; letter-spacing:0">click a cell · shift-click to go back</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where to start</h2>
+    <p>Nine pages, and the navigation bar gives no hint which comes first. This is the order
+      they were meant to be read in &mdash; each one assumes only what the ones above it showed.</p>
+    <ol class="path">
+      <li><b>You are on step one.</b> The two figures above are the whole convention: a square
+        splits in three, and an integer&rsquo;s bits pour into it.</li>
+      <li><a href="spec.html">The spec sheet</a> &mdash; the convention written down, with a panel
+        beside it that runs the rule as you read it.</li>
+      <li><a href="spectrometer.html">The spectrometer</a> &mdash; one integer taken as far as it
+        goes: its stalk, its square, its regions, its value as a wave.</li>
+      <li><a href="atlas.html">The atlas</a> &mdash; then all of them at once, every dyadic
+        rational exactly once, ordered by value.</li>
+      <li><a href="wub.html">Wub &plusmn;</a> &mdash; numbers set turning. This is where the site
+        stops describing and starts playing; it can be heard as well as seen.</li>
+      <li><a href="wubx.html">Wub &times;</a> and <a href="wubdiv.html">Wub &divide;</a> &mdash;
+        multiplication as a rectangle, division kept exact.
+        <a href="wubbadub.html">Wubba Dub</a> puts all four operations on one page.</li>
+      <li><a href="inspirations.html">Inspirations</a> &mdash; last, and worth the wait: who
+        found each piece of this first. Very little of it is new.</li>
+    </ol>
+  </section>
+
+  <section>
     <h2>Six instruments</h2>
     <div class="cards">
-      <a class="card" href="/spectrometer.html">
+      <a class="card" href="spectrometer.html">
         <h3>Fold Spectrometer</h3>
         <p>One integer, in full. Its stalk, its surreal value, the Inner / Fold / Outer split, the Fold read
           as a signed radius, its Hankel matrix and spectrum, and the sphere it wraps onto.</p>
         <span class="go">Open →</span>
       </a>
-      <a class="card" href="/atlas.html">
+      <a class="card" href="atlas.html">
         <h3>Fold Atlas</h3>
         <p>All 1023 integers from −511 to 511 at once. Negatives red, positives blue, exact colour-inverses
           across the divider — plus the square wave that decides which way each one spins.</p>
         <span class="go">Open →</span>
       </a>
-      <a class="card" href="/wub.html">
+      <a class="card" href="wub.html">
         <h3>Wub ±</h3>
         <p>Several integers at once, each a phasor spaced evenly round the ring and summed tip to tail.
           Fold is the equator, Inner reaches north, Outer south, so one integer already leaves the plane.</p>
         <span class="go">Open →</span>
       </a>
-      <a class="card" href="/wubx.html">
+      <a class="card" href="wubx.html">
         <h3>Wub ×</h3>
         <p>Multiplication drawn as the rectangle it is: every cell of A against every cell of B, no carries.
           The rack is an ordered sequence — the product never moves, but reordering it redraws every grid.</p>
         <span class="go">Open →</span>
       </a>
-      <a class="card" href="/wubdiv.html">
+      <a class="card" href="wubdiv.html">
         <h3>Wub ÷</h3>
         <p>Division that refuses to round. A quotient grid, a multiplier on the boundary, and the remainder
           drawn as the part that did not fit — widen the grid and watch it walk home.</p>
         <span class="go">Open →</span>
       </a>
-      <a class="card" href="/wubbadub.html">
+      <a class="card" href="wubbadub.html">
         <h3>Wubba Dub</h3>
         <p>The wub laid out like a graphing calculator: a pinned gallery of controls and composite waves,
           then one numbered card per integer, each paged through its facts, its waves and its helix.</p>
@@ -209,15 +327,15 @@ code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sun
       geometry are not. The interest is in the coordinate system that puts them in one frame.</p>
   </footer>
 </div>
+<script src="stalk.js"></script>
+<script src="chroma-ui.js"></script>
+<script src="glossary.js"></script>
 <script>
-/* Hankel order: anti-diagonal by anti-diagonal, each read bottom-left upward.
-   that is the A1 / B1 B2 / C1 C2 C3 naming, and A1 is skipped -- reserved. */
-function order(n){
-  const o = [];
-  for(let d = 0; d <= 2*(n-1); d++)
-    for(let r = Math.min(n-1, d); r >= 0; r--){ const c = d - r; if(c >= 0 && c < n) o.push([r, c]); }
-  return o;
-}
+/* Hankel order comes from stalk.js now. This page used to carry its own copy
+   under the name order(); the alias keeps the strip below reading the way it
+   did while there is only one walk on the site. A1 is still skipped here --
+   reserved -- which is this strip's own convention, not the fold's. */
+const order = cellOrder;
 function gridOf(k){
   const bits = k.toString(2).split("").map(Number);      // as written, MSB first
   let n = 1; while(n*n - 1 < bits.length) n++;
@@ -237,6 +355,427 @@ document.getElementById("list").innerHTML = Array.from({length: 24}, (_, i) => {
       <span class="ib">${bits.map(b => `<i class="${b ? "b" : "g"}">${b}</i>`).join("")}</span></div>
     <div class="ng" style="grid-template-columns:repeat(${n},19px)">${cells.join("")}</div></div>`;
 }).join("");
+
+/* ------------------------------------------------------------------ figures
+   Two live figures, both drawn from stalk.js's geometry and driven through
+   chroma-ui.js. draw() redraws both; run.js finds it by that name, which is
+   the only way this page's script gets exercised by a test at all. */
+
+/* the A1 / B1 B2 / C1 C2 C3 naming: letter by anti-diagonal, number by
+   position along it counting up from the bottom-left, exactly the order
+   cellOrder() walks. */
+const LET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function nameOf(r, c, n){
+  const d = r + c, pos = Math.min(n - 1, d) - r;
+  return (LET[d] || "?") + (pos + 1);
+}
+const supn = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+
+/* ---- figure 1: the fold itself ---- */
+const foldCv = document.getElementById("foldcv");
+let foldHit = null;                       // the cell under the pointer, if any
+
+function drawFold(){
+  const box = UI.fit(foldCv, 330);
+  if(!box) return;
+  const {ctx, w, h} = box, p = UI.palette();
+  const n = Math.round(foldN.get()), t = foldT.get();
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = 22, size = Math.max(10, Math.min(w, h) - pad * 2);
+  const ox = (w - size) / 2, oy = (h - size) / 2, step = size / n;
+
+  /* the anti-transpose (r,c) -> (n-1-c, n-1-r). At t it is drawn part-way, so
+     the swap reads as one motion rather than two states. Fold cells are their
+     own partners and never move, which is the point of the animation. */
+  ctx.lineWidth = 1;
+  ctx.font = `500 ${Math.max(8, Math.min(13, step * 0.34))}px "IBM Plex Mono",monospace`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+
+  const cells = [];
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){
+    const reg = UI.regionOf(r, c, n);
+    const pr = n - 1 - c, pc = n - 1 - r;          // partner across the fold
+    const rr = r + (pr - r) * t, cc = c + (pc - c) * t;
+    cells.push({r, c, rr, cc, reg, lift: reg === "fold" ? 0 : Math.sin(Math.PI * t)});
+  }
+  /* far cells first, so a lifted cell lands on top of the one it covers */
+  cells.sort((a, b) => a.lift - b.lift);
+
+  for(const cell of cells){
+    const x = ox + cell.cc * step, y = oy + cell.rr * step;
+    const g = 1 + cell.lift * 0.10;                 // a hair larger while airborne
+    const inset = 1.5, s = step - inset * 2;
+    const dx = x + inset - (s * (g - 1)) / 2, dy = y + inset - (s * (g - 1)) / 2;
+    const ss = s * g;
+
+    const hot = foldHit && foldHit.r === cell.r && foldHit.c === cell.c;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = cell.reg === "fold" ? p.brass
+                  : cell.reg === "inner" ? p.blue : p.red;
+    ctx.globalAlpha = cell.reg === "fold" ? (hot ? 0.55 : 0.34)
+                    : (hot ? 0.40 : 0.15 + cell.lift * 0.10);
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(dx, dy, ss, ss, 4); ctx.fill(); }
+    else ctx.fillRect(dx, dy, ss, ss);
+
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = hot ? p.brass : p.rule;
+    ctx.lineWidth = hot ? 2 : 1;
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(dx, dy, ss, ss, 4); ctx.stroke(); }
+    else ctx.strokeRect(dx, dy, ss, ss);
+
+    if(step > 26){
+      ctx.fillStyle = hot ? p.ink : p.ink2;
+      ctx.fillText(nameOf(cell.r, cell.c, n), dx + ss / 2, dy + ss / 2);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  /* the fold line itself, drawn over everything: the axis the swap turns on */
+  ctx.strokeStyle = p.brass; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(ox, oy + size); ctx.lineTo(ox + size, oy); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function foldSay(){
+  const out = document.getElementById("foldout");
+  if(!out) return;
+  const n = Math.round(foldN.get());
+  /* .readout is a flex row, so every child is a flex item -- bare text between
+     spans becomes an anonymous item of its own and wraps on its own line, which
+     is how a trailing full stop ends up starting the next line. Each group is
+     therefore one span, punctuation included. */
+  if(!foldHit){
+    const half = (n * (n - 1)) / 2;
+    out.innerHTML = `<span><span class="hi">${n}×${n}</span> — `
+      + `<span class="i">Inner ${half}</span>, <span class="f">Fold ${n}</span>, `
+      + `<span class="o">Outer ${half}</span></span>`
+      + `<span class="aside">Drag across the grid to name a cell.</span>`;
+    return;
+  }
+  const {r, c, i, region} = foldHit;
+  const pr = n - 1 - c, pc = n - 1 - r;
+  /* 2^-(i+1) exactly. Past 2^53 a Number denominator would start lying, and
+     the fold reaches i = 80 at n = 9, so the denominator is a BigInt. */
+  const den = (1n << BigInt(i + 1)).toString();
+  out.innerHTML = `<span><span class="hi">${nameOf(r, c, n)}</span> `
+    + `<span class="${region[0]}">${region}</span></span>`
+    + `<span>cell ${i}</span>`
+    + `<span>weight 2<sup>−${i + 1}</sup> = 1/${den}</span>`
+    + `<span>partner <span class="hi">${nameOf(pr, pc, n)}</span></span>`;
+}
+
+const foldN = UI.slider("foldn", {out: "foldnv", onInput: () => { foldHit = null; drawFold(); foldSay(); }});
+const foldT = UI.scrub("foldt", {playId: "foldplay", period: 4200,
+  onTick: () => { drawFold(); }});
+UI.drag("foldcv", {hover: true, onMove: p => {
+  const n = Math.round(foldN.get());
+  const box = foldCv.getBoundingClientRect ? foldCv.getBoundingClientRect() : {width: 300, height: 300};
+  const w = box.width || 300, h = parseFloat(foldCv.style.height) || box.height || 330;
+  const pad = 22, size = Math.max(10, Math.min(w, h) - pad * 2);
+  const ox = (w - size) / 2, oy = (h - size) / 2;
+  foldHit = p.inside ? UI.cellAt(p.x - ox, p.y - oy, size, n) : null;
+  drawFold(); foldSay();
+}});
+
+/* ---- figure 2: pouring one integer in ---- */
+const pourCv = document.getElementById("pourcv");
+
+function pourPlan(k){
+  const bits = k.toString(2).split("").map(Number);
+  let n = 1; while(n * n - 1 < bits.length) n++;
+  const o = cellOrder(n), L = bits.length;
+  /* bit j is the place value 2^(L-1-j), and lands at o[j+1] -- A1 is reserved */
+  return {n, bits, L, slots: bits.map((b, j) => {
+    const [r, c] = o[j + 1];
+    return {b, r, c, j, place: Math.pow(2, L - 1 - j), region: UI.regionOf(r, c, n)};
+  })};
+}
+
+function drawPour(){
+  const box = UI.fit(pourCv, 300);
+  if(!box) return;
+  const {ctx, w, h} = box, p = UI.palette();
+  const k = Math.round(pourK.get());
+  const {n, slots} = pourPlan(k);
+  const {done} = UI.phase(pourT.get(), slots.length);
+  const mode = pourMode.get();
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = 18, size = Math.max(10, Math.min(w, h) - pad * 2);
+  const ox = (w - size) / 2, oy = (h - size) / 2, step = size / n;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `500 ${Math.max(8, Math.min(14, step * 0.36))}px "IBM Plex Mono",monospace`;
+
+  /* the empty grid first: every cell, so the shape is there before it fills */
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){
+    const x = ox + c * step, y = oy + r * step;
+    ctx.globalAlpha = 1; ctx.strokeStyle = p.rule; ctx.lineWidth = 1;
+    ctx.strokeRect(x + 1.5, y + 1.5, step - 3, step - 3);
+    if(r === 0 && c === 0){                        // A1, reserved, never a digit
+      ctx.setLineDash([3, 3]); ctx.strokeStyle = p.ink3;
+      ctx.strokeRect(x + 1.5, y + 1.5, step - 3, step - 3); ctx.setLineDash([]);
+    }
+  }
+  /* then the bits that have landed */
+  slots.forEach((s, idx) => {
+    if(idx >= done) return;
+    const x = ox + s.c * step, y = oy + s.r * step;
+    const fresh = idx === done - 1;
+    ctx.globalAlpha = mode === "region" ? 0.30 : (s.b ? 0.90 : 0.34);
+    ctx.fillStyle = mode === "region"
+      ? (s.region === "inner" ? p.blue : s.region === "fold" ? p.brass : p.red)
+      : UI.hue(s.b ? 1 : 0, p);
+    ctx.fillRect(x + 1.5, y + 1.5, step - 3, step - 3);
+    ctx.globalAlpha = 1;
+    if(fresh){                                     // the one that just landed
+      ctx.strokeStyle = p.brass; ctx.lineWidth = 2.5;
+      ctx.strokeRect(x + 1.5, y + 1.5, step - 3, step - 3);
+    }
+    if(step > 22 && mode !== "region"){
+      ctx.fillStyle = s.b && mode === "bits" ? p.panel : p.ink;
+      ctx.fillText(mode === "weight" ? String(s.place) : String(s.b),
+                   x + step / 2, y + step / 2);
+    }
+  });
+  ctx.globalAlpha = 1;
+  /* the fold, always */
+  ctx.strokeStyle = p.brass; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(ox, oy + size); ctx.lineTo(ox + size, oy); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function pourSay(){
+  const out = document.getElementById("pourout");
+  if(!out) return;
+  const k = Math.round(pourK.get());
+  const {slots, L} = pourPlan(k);
+  const {done} = UI.phase(pourT.get(), slots.length);
+  const sum = {inner: 0, fold: 0, outer: 0};
+  slots.forEach((s, i) => { if(i < done && s.b) sum[s.region] += s.place; });
+  const total = sum.inner + sum.fold + sum.outer;
+  const str = slots.map((s, i) =>
+    i < done ? `<b class="hi">${s.b}</b>` : `<span style="opacity:.35">${s.b}</span>`).join("");
+  out.innerHTML = `<span>${k} = <span class="hi">${str}</span><sub>2</sub> (${L} bits, ${done} laid)</span>`
+    + `<span><span class="i">In ${sum.inner}</span> + <span class="f">Fold ${sum.fold}</span>`
+    + ` + <span class="o">Out ${sum.outer}</span> = <span class="hi">${total}</span></span>`;
+}
+
+const pourK = UI.slider("pourk", {out: "pourkv", onInput: () => { drawPour(); pourSay(); }});
+const pourT = UI.scrub("pourt", {playId: "pourplay", period: 5200, value: 1,
+  onTick: () => { drawPour(); pourSay(); }});
+const pourMode = UI.select("pourmode", {onChange: () => drawPour()});
+
+/* ------------------------------------------------- explaining the controls
+   The glossary carries the vocabulary; these are this page's own controls.
+   Same shape: what it does, then why you would touch it. */
+UI.tips.add({
+  t_width:   {title: "width", what: "How many cells across the square is.",
+              why: "The Fold is always n cells long, and Inner and Outer always hold n(n−1)/2 each. Widen it and watch that stay true."},
+  t_foldbar: {title: "fold", what: "Swings every cell across the anti-diagonal to the partner it maps to.",
+              why: "The cells on the Fold do not move — that is what makes it the Fold. Everything else trades places."},
+  t_play:    {title: "play", what: "Runs the bar beside it on a loop.",
+              why: "Grabbing the bar takes over and stops the loop, so you can stop anywhere and look."},
+  t_integer: {title: "integer", what: "The number being poured into the grid.",
+              why: "Drag slowly through 63, 64, 255, 256: the square grows a ring wider each time the bits will not fit."},
+  t_poured:  {title: "poured", what: "How many of the number's bits have been laid down so far.",
+              why: "The running sums below follow along, so you can watch Inner, Fold and Outer add up to the number one bit at a time."},
+  t_show:    {title: "show", what: "What to write in each cell: the bit, its place value, or nothing but its region.",
+              why: "Place values make it obvious why the three regions sum to the number — each cell is carrying its own share."},
+});
+UI.tips.scan();
+
+/* ---------------------------------------------------------- live captions
+   A sentence under each figure saying what is on screen right now. The
+   readout above it is exact and terse; this is the same facts in a form you
+   can read without already knowing the convention. */
+function foldCap(){
+  const cap = document.getElementById("foldcap");
+  if(!cap) return;
+  const n = Math.round(foldN.get()), t = foldT.get();
+  const half = (n * (n - 1)) / 2;
+  const moving = t > 0.02 && t < 0.98;
+  cap.innerHTML = `A <b>${n}×${n}</b> square splits into `
+    + `<b class="i">${half} Inner</b>, <b class="f">${n} Fold</b> and <b class="o">${half} Outer</b> cells. `
+    + (moving ? `The Fold cells are standing still while the other two trade places — that is the reflection running.`
+       : t >= 0.98 ? `Inner and Outer have swapped completely, and the Fold is exactly where it was.`
+       : `Drag <b>fold</b> to swing Inner onto Outer, or drag across the grid to name a cell.`);
+}
+function pourCap(){
+  const cap = document.getElementById("pourcap");
+  if(!cap) return;
+  const k = Math.round(pourK.get());
+  const {n, slots, L} = pourPlan(k);
+  const {done} = UI.phase(pourT.get(), slots.length);
+  const lit = slots.filter((s, i) => i < done && s.b).length;
+  const onFold = slots.filter((s, i) => i < done && s.b && s.region === "fold").length;
+  cap.innerHTML = `<b>${k}</b> needs <b>${L} bits</b>, so it folds into a <b>${n}×${n}</b> square`
+    + (done < slots.length
+        ? `. <b>${done}</b> of them are down so far.`
+        : `, with <b>${lit}</b> cells lit`
+          + (onFold ? `, <b class="f">${onFold}</b> of them on the Fold.` : ` and none on the Fold.`));
+}
+
+/* ------------------------------------------------------------- try this
+   Each preset is a state worth seeing, and the caption underneath says what
+   happened. A control panel with no suggested starting point is a room with
+   the lights off. */
+function preset(id, fn){
+  const b = document.getElementById(id);
+  if(b && b.addEventListener) b.addEventListener("click", fn);
+}
+preset("fp_swap",  () => { foldN.set(5); foldT.stop(); foldT.set(1); draw(); });
+preset("fp_small", () => { foldN.set(2); foldT.set(0); draw(); });
+preset("fp_big",   () => { foldN.set(9); foldT.set(0); draw(); });
+/* 1, 2 and 4 draw the same grid: a trailing zero and a padding green land in
+   the same cell, which is the page's own point about this being a picture of
+   the bit pattern rather than an address. */
+preset("pp_124",   () => { pourK.set(4); pourT.stop(); pourT.set(1); pourMode.set("bits"); draw(); });
+preset("pp_fold",  () => { pourK.set(7); pourT.stop(); pourT.set(1); pourMode.set("region"); draw(); });
+preset("pp_full",  () => { pourK.set(1023); pourT.stop(); pourT.set(1); pourMode.set("weight"); draw(); });
+
+/* --------------------------------------------------------- first arrival
+   Shown once. Someone who has been here before does not need telling what
+   the colours mean every time. */
+const orient = document.getElementById("orient");
+if(orient && !UI.seen("home")) orient.hidden = false;
+const odis = document.getElementById("odismiss");
+if(odis && odis.addEventListener) odis.addEventListener("click", () => {
+  if(orient) orient.hidden = true;
+  UI.seen("home", true);
+});
+
+/* ------------------------------------------------- the instrument, inverted
+   Everywhere else the number is the input. Here the square is, and the number
+   is read back out of it. The arithmetic is stalk.js's own valueOf(), run over
+   whatever has been painted -- no separate model, so what this reports is what
+   the rest of the site would report for the same cells. */
+let PAINT = null, PAINTN = 0;
+
+function paintReset(n){
+  PAINTN = n;
+  PAINT = new Array(n * n).fill(0);
+}
+/* the painted cells in stalk order, which is the order valueOf() expects */
+function paintCells(){
+  const o = cellOrder(PAINTN), out = new Array(PAINTN * PAINTN).fill(0);
+  o.forEach(([r, c], i) => { out[i] = PAINT[r * PAINTN + c]; });
+  return out;
+}
+
+function drawPaint(){
+  const box = UI.fit(paintCv, 300);
+  if(!box) return;
+  const {ctx, w, h} = box, p = UI.palette();
+  const n = PAINTN;
+  ctx.clearRect(0, 0, w, h);
+  const pad = 18, size = Math.max(10, Math.min(w, h) - pad * 2);
+  const ox = (w - size) / 2, oy = (h - size) / 2, step = size / n;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `600 ${Math.max(9, Math.min(20, step * 0.4))}px "IBM Plex Mono",monospace`;
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){
+    const v = PAINT[r * n + c];
+    const x = ox + c * step, y = oy + r * step;
+    ctx.globalAlpha = v === 0 ? 0.16 : 0.85;
+    ctx.fillStyle = UI.hue(v, p);
+    ctx.fillRect(x + 2, y + 2, step - 4, step - 4);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = UI.regionOf(r, c, n) === "fold" ? p.brass : p.rule;
+    ctx.lineWidth = UI.regionOf(r, c, n) === "fold" ? 2 : 1;
+    ctx.strokeRect(x + 2, y + 2, step - 4, step - 4);
+    if(step > 20){
+      ctx.fillStyle = v === 0 ? p.ink3 : p.panel;
+      ctx.fillText(glyph(v), x + step / 2, y + step / 2);
+    }
+  }
+  ctx.strokeStyle = p.brass; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(ox, oy + size); ctx.lineTo(ox + size, oy); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function paintSay(){
+  const out = document.getElementById("paintout"), cap = document.getElementById("paintcap");
+  const cells = paintCells();
+  const val = valueOf(cells);
+  const reg = regions(cells, PAINTN);
+  const L = cells.length;
+  const part = key => reg[key].reduce((a, s) => a + BigInt(s.v) * (1n << BigInt(L - 1 - s.i)), 0n);
+  const i = part("inner"), f = part("fold"), o = part("outer");
+  const lit = cells.filter(v => v !== 0).length;
+  if(out) out.innerHTML =
+      `<span>value <span class="hi">${fmt(val)}</span></span>`
+    + `<span><span class="i">${i}</span> + <span class="f">${f}</span> + <span class="o">${o}</span>`
+    + ` = <span class="hi">${i + f + o}</span> / ${1n << BigInt(L - 1)}</span>`;
+  if(cap) cap.innerHTML = lit === 0
+    ? `Nothing lit — the empty square is <b>0</b>. Click any cell to begin.`
+    : `<b>${lit}</b> of ${L} cells lit, in a <b>${PAINTN}×${PAINTN}</b> square. `
+      + `The three regions still add back to the value, whatever you paint — `
+      + `that is a property of the fold, not of any particular number.`;
+}
+
+const paintCv = document.getElementById("paintcv");
+const paintN = UI.slider("paintn", {out: "paintnv",
+  onInput: v => { paintReset(Math.round(v)); drawPaint(); paintSay(); }});
+paintReset(Math.round(paintN.get()) || 3);
+
+UI.drag("paintcv", {onDown: pt => {
+  if(!pt.inside) return;
+  const box = paintCv.getBoundingClientRect();
+  const w = box.width || 300, h = parseFloat(paintCv.style.height) || 300;
+  const pad = 18, size = Math.max(10, Math.min(w, h) - pad * 2);
+  const ox = (w - size) / 2, oy = (h - size) / 2;
+  const hit = UI.cellAt(pt.x - ox, pt.y - oy, size, PAINTN);
+  if(!hit) return;
+  const at = hit.r * PAINTN + hit.c;
+  /* green -> blue -> red -> green, or the other way with shift held */
+  const step = pt.shift ? -1 : 1;
+  PAINT[at] = PAINT[at] === 0 ? (step > 0 ? 1 : -1)
+            : PAINT[at] === 1 ? (step > 0 ? -1 : 0)
+            : (step > 0 ? 0 : 1);
+  drawPaint(); paintSay();
+}});
+
+function paintPreset(id, fn){
+  const b = document.getElementById(id);
+  if(b && b.addEventListener) b.addEventListener("click", () => { fn(); drawPaint(); paintSay(); });
+}
+paintPreset("xp_fold",  () => { for(let r = 0; r < PAINTN; r++) for(let c = 0; c < PAINTN; c++)
+  PAINT[r * PAINTN + c] = UI.regionOf(r, c, PAINTN) === "fold" ? 1 : 0; });
+paintPreset("xp_inner", () => { for(let r = 0; r < PAINTN; r++) for(let c = 0; c < PAINTN; c++)
+  PAINT[r * PAINTN + c] = UI.regionOf(r, c, PAINTN) === "inner" ? 1 : 0; });
+paintPreset("xp_neg",   () => { for(let i = 0; i < PAINT.length; i++) PAINT[i] = -PAINT[i]; });
+paintPreset("xp_clear", () => { PAINT.fill(0); });
+
+/* one entry point, so run.js exercises both figures */
+function draw(){ drawFold(); foldSay(); foldCap(); drawPour(); pourSay(); pourCap();
+                 drawPaint(); paintSay(); }
+draw();
+if(typeof addEventListener === "function") addEventListener("resize", draw);
+
+/* ---------------------------------------------------------------- permalink */
+function saveHash(){
+  UI.hash.write({fn: Math.round(foldN.get()), ft: foldT.get().toFixed(3),
+                 pk: Math.round(pourK.get()), pt: pourT.get().toFixed(3),
+                 pm: pourMode.get(), xn: PAINTN,
+                 xp: PAINT.map(v => v < 0 ? "r" : v > 0 ? "b" : "g").join("")});
+}
+(function loadHash(){
+  const st = UI.hash.read();
+  if(!Object.keys(st).length) return;
+  foldN.set(UI.hash.num(st, "fn", 5, 2, 9));
+  foldT.set(UI.hash.num(st, "ft", 0, 0, 1));
+  pourK.set(UI.hash.num(st, "pk", 181, 1, 1023));
+  pourT.set(UI.hash.num(st, "pt", 1, 0, 1));
+  if(st.pm) pourMode.set(st.pm);
+  const n = UI.hash.num(st, "xn", 3, 2, 6);
+  paintReset(Math.round(n));
+  paintN.set(Math.round(n));
+  if(st.xp && st.xp.length === PAINT.length)
+    for(let i = 0; i < PAINT.length; i++)
+      PAINT[i] = st.xp[i] === "b" ? 1 : st.xp[i] === "r" ? -1 : 0;
+})();
+for(const h of [foldN, foldT, pourK, pourT, pourMode, paintN]) h.on(() => saveHash());
+
 </script>
 </body>
 </html>

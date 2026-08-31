@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Spec sheet · chronochromatic.org</title>
-<meta name="description" content="The chronochromatic convention, editable in place.">
+<meta name="description" content="The chronochromatic convention, stated and editable in the page, with a panel that runs it as you read.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://chronochromatic.org/spec.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="chronochromatic.org">
+<meta property="og:title" content="Spec sheet · chronochromatic.org">
+<meta property="og:description" content="The chronochromatic convention, stated and editable in the page, with a panel that runs it as you read.">
+<meta property="og:url" content="https://chronochromatic.org/spec.html">
+<meta property="og:image" content="https://chronochromatic.org/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Spec sheet · chronochromatic.org">
+<meta name="twitter:description" content="The chronochromatic convention, stated and editable in the page, with a panel that runs it as you read.">
+<meta name="twitter:image" content="https://chronochromatic.org/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="base.css">
 <style>
 .wrap{max-width:900px; margin:0 auto; padding:40px 24px 80px; display:flex; flex-direction:column; gap:24px}
 .mast{display:flex; flex-direction:column; gap:10px; padding-bottom:20px; border-bottom:2px solid var(--ink)}
@@ -54,17 +66,17 @@ textarea:focus{outline:2px solid var(--brass); outline-offset:1px}
 </head>
 <body>
 <header class="sitebar">
-  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
   <nav aria-label="Main">
-    <a href="/">Home</a>
-    <a href="/spectrometer.html">Spectrometer</a>
-    <a href="/atlas.html">Atlas</a>
-    <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
-    <a href="/spec.html" class="cur" aria-current="page">Spec</a>
-    <a href="/inspirations.html">Inspirations</a>
+    <a href="index.html">Home</a>
+    <a href="spectrometer.html">Spectrometer</a>
+    <a href="atlas.html">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html" class="cur" aria-current="page">Spec</a>
+    <a href="inspirations.html">Inspirations</a>
   </nav>
 </header>
 <div class="wrap">
@@ -80,12 +92,34 @@ textarea:focus{outline:2px solid var(--brass); outline-offset:1px}
     <span class="status" id="status">loading…</span>
   </div>
 
+  <div class="fig" style="margin-bottom:26px">
+    <canvas id="scv" aria-label="The convention applied to one integer: the stalk as a strip, curling into the square, then split into Inner, Fold and Outer."></canvas>
+    <div class="caption" id="spcap"></div>
+    <div class="readout" id="sout"></div>
+    <div class="figbar">
+      <label class="ctl" for="sk" data-tip="t_sint">integer <input type="range" id="sk" min="-511" max="511" step="1" value="181"><b id="skv">181</b></label>
+      <label class="ctl" for="st" data-tip="t_lay">lay it down <input type="range" id="st" min="0" max="1" step="0.001" value="1"></label>
+      <button class="pbtn" id="splay" aria-pressed="false">&#9656; play</button>
+      <label class="ctl" for="sform" data-tip="t_form">form
+        <select id="sform">
+          <option value="plain">plain</option>
+          <option value="push">pushed</option>
+        </select></label>
+    </div>
+  </div>
+  <p class="hint" style="margin-bottom:26px">The spec below states the convention; this panel is the
+    convention running. Drag <b>lay it down</b> to curl the stalk into the square, and drag the integer
+    through zero — every colour flips and nothing else moves.</p>
+
   <div class="doc" id="doc"></div>
   <textarea id="src" class="hide" spellcheck="false" aria-label="Markdown source"></textarea>
 
   <footer class="foot">Saved straight to <code>spec.md</code> on disk. Nothing else on the site is writable.</footer>
 </div>
 
+<script src="stalk.js"></script>
+<script src="chroma-ui.js"></script>
+<script src="glossary.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -145,7 +179,7 @@ function say(msg, kind){ const s = $("status"); s.textContent = msg; s.className
 
 async function load(){
   try{
-    const r = await fetch("/spec.md", {cache: "no-store"});
+    const r = await fetch("spec.md", {cache: "no-store"});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     ORIGINAL = await r.text();
     $("doc").innerHTML = render(ORIGINAL);
@@ -168,7 +202,7 @@ $("save").addEventListener("click", async () => {
   $("save").disabled = true;
   say("saving…");
   try{
-    const r = await fetch("/spec.md", {method: "PUT", headers: {"Content-Type": "text/markdown"}, body});
+    const r = await fetch("spec.md", {method: "PUT", headers: {"Content-Type": "text/markdown"}, body});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     ORIGINAL = body;
     $("doc").innerHTML = render(ORIGINAL);
@@ -180,6 +214,183 @@ $("save").addEventListener("click", async () => {
 });
 
 load();
+
+/* ------------------------------------------------- the convention, running
+   The stalk drawn twice over: as the 1D strip it is written as, and as the
+   square it folds into, with `lay it down` interpolating between the two. The
+   morph is the whole point -- the spec says "lay them along the anti-diagonals"
+   and this is that sentence in motion. */
+const scv = $("scv");
+let sHit = null;
+
+/* where cell i sits, as a strip and as a square, in css px */
+function sLayout(cells, n, w, h){
+  const pad = 16;
+  const gw = Math.min(w - pad * 2, h - pad * 2 - 54);
+  const step = gw / n;
+  const ox = (w - gw) / 2, oy = pad + 44;
+  const o = cellOrder(n);
+  const sw = Math.min((w - pad * 2) / Math.max(1, cells.length), step, 34);
+  const sx = (w - sw * cells.length) / 2;
+  return cells.map((v, i) => {
+    const [r, c] = o[i] || [0, 0];
+    return {v, i, r, c,
+      strip: {x: sx + i * sw, y: pad, s: sw},
+      grid:  {x: ox + c * step, y: oy + r * step, s: step},
+      region: UI.regionOf(r, c, n)};
+  });
+}
+
+function sDraw(){
+  const box = UI.fit(scv, 330);
+  if(!box) return;
+  const {ctx, w, h} = box, p = UI.palette();
+  const k = Math.round(sK.get()), t = sT.get();
+  /* the sign is the colouring, not the magnitude: stalkOf takes |k| and a flag,
+     which is exactly why dragging through zero only recolours */
+  const st = stalkOf(parse(String(Math.abs(k))).v, k < 0);
+  const cells = sForm.get() === "push" ? pushLeft(st.cells) : st.cells;
+  const n = st.n;
+  ctx.clearRect(0, 0, w, h);
+
+  const lay = sLayout(cells, n, w, h);
+  const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+  /* the fold line fades in as the square forms -- before there is a square
+     there is nothing for it to be the diagonal of */
+  if(ease > 0.01){
+    const g0 = lay.find(c => c.r === n - 1 && c.c === 0), g1 = lay.find(c => c.r === 0 && c.c === n - 1);
+    if(g0 && g1){
+      ctx.globalAlpha = ease; ctx.strokeStyle = p.brass; ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]); ctx.beginPath();
+      ctx.moveTo(g0.grid.x, g0.grid.y + g0.grid.s);
+      ctx.lineTo(g1.grid.x + g1.grid.s, g1.grid.y);
+      ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
+  }
+
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for(const c of lay){
+    const x = c.strip.x + (c.grid.x - c.strip.x) * ease;
+    const y = c.strip.y + (c.grid.y - c.strip.y) * ease;
+    const s = c.strip.s + (c.grid.s - c.strip.s) * ease;
+    const hot = sHit && sHit.r === c.r && sHit.c === c.c && ease > 0.9;
+    const inset = Math.max(1, s * 0.06);
+
+    ctx.globalAlpha = c.i === 0 ? 0.16 : 0.30;      // cell 0 is the reserved A1
+    ctx.fillStyle = UI.hue(c.v, p);
+    ctx.fillRect(x + inset, y + inset, s - inset * 2, s - inset * 2);
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = hot ? 2.5 : c.region === "fold" && ease > 0.5 ? 2 : 1;
+    ctx.strokeStyle = hot ? p.brass
+      : c.i === 0 ? p.ink3
+      : c.region === "fold" && ease > 0.5 ? p.brass : p.rule;
+    if(c.i === 0) ctx.setLineDash([3, 3]);
+    ctx.strokeRect(x + inset, y + inset, s - inset * 2, s - inset * 2);
+    ctx.setLineDash([]);
+    if(s > 15){
+      ctx.font = `600 ${Math.max(8, s * 0.42)}px "IBM Plex Mono",monospace`;
+      ctx.fillStyle = UI.hue(c.v, p);
+      ctx.fillText(c.i === 0 ? "·" : glyph(c.v), x + s / 2, y + s / 2);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function sSay(){
+  const out = $("sout");
+  if(!out) return;
+  const k = Math.round(sK.get());
+  const st = stalkOf(parse(String(Math.abs(k))).v, k < 0);
+  const cells = sForm.get() === "push" ? pushLeft(st.cells) : st.cells;
+  const val = valueOf(cells);
+  const reg = regions(cells, st.n);
+  /* What each region contributes to the value, not how many digits it holds.
+     Printing a digit count beside "value 173/256" reads as though the two were
+     parts of the same sum, and they are not. Cell i weighs 2^-i, so over the
+     common denominator 2^(L-1) the three numerators add back to the value's --
+     which is the claim the whole site rests on, and is worth showing true. */
+  const L = cells.length;
+  const sum = key => reg[key].reduce(
+    (a, s) => a + BigInt(s.v) * (1n << BigInt(L - 1 - s.i)), 0n);
+  const den = 1n << BigInt(L - 1);
+  if(sHit){
+    const i = sHit.i, d = cells[i];
+    out.innerHTML = `<span class="hi">cell ${i}</span> · `
+      + `<span class="${sHit.region[0]}">${sHit.region}</span> · `
+      + `digit <span class="hi">${i === 0 ? "reserved" : glyph(d)}</span> · `
+      + `weight 2<sup>−${i}</sup>`;
+    return;
+  }
+  const i = sum("inner"), f = sum("fold"), o = sum("outer");
+  out.innerHTML = `<span><span class="hi">${k}</span> → ${st.n}×${st.n}, `
+    + `${st.raw.length} cells, value <span class="hi">${fmt(val)}</span></span>`
+    + `<span><span class="i">${i}</span> + <span class="f">${f}</span>`
+    + ` + <span class="o">${o}</span> = <span class="hi">${i + f + o}</span>`
+    + `<span style="opacity:.6"> / ${den}</span></span>`;
+}
+
+const sK = UI.slider("sk", {out: "skv", onInput: () => { sHit = null; sDraw(); sSay(); }});
+const sT = UI.scrub("st", {playId: "splay", period: 4800, value: 1,
+  onTick: () => { sDraw(); sSay(); }});
+const sForm = UI.select("sform", {onChange: () => { sDraw(); sSay(); }});
+UI.drag("scv", {hover: true, onMove: pt => {
+  const k = Math.round(sK.get());
+  const st = stalkOf(parse(String(Math.abs(k))).v, k < 0);
+  const box = scv.getBoundingClientRect();
+  const w = box.width || 300, h = parseFloat(scv.style.height) || 330;
+  const pad = 16, gw = Math.min(w - pad * 2, h - pad * 2 - 54);
+  const ox = (w - gw) / 2, oy = pad + 44;
+  sHit = (pt.inside && sT.get() > 0.9) ? UI.cellAt(pt.x - ox, pt.y - oy, gw, st.n) : null;
+  sDraw(); sSay();
+}});
+
+/* run.js looks for this name; without it the page's figure is never exercised */
+function draw(){ sDraw(); sSay(); if(typeof specPanelCap === "function") specPanelCap(); }
+draw();
+if(typeof addEventListener === "function") addEventListener("resize", draw);
+
+/* ------------------------------------------------ explaining the controls */
+UI.tips.add({
+  t_sint: {title: "integer", what: "The number this panel is applying the convention to. It runs through zero.",
+           why: "Drag it past zero and watch: every colour flips and nothing else moves. That is the whole of what negation does here."},
+  t_lay:  {title: "lay it down", what: "Curls the stalk from a flat row into the square.",
+           why: "The spec says “lay them along the anti-diagonals”. This is that sentence, in motion."},
+  t_form: {title: "form", what: "Plain is the digits as written; pushed respells the same value using −1s.",
+           why: "The value underneath does not change — compare the two and only the colours differ."},
+});
+UI.tips.scan();
+
+/* ---------------------------------------------------------- live caption */
+function specPanelCap(){
+  const cap = $("spcap");
+  if(!cap) return;
+  const k = Math.round(sK.get());
+  const st = stalkOf(parse(String(Math.abs(k))).v, k < 0);
+  const cells = sForm.get() === "push" ? pushLeft(st.cells) : st.cells;
+  const lit = cells.filter(d => d !== 0).length;
+  const neg = cells.filter(d => d < 0).length;
+  cap.innerHTML = `<b>${k}</b> becomes ${cells.length} signed digits, <b>${lit}</b> of them lit`
+    + (neg ? `, <b>${neg}</b> of those negative` : ``)
+    + `, folded into a <b>${st.n}&times;${st.n}</b> square. `
+    + (sT.get() < 0.5 ? `Drag <b>lay it down</b> to fold the row into the square.`
+       : `The brass diagonal is the Fold.`);
+}
+
+
+/* ---------------------------------------------------------------- permalink */
+function saveHash(){
+  UI.hash.write({k: Math.round(sK.get()), t: sT.get().toFixed(3), f: sForm.get()});
+}
+(function loadHash(){
+  const st = UI.hash.read();
+  if(!Object.keys(st).length) return;
+  sK.set(UI.hash.num(st, "k", 181, -511, 511));
+  sT.set(UI.hash.num(st, "t", 1, 0, 1));
+  if(st.f) sForm.set(st.f);
+})();
+for(const h of [sK, sT, sForm]) h.on(() => saveHash());
+
 </script>
 </body>
 </html>

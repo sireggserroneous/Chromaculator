@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wub ÷ · chronochromatic.org</title>
-<meta name="description" content="Division that refuses to round: a quotient grid, a multiplier on the boundary, and the remainder drawn as the part that did not fit.">
+<meta name="description" content="Division kept exact: A = 2^e × Q × B + R, at every width, with the remainder drawn rather than rounded away.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://chronochromatic.org/wubdiv.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="chronochromatic.org">
+<meta property="og:title" content="Wub ÷ · chronochromatic.org">
+<meta property="og:description" content="Division kept exact: A = 2^e × Q × B + R, at every width, with the remainder drawn rather than rounded away.">
+<meta property="og:url" content="https://chronochromatic.org/wubdiv.html">
+<meta property="og:image" content="https://chronochromatic.org/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Wub ÷ · chronochromatic.org">
+<meta name="twitter:description" content="Division kept exact: A = 2^e × Q × B + R, at every width, with the remainder drawn rather than rounded away.">
+<meta name="twitter:image" content="https://chronochromatic.org/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="base.css">
 <style>
 html,body{height:100%}
 body{overflow:hidden}
@@ -177,17 +189,17 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 </head>
 <body>
 <header class="sitebar">
-  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
   <nav aria-label="Main">
-    <a href="/">Home</a>
-    <a href="/spectrometer.html">Spectrometer</a>
-    <a href="/atlas.html">Atlas</a>
-    <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html" class="cur" aria-current="page">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
-    <a href="/spec.html">Spec</a>
-    <a href="/inspirations.html">Inspirations</a>
+    <a href="index.html">Home</a>
+    <a href="spectrometer.html">Spectrometer</a>
+    <a href="atlas.html">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html" class="cur" aria-current="page">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html">Spec</a>
+    <a href="inspirations.html">Inspirations</a>
   </nav>
 </header>
 
@@ -204,7 +216,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
       <b>e</b> is the multiplier on the boundary — the shift that brings the quotient back inside,
       normalised so the leading cell is never wasted. <b>R</b> is a stalk too, and it is what the
       repeating digits would have been. The grid drawn is the <b>tableau</b>: the rows of <b>B</b>
-      that got subtracted, which is the same rectangle <a href="/wubx.html">Wub ×</a> draws — only
+      that got subtracted, which is the same rectangle <a href="wubx.html">Wub ×</a> draws — only
       solved for rather than read off. <b>Fold</b> is the equator, <b>Inner</b> reaches north,
       <b>Outer</b> south. Mantissas carry down the rack and exponents add, so the running
       <b>ring</b> is where the answer actually sits; colour comes from the mantissa, radius from the
@@ -226,23 +238,23 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
         <input type="range" id="wid" min="1" max="24" step="1" value="8"
                aria-label="Quotient cells">
         <span class="rv" id="widval">8 cells</span></div>
-      <div class="speedrow"><label for="speed">Sweep</label>
+      <div class="speedrow"><label for="speed" data-tip="sweep">Sweep</label>
         <input type="range" id="speed" min="0" max="1.5" step="0.01" value="0.12"
                aria-label="Sweep frequency in laps per second">
         <span class="rv" id="speedval">0.12 Hz</span></div>
-      <div class="speedrow"><label for="jit">Greens</label>
+      <div class="speedrow"><label for="jit" data-tip="greens">Greens</label>
         <input type="range" id="jit" min="0" max="360" step="1" value="0"
                aria-label="Green rerolls per lap">
         <span class="rv" id="jitval">frozen</span></div>
-      <div class="speedrow"><label for="bias">Bias</label>
+      <div class="speedrow"><label for="bias" data-tip="bias">Bias</label>
         <input type="range" id="bias" class="rb" min="-1" max="1" step="0.02" value="0"
                aria-label="Green reroll bias, red to blue">
         <span class="rv" id="biasval">50 / 50</span></div>
-      <div class="speedrow"><label for="shell">Shell</label>
+      <div class="speedrow"><label for="shell" data-tip="shell">Shell</label>
         <input type="range" id="shell" min="0" max="1" step="0.01" value="0.10"
                aria-label="Sphere shell opacity">
         <span class="rv" id="shellval">10%</span></div>
-      <div class="zoomrow"><label for="pstyle">Points</label>
+      <div class="zoomrow"><label for="pstyle" data-tip="pstyle">Points</label>
         <select id="pstyle" aria-label="How the points are drawn">
           <option value="lights">lights</option>
           <option value="birds">birds</option>
@@ -255,6 +267,14 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
         <label class="chip"><input type="checkbox" id="rings" checked><span>rings</span></label>
         <label class="chip"><input type="checkbox" id="showr" checked><span>remainder</span></label>
       </div>
+      <div class="zoomrow"><label for="vol" data-tip="t_sound">Sound</label>
+        <input type="range" id="vol" min="0" max="1" step="0.01" value="0.5"
+               aria-label="How loud">
+        <button class="pbtn" id="sound" aria-pressed="false">&#9834; off</button></div>
+      <div class="zoomrow"><label for="phase" data-tip="phase">Phase</label>
+        <input type="range" id="phase" min="0" max="1" step="0.0005" value="0"
+               aria-label="Where in one full turn of the curve">
+        <button class="pbtn" id="phaseplay" aria-pressed="true">&#8214; pause</button></div>
       <div class="zoomrow"><label for="zoom">Zoom</label>
         <input type="range" id="zoom" min="0" max="100" step="0.5" value="34" aria-label="Zoom">
         <span class="rv" id="zoomval">1.0×</span></div>
@@ -303,7 +323,9 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
   </div>
 </div>
 
-<script src="/stalk.js"></script>
+<script src="stalk.js"></script>
+<script src="chroma-ui.js"></script>
+<script src="glossary.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const col = k => getComputedStyle(document.body).getPropertyValue(k).trim();
@@ -582,6 +604,7 @@ const comp = (p, t) => {
 let M = model(), CURVE = [], EXTENT = 1, RAD = [], RMAX = 1, RMEAN = 1;
 let WX = [], WY = [], WZ = [], AVGX = [], AVGY = [], AVGZ = [];
 let T = 0, FREQ = 0.12, LAST = null, DIVS = 0, LASTSLOT = null, DRAWN = null, PREV = null, BOUND = 0;
+let PAUSED = false, PHASEBAR = null;
 let DRAG = null, SPIN = 0, TILT = .38, DRAG3 = null, ZOOM = 1, SHELL = 0.10;
 let SNAP = null, AUTOSPIN = true;
 let MEASURE_T = null;
@@ -708,7 +731,13 @@ function draw2D(id, ax, ay, joints){
 function draw(ts){
   const dt = (LAST == null || !ts) ? 0 : Math.min((ts - LAST) / 1000, 0.1);
   if(ts) LAST = ts;
-  if(!still() && !DRAG) T += M.period * FREQ * dt;
+  /* one clock, and now a bar attached to it. PAUSED freezes T where it is so
+     the curve can be read at a chosen phase rather than only in motion; while
+     it runs, the bar follows T instead of leading it. Dragging the bar pauses,
+     for the same reason grabbing a scrub bar anywhere else does. */
+  if(!still() && !DRAG && !PAUSED) T += M.period * FREQ * dt;
+  if(!PAUSED && PHASEBAR && PHASEBAR.ok && M.period)
+    PHASEBAR.el.value = String(((T / M.period) % 1 + 1) % 1);
 
   /* reroll every green once per slot — Inner, Fold and Outer alike. the new
      roll is eased into over the slot rather than snapped to, so a green moves
@@ -1108,11 +1137,11 @@ function rack(){
     const setK = v => {
       KS[i].k = v; kin.value = v;
       recompute(); paintRow(i, row); stats();
-      TRAILS = [];                       // the old path belonged to a different number
+      TRAILS = []; touched();                       // the old path belonged to a different number
     };
     kin.addEventListener("input", ev => {
       const v = parseInt(ev.target.value, 10);
-      if(!isNaN(v)){ KS[i].k = v; recompute(); paintRow(i, row); stats(); TRAILS = []; }
+      if(!isNaN(v)){ KS[i].k = v; recompute(); paintRow(i, row); stats(); TRAILS = []; touched(); }
     });
     kin.addEventListener("keydown", ev => {
       if(ev.key === "ArrowUp"){ setK((parseInt(kin.value, 10) || 0) + 1); ev.preventDefault(); }
@@ -1174,7 +1203,10 @@ function stats(){
     + `<span class="sval">${v}</span><span class="sfoot">${f}</span></div>`).join("");
 }
 
-function refresh(){ recompute(); rack(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = []; }
+/* the model changed, so the chord and the permalink changed with it */
+function refresh(){ recompute(); rack(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = [];
+  if(typeof pushSound === "function") pushSound();
+  if(typeof saveHash === "function") saveHash(); }
 
 $("addbtn").addEventListener("click", () => {
   KS.push({k: KS.length + 2, push: false, op: 0.55});
@@ -1183,7 +1215,19 @@ $("addbtn").addEventListener("click", () => {
   el.scrollTop = el.scrollHeight;       // bring the one just added into view
 });
 $("randbtn").addEventListener("click", () => {
-  KS = KS.map(e => ({...e, k: Math.floor(Math.random()*511) - 255 || 1})); refresh();
+  KS = KS.map(e => ({...e, k: Math.floor(Math.random()*511) - 255 || 1}));
+  /* Randomise used to change only the integers, which left every slider
+     sitting where it was and made the button look like it had done less
+     than it had. It now rolls the whole arrangement, and setArrangement
+     moves the controls so the page and the numbers agree. */
+  const r = (lo, hi) => lo + Math.random() * (hi - lo);
+  setArrangement({
+    freq: +r(0.04, 0.6).toFixed(2),
+    divs: Math.random() < 0.4 ? 0 : Math.round(r(1, 120)),
+    bias: +r(-0.7, 0.7).toFixed(2),
+    shell: +r(0, 0.45).toFixed(2),
+  });
+  refresh();
 });
 $("resetbtn").addEventListener("click", () => {
   KS = [{k:3, push:false}, {k:10, push:false}, {k:200, push:false}];
@@ -1241,6 +1285,112 @@ $("shell").addEventListener("input", e => {
   $("shellval").textContent = Math.round(SHELL * 100) + "%";
 });
 $("zoom").addEventListener("input", e => setZoom(zFromSlider(parseFloat(e.target.value)), false));
+
+/* ---------------------------------------------------------- the phase bar
+   The curve is closed, so one period is the whole of it: dragging the bar
+   from end to end walks the phasor sum once round and back to where it
+   started. T is kept in the same units the clock uses -- a fraction of
+   M.period -- so pausing mid-drag and pressing play resumes from there
+   rather than snapping. */
+
+/* ------------------------------------------------------------------ sound
+   The model on this page is already a bank of oscillators: every phasor
+   carries an amplitude, two integer rates and a phase, which is additive
+   synthesis with the speaker left off. What you see traced is what you hear.
+
+   The rates are small whole numbers, so the voices land on a harmonic stack
+   rather than a cluster. Nothing starts on its own -- the button is the only
+   way in, and it is the only way a browser would allow anyway. */
+const SOUNDBTN = $("sound");
+function voices(){
+  /* Sweep is already a frequency -- the label says Hz -- it is just far below
+     hearing. Transposing it so the default 0.12 Hz lands on A1 makes the
+     slider do to the sound exactly what it does to the picture. Frozen is
+     silent, because a figure that is not turning has no tone. */
+  const base = FREQ * (55 / 0.12);
+  return M.P.flatMap(p => UI.audio.voicesOf(p, base));
+}
+function pushSound(){ if(UI.audio.on) UI.audio.set(voices()); }
+
+/* The model changed but the rack markup did not need rebuilding. refresh()
+   would rebuild it, and rebuilding steals focus from the box you are typing
+   in -- so editing an integer took the cheap path and, until now, told the
+   speaker and the permalink nothing. This is that missing half. */
+function touched(){ pushSound(); if(typeof saveHash === "function") saveHash(); }
+
+/* Move the arrangement sliders and their readouts together. Setting the
+   variable alone leaves the control showing the old number, which is how a
+   randomise ends up looking like it did nothing. */
+function setArrangement(a){
+  if(a.freq !== undefined){
+    FREQ = a.freq;
+    if($("speed")) $("speed").value = String(FREQ);
+    if($("speedval")) $("speedval").textContent = FREQ.toFixed(2) + " Hz";
+  }
+  if(a.divs !== undefined){
+    DIVS = a.divs; LASTSLOT = null;
+    if($("jit")) $("jit").value = String(DIVS);
+    if($("jitval")) $("jitval").textContent = DIVS ? `${DIVS} /lap` : "frozen";
+  }
+  if(a.bias !== undefined){
+    BIAS = a.bias;
+    if($("bias")) $("bias").value = String(BIAS);
+    const blue = Math.round((BIAS + 1) / 2 * 100);
+    if($("biasval")) $("biasval").textContent = blue === 50 ? "50 / 50"
+      : blue > 50 ? `${blue}% blue` : `${100 - blue}% red`;
+  }
+  if(a.shell !== undefined){
+    SHELL = a.shell;
+    if($("shell")) $("shell").value = String(SHELL);
+    if($("shellval")) $("shellval").textContent = Math.round(SHELL * 100) + "%";
+  }
+}
+if(SOUNDBTN){
+  if(!UI.audio.available()) SOUNDBTN.disabled = true;
+  SOUNDBTN.addEventListener("click", () => {
+    const on = UI.audio.toggle();
+    SOUNDBTN.textContent = on ? "♪ on" : "♪ off";
+    SOUNDBTN.setAttribute("aria-pressed", on ? "true" : "false");
+    if(on){ UI.audio.level(UI.slider("vol").get()); pushSound(); }
+  });
+}
+UI.slider("vol", {onInput: v => UI.audio.level(v)});
+
+/* ------------------------------------------------------------- permalink
+   Everything on this page is a state nobody can send anyone. The hash makes
+   each arrangement quotable, and replaceState keeps the back button meaning
+   "the previous page" rather than "the previous slider position". */
+function saveHash(){
+  UI.hash.write({
+    k: M.P.map(p => p.k + (p.push ? "p" : "")).join(","),
+    z: ZOOM.toFixed(3), sh: SHELL.toFixed(3),
+    sp: SPIN.toFixed(3), ti: TILT.toFixed(3),
+  });
+}
+function loadHash(){
+  const st = UI.hash.read();
+  if(!st || !Object.keys(st).length) return false;
+  ZOOM  = UI.hash.num(st, "z", ZOOM, 0.05, 40);
+  SHELL = UI.hash.num(st, "sh", SHELL, 0, 1);
+  SPIN  = UI.hash.num(st, "sp", SPIN);
+  TILT  = UI.hash.num(st, "ti", TILT, -1.5, 1.5);
+  return true;
+}
+
+PHASEBAR = UI.slider("phase", {onInput: v => {
+  setPaused(true);
+  T = v * (M.period || 1);
+  if(typeof draw === "function") draw();
+}});
+function setPaused(on){
+  PAUSED = on;
+  const b = $("phaseplay");
+  if(b){
+    b.textContent = PAUSED ? "▸ play" : "‖ pause";
+    b.setAttribute("aria-pressed", PAUSED ? "false" : "true");
+  }
+}
+if($("phaseplay")) $("phaseplay").addEventListener("click", () => setPaused(!PAUSED));
 $("sph").addEventListener("wheel", e => {
   e.preventDefault();
   setZoom(ZOOM * (e.deltaY < 0 ? 1.12 : 1/1.12), true);
@@ -1250,6 +1400,7 @@ setZoom(1, true);
 $("speed").addEventListener("input", e => {
   FREQ = parseFloat(e.target.value);
   $("speedval").textContent = FREQ.toFixed(2) + " Hz";
+  pushSound();
 });
 $("jit").addEventListener("input", e => {
   DIVS = parseInt(e.target.value, 10);

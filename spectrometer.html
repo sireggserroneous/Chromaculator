@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Spectrometer · chronochromatic.org</title>
-<meta name="description" content="One integer as a stalk of halving place values, and the square it folds into.">
+<meta name="description" content="One integer in full — its stalk, its square, its three regions, its value as a light wave, and its point on the unit sphere.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://chronochromatic.org/spectrometer.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="chronochromatic.org">
+<meta property="og:title" content="Spectrometer · chronochromatic.org">
+<meta property="og:description" content="One integer in full — its stalk, its square, its three regions, its value as a light wave, and its point on the unit sphere.">
+<meta property="og:url" content="https://chronochromatic.org/spectrometer.html">
+<meta property="og:image" content="https://chronochromatic.org/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Spectrometer · chronochromatic.org">
+<meta name="twitter:description" content="One integer in full — its stalk, its square, its three regions, its value as a light wave, and its point on the unit sphere.">
+<meta name="twitter:image" content="https://chronochromatic.org/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="base.css">
 <style>
 html,body{height:100%}
 body{overflow:hidden; display:flex; flex-direction:column}
@@ -55,7 +67,11 @@ input[type=text]:focus{outline:2px solid var(--brass); outline-offset:1px}
 /* --- the stalk, with its four readings nested underneath --- */
 .stalkpanel{display:flex; flex-direction:column; gap:12px; min-width:0}
 /* one solid edge per cell, standing on the ground — a Hackenbush stalk */
-.stalkrow{display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; min-height:62px}
+/* the stalk takes whatever height the row has spare and sits in the middle of
+   it. Pinning it to one end just moves the dead band to the other end, which
+   is what happens whenever the entry column beside it is the taller of the two */
+.stalkrow{display:flex; flex-direction:column; justify-content:center; overflow:hidden;
+  min-height:62px; flex:1}
 .bars{display:flex; align-items:flex-end; gap:2px}
 .bar{width:var(--chip,14px); height:44px; border-radius:1px; flex:none}
 .bar.b{background:var(--blue)}
@@ -133,21 +149,46 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; m
 .yy img{width:100%; height:100%; display:block; transform-origin:50% 50%}
 @media (prefers-reduced-motion:reduce){ .yy img{transform:none !important} }
 .sw{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px}
+
+/* ---- a widget, opened ----
+   Every panel already sizes itself from --wh, so opening one is a matter of
+   handing that box a bigger --wh and letting it span the row. Nothing here
+   knows what any particular widget draws. */
+.vbox{position:relative; cursor:zoom-in; border:1px solid var(--rule);
+  transition:border-color .12s}
+.vbox:hover{border-color:var(--brass-soft)}
+.vbox:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.vbox.big{grid-column:1/-1; order:-1; cursor:zoom-out; border-color:var(--brass)}
+/* while one is open the others stand down. The page does not scroll, so a row
+   of six under a full-width panel would simply fall off the bottom -- and the
+   open one is worth more than a strip of thumbnails it would be competing with. */
+.viz.zoomed .vbox:not(.big){display:none}
+.vbox.big .vtitle{color:var(--brass)}
+/* the panel is a flex column, so a stretched select would run its whole width */
+.vbox.big #latmode{width:auto; min-width:150px; align-self:center; font-size:.66rem}
+/* the hint sits in the corner and only shows on the closed panels, so an open
+   one is not told to open */
+.vzoom{position:absolute; top:8px; right:10px; font-family:"IBM Plex Mono",monospace;
+  font-size:.54rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3);
+  opacity:0; transition:opacity .12s; pointer-events:none}
+.vbox:hover .vzoom,.vbox:focus-visible .vzoom{opacity:1}
+.vbox.big .vzoom{opacity:1; color:var(--brass)}
+@media (prefers-reduced-motion:reduce){ .vbox,.vzoom{transition:none} }
 </style>
 </head>
 <body>
 <header class="sitebar">
-  <a class="brand" href="/">chronochromatic<span>.org</span></a>
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
   <nav aria-label="Main">
-    <a href="/">Home</a>
-    <a href="/spectrometer.html" class="cur" aria-current="page">Spectrometer</a>
-    <a href="/atlas.html">Atlas</a>
-    <a href="/wub.html">Wub ±</a>
-    <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
-    <a href="/spec.html">Spec</a>
-    <a href="/inspirations.html">Inspirations</a>
+    <a href="index.html">Home</a>
+    <a href="spectrometer.html" class="cur" aria-current="page">Spectrometer</a>
+    <a href="atlas.html">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html">Spec</a>
+    <a href="inspirations.html">Inspirations</a>
   </nav>
 </header>
 <div class="wrap">
@@ -162,7 +203,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; m
   <div class="top">
     <div class="panel entry">
       <div>
-        <label for="num">Integer</label>
+        <label for="num" data-tip="t_num">Integer</label>
         <span class="numrow">
           <input type="text" id="num" value="5" spellcheck="false" autocomplete="off">
           <span class="spin">
@@ -172,14 +213,32 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; m
         </span>
       </div>
       <div class="forms">
-        <label class="opt"><input type="radio" name="form" id="f_plain" checked><span>Plain</span></label>
-        <label class="opt"><input type="radio" name="form" id="f_push"><span>Pushed</span></label>
+        <label class="opt"><input type="radio" name="form" id="f_plain" checked><span data-tip="plain">Plain</span></label>
+        <label class="opt"><input type="radio" name="form" id="f_push"><span data-tip="push">Pushed</span></label>
       </div>
-      <div class="err" id="err"></div>
+      <div class="err" id="err" role="status" aria-live="polite"></div>
+      <div class="figbar" style="margin:2px -14px -14px; border-radius:0 0 3px 3px">
+        <label class="ctl" for="sweep" data-tip="t_sweep">sweep
+          <input type="range" id="sweep" min="-1023" max="1023" step="1" value="5"></label>
+        <label class="ctl" for="speed" data-tip="t_speed">speed
+          <input type="range" id="speed" min="0" max="2" step="0.01" value="1"><b id="speedv">1.0×</b></label>
+        <label class="ctl" for="phase" data-tip="phase">phase
+          <input type="range" id="phase" min="0" max="1" step="0.001" value="0"></label>
+        <button class="pbtn" id="play" aria-pressed="true">&#8214; pause</button>
+        <button class="pbtn" id="reset" data-tip="t_reset" title="Speed, phase, the sphere's angle and the open panel, all back to how they started">reset</button>
+      </div>
     </div>
 
     <div class="panel stalkpanel">
       <div class="stalkrow" id="stalk"></div>
+      <div class="caption" id="scap" style="border-radius:3px; border:1px solid var(--rule)"></div>
+      <div class="presets" style="border-radius:3px; border:1px solid var(--rule)">
+        <span class="plabel">try</span>
+        <button class="preset" id="sp_fold">a number that is all Fold</button>
+        <button class="preset" id="sp_push">the same value, respelled</button>
+        <button class="preset" id="sp_neg">negate it &mdash; only colour changes</button>
+        <button class="preset" id="sp_big">a number too wide for the bar</button>
+      </div>
       <div class="stats" id="vstats"></div>
     </div>
   </div>
@@ -192,42 +251,48 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; m
       <div class="sqhold"><div class="sq" id="sq"></div></div>
       <div class="side">
         <div class="stats" id="rstats"></div>
-        <div class="viz">
-          <div class="panel vbox">
-            <div class="vtitle">Wub · Re — cos(kx)</div>
+        <div class="viz" id="viz">
+          <div class="panel vbox" id="vb_wavey" tabindex="0" role="button" aria-expanded="false" aria-label="Wub · Re — cos(kx) — open this panel">
+              <span class="vzoom" id="vz_wavey" aria-hidden="true">open</span>
+              <div class="vtitle">Wub · Re — cos(kx)</div>
             <canvas id="wavey"></canvas>
             <div class="vfoot" id="wyfoot"></div>
           </div>
-<div class="panel vbox">
-            <div class="vtitle">Wub · Im — sin(kx)</div>
+<div class="panel vbox" id="vb_wavez" tabindex="0" role="button" aria-expanded="false" aria-label="Wub · Im — sin(kx) — open this panel">
+              <span class="vzoom" id="vz_wavez" aria-hidden="true">open</span>
+              <div class="vtitle">Wub · Im — sin(kx)</div>
             <canvas id="wavez"></canvas>
             <div class="vfoot" id="wzfoot"></div>
           </div>
-<div class="panel vbox">
-            <div class="vtitle">Wub · e^(ikx)</div>
+<div class="panel vbox" id="vb_wavex" tabindex="0" role="button" aria-expanded="false" aria-label="Wub · e^(ikx) — open this panel">
+              <span class="vzoom" id="vz_wavex" aria-hidden="true">open</span>
+              <div class="vtitle">Wub · e^(ikx)</div>
             <canvas id="wavex"></canvas>
             <div class="vfoot" id="wavefoot"></div>
           </div>
-          <div class="panel vbox">
-            <div class="vtitle">Helix</div>
+          <div class="panel vbox" id="vb_helix" tabindex="0" role="button" aria-expanded="false" aria-label="Helix — open this panel">
+              <span class="vzoom" id="vz_helix" aria-hidden="true">open</span>
+              <div class="vtitle">Helix</div>
             <canvas id="helix" role="img"
               aria-label="The wave as a helix, seen in three dimensions"></canvas>
             <div class="vfoot" id="helixfoot"></div>
           </div>
-          <div class="panel vbox">
-            <div class="vtitle">Unit sphere</div>
+          <div class="panel vbox" id="vb_unit" tabindex="0" role="button" aria-expanded="false" aria-label="Unit sphere — open this panel">
+              <span class="vzoom" id="vz_unit" aria-hidden="true">open</span>
+              <div class="vtitle">Unit sphere</div>
             <canvas id="unit" role="img"
               aria-label="The integer as a point on the unit sphere"></canvas>
-            <select id="latmode" aria-label="Where the latitude comes from">
+            <select id="latmode" aria-label="Where the latitude comes from" data-tip="t_lat">
               <option value="area">equal area</option>
               <option value="io">inner − outer</option>
               <option value="golden">golden angle</option>
             </select>
             <div class="vfoot" id="unitfoot"></div>
           </div>
-          <div class="panel vbox">
-            <div class="vtitle">Spin</div>
-            <div class="yy"><img id="yy" src="/yinyang.svg" alt="Yin-yang, turning at the number's frequency"></div>
+          <div class="panel vbox" id="vb_spin" tabindex="0" role="button" aria-expanded="false" aria-label="Spin — open this panel">
+              <span class="vzoom" id="vz_spin" aria-hidden="true">open</span>
+              <div class="vtitle">Spin</div>
+            <div class="yy"><img id="yy" src="yinyang.svg" alt="Yin-yang, turning at the number's frequency"></div>
             <div class="vfoot" id="spinfoot"></div>
           </div>
         </div>
@@ -257,7 +322,9 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; m
   </dialog>
 </div>
 
-<script src="/stalk.js"></script>
+<script src="stalk.js"></script>
+<script src="chroma-ui.js"></script>
+<script src="glossary.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const FORM = () => $("f_push").checked ? "push" : "plain";
@@ -287,14 +354,72 @@ function fit(){
   const availH = (window.innerHeight || 800) - top - 18;   // what is left below the fold
   const availW = (body.clientWidth || 900) - 260;          // the side column keeps 240 + gap
   const box = Math.max(60, Math.min(availH, availW));
-  const sc = Math.max(7, Math.min(48, Math.floor((box - (n - 1) * 3) / n)));
+  /* The ceiling used to be a flat 48px, which is why a 2x2 square sat tiny in
+     a panel with four hundred pixels going spare. A small square should use the
+     room it has; the cap only exists so a 1x1 does not become a poster, so it
+     scales with the box and stops at something a cell can still be read at. */
+  const roomy = Math.max(48, Math.min(120, Math.floor(box / 4)));
+  const sc = Math.max(7, Math.min(roomy, Math.floor((box - (n - 1) * 3) / n)));
   $("sq").style.setProperty("--sc", sc + "px");
+  sizeViz();
+  specCap();
 }
+
+/* The six widgets share one --wh. Closed, it is whatever the side column can
+   spare, floored so they never collapse to nothing and capped so they do not
+   crowd out the square. Open, .vbox.big overrides it in CSS and this leaves
+   that alone -- the open panel is not competing for the row any more. */
+function sizeViz(){
+  const side = $("viz");
+  if(!side || !side.style) return;
+  const w = side.clientWidth || 0;
+  /* three across at rest, minus the gaps and the panels' own padding */
+  const byW = w ? Math.floor((w - 2 * 9) / 3) - 26 : 86;
+  /* and it has to fit under the stats too. body never scrolls, so a widget
+     sized only by width is simply cut off at the fold -- which is what a
+     reader sees as a half-drawn sphere. 64px of chrome is the panel's own
+     title, footer and padding; 34 is the legend below it. */
+  const top = side.getBoundingClientRect ? side.getBoundingClientRect().top : 0;
+  const byH = Math.floor(((window.innerHeight || 800) - top - 34) - 64);
+  if(OPEN){
+    /* open, it is the only panel in the row, so it may have the whole of it */
+    OPEN.style.setProperty("--wh", Math.max(120, Math.min(320, byH || 160)) + "px");
+    side.style.setProperty("--wh", Math.max(64, Math.min(150, byW || 86)) + "px");
+    return;
+  }
+  const wh = Math.max(64, Math.min(150, byW || 86, byH || 86));
+  side.style.setProperty("--wh", wh + "px");
+}
+
+/* How big a square this page will build. Past this the grid is tens of
+   thousands of DOM nodes and the browser stops answering, which reads as a
+   crash rather than as a limit. Refusing with a number is the honest failure:
+   the box keeps what was typed, the last good drawing stays up, and the line
+   says what would have been needed. */
+const MAX_CELLS = 20000;
 
 function draw(){
   let p;
-  try{ p = parse($("num").value); $("err").textContent = ""; }
+  const typed = $("num").value;
+  if(!String(typed).trim()){
+    /* an empty box is not an error, it is an unfinished thought */
+    $("err").textContent = "type an integer — decimal, 0x… or 0b…";
+    return;
+  }
+  try{ p = parse(typed); $("err").textContent = ""; }
   catch(e){ $("err").textContent = e.message; return; }
+
+  /* count the cells before building any of them */
+  {
+    const bits = p.v === 0n ? 1 : p.v.toString(2).length;
+    const cells = Math.ceil((bits + 3) / 4) * 4 + 4;
+    const side = Math.ceil(Math.sqrt(cells));
+    if(side * side > MAX_CELLS){
+      $("err").textContent =
+        `too wide to draw: ${side}×${side} is ${side * side} cells, past the ${MAX_CELLS} this page will build`;
+      return;
+    }
+  }
 
   const {n, raw, cells} = hexSequence(p.v, p.neg);
   const shown = FORM() === "push" ? pushLeft(raw) : raw;
@@ -341,7 +466,12 @@ function draw(){
   AMPI = sum(R.inner); AMPO = sum(R.outer);
   WAVEVAL = dec(f);
   const mode = ($("latmode") && $("latmode").value) || "area";
-  drawSphereDot(dec(f) * Math.PI, latOf(mode, dec(f), AMPI, AMPO, p.neg ? -p.v : p.v));
+  /* kept so the sphere can be redrawn by itself. Turning it is a view
+     change, not a change of number, and it must not drag the rest of the
+     page along with it. */
+  SPHERE = {theta: dec(f) * Math.PI,
+            phi: latOf(mode, dec(f), AMPI, AMPO, p.neg ? -p.v : p.v)};
+  drawSphereDot(SPHERE.theta, SPHERE.phi);
   $("wyfoot").textContent = "the real shadow";
   $("wzfoot").textContent = "the imaginary shadow";
   statBlock($("rstats"), [
@@ -439,11 +569,28 @@ function setFreq(v, neg){
 }
 
 let PHASE = 0, T0 = null;
+/* One virtual clock behind every moving thing on the page: the wave phase, the
+   helix's spin and the yin-yang all read VT rather than the wall clock. That is
+   what makes `phase` a scrubber rather than a nudge -- dragging it sets VT, and
+   the three animations land on the same instant instead of drifting apart.
+
+   VCYCLE is what one pass of the scrubber means. The wave repeats every 1000ms
+   of VT; the helix turns far slower, so a longer cycle is what makes dragging
+   the bar show the corkscrew actually rotating. */
+let VT = 0, SPEED = 1, PLAYING = true, PHASEBAR = null;
+const VCYCLE = 8000;
+
 function frame(t){
   if(T0 === null) T0 = t;
   const dt = Math.min(0.05, (t - T0) / 1000);
   T0 = t;
-  PHASE += dt * 2 * Math.PI * SIGN;
+  if(PLAYING){
+    VT += dt * 1000 * SPEED;
+    /* PHASEBAR is bound once, below; building a fresh handle here allocated
+       one object per frame for the life of the page */
+    if(PHASEBAR && PHASEBAR.ok) PHASEBAR.el.value = String((VT % VCYCLE) / VCYCLE);
+  }
+  PHASE = VT / 1000 * 2 * Math.PI * SIGN;
 
   /* three channels of the same walk. X and Y carry the Inner and Outer
      amplitudes, and Z is what the unit sphere forces on them:
@@ -457,7 +604,8 @@ function frame(t){
     const cv = $(id); if(!cv || !cv.getContext) return;
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const w = cv.clientWidth || 260, h = cv.clientHeight || 86;
-    if(cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+    if(cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
+      cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
     const g = cv.getContext("2d");
     g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
     const mid = h/2, amp = h/2 - 6;
@@ -472,7 +620,7 @@ function frame(t){
     }
     g.strokeStyle = col(colour); g.lineWidth = 1.6; g.stroke();
   }
-  drawHelix(FREQ, nmToRGB(nmOf(WAVEVAL)), t);
+  drawHelix(FREQ, nmToRGB(nmOf(WAVEVAL)), VT);
   flat("wavey", Math.cos, "--red");         // the electric shadow
   flat("wavez", Math.sin, "--blue");        // the magnetic one, a quarter turn on
 
@@ -480,7 +628,8 @@ function frame(t){
   if(cv && cv.getContext){
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const w = cv.clientWidth || 260, h = cv.clientHeight || 86;
-    if(cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+    if(cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
+      cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
     const g = cv.getContext("2d");
     g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
     const mid = h/2, amp = h/2 - 7, lean = amp * 0.42;   // how far the depth tips
@@ -511,7 +660,7 @@ function frame(t){
   if(img && img.style){
     let deg = 0;
     if(RPS !== 0n){
-      const ms = BigInt(Math.max(0, Math.round(t)));
+      const ms = BigInt(Math.max(0, Math.round(VT)));
       deg = SIGN * Number((RPS * ms) % 1000n) / 1000 * 360;
     }
     img.style.transform = `rotate(${deg.toFixed(2)}deg)`;
@@ -535,6 +684,7 @@ function step(d){
   try{ p = parse($("num").value); }
   catch(e){ return; }
   $("num").value = ((p.neg ? -p.v : p.v) + BigInt(d)).toString();
+  syncSweep();
   draw();
 }
 $("inc").addEventListener("click", () => step(1));
@@ -602,7 +752,8 @@ function drawHelix(freq, colour, t){
   const cv = $("helix"); if(!cv || !cv.getContext) return;
   const dpr = Math.min(devicePixelRatio || 1, 2);
   const W = cv.clientWidth || 130, H = cv.clientHeight || 86;
-  if(cv.width !== Math.round(W*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  if(cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)){
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
   const g = cv.getContext("2d");
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   if(freq <= 0){ $("helixfoot").textContent = "no wave"; return; }
@@ -641,14 +792,17 @@ function drawSphereDot(theta, phi){
   const cv = $("unit"); if(!cv || !cv.getContext) return;
   const dpr = Math.min(devicePixelRatio || 1, 2);
   const W = cv.clientWidth || 86, H = cv.clientHeight || W;
-  if(cv.width !== Math.round(W*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  if(cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)){
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
   const g = cv.getContext("2d");
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   const cx = W/2, cy = H/2, S = Math.min(W, H) * 0.42;
   const x = Math.cos(phi) * Math.cos(theta);
   const y = Math.cos(phi) * Math.sin(theta);
   const z = Math.sin(phi);
-  const TILT = 0.42, ct = Math.cos(TILT), st = Math.sin(TILT);
+  /* the viewing angle is dragged, not fixed: see ORBIT below */
+  const TILT = ORBIT.el, ct = Math.cos(TILT), st = Math.sin(TILT);
+  theta += ORBIT.az;
   /* tilt so the equator reads as an ellipse; y is depth, z is up */
   const px = cx + x*S, py = cy - (z*ct - y*st)*S, depth = z*st + y*ct;
 
@@ -680,7 +834,8 @@ function drawUnitOld(x, y, foldSign){
   const cv = $("unit"); if(!cv || !cv.getContext) return;
   const dpr = Math.min(devicePixelRatio || 1, 2);
   const W = cv.clientWidth || 86, H = cv.clientHeight || W;
-  if(cv.width !== Math.round(W*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  if(cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)){
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
   const g = cv.getContext("2d");
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   const cx = W/2, cy = H/2, S = Math.min(W, H) * 0.44;
@@ -706,13 +861,212 @@ function drawUnitOld(x, y, foldSign){
   $("unitfoot").textContent = `z ${z >= 0 ? "+" : "\u2212"}${Math.abs(z).toFixed(4)}`;
 }
 
+/* ------------------------------------------------ explaining the controls */
+UI.tips.add({
+  t_num:   {title: "integer", what: "Any whole number, in decimal, 0x hex or 0b binary. A leading minus negates it.",
+            why: "There is no upper limit worth caring about — it is read in BigInt, so a seventy-bit number is exact, not rounded."},
+  t_sweep: {title: "sweep", what: "Drags the integer through −1023 to 1023, redrawing everything as it goes.",
+            why: "The fastest way to feel where the square grows a ring wider. Typing still takes numbers far outside this range."},
+  t_speed: {title: "speed", what: "How fast the clock behind the waves, the helix and the spin runs.",
+            why: "Set it to zero to freeze everything, then use phase to step through by hand."},
+  t_reset: {title: "reset", what: "Speed, clock, the sphere's angle and any open panel, back to how they started.",
+            why: "Deliberately leaves the integer alone — the number you are looking at is the one thing you did not get wrong."},
+  t_lat:   {title: "latitude", what: "Which rule decides how far north or south the point sits on the sphere.",
+            why: "Equal area spreads numbers evenly over the surface; inner − outer reads the fold directly; golden angle spaces them so none land on top of each other."},
+  t_panel: {title: "open a panel", what: "Click, or tab to it and press Enter, to give this view the whole row.",
+            why: "At this size most of them are a hint rather than a picture. Escape, or clicking away, puts it back."},
+});
+
+/* ---------------------------------------------------------------- controls
+   The text box still takes any integer, however many bits. The sweep bar is a
+   second way in, not a replacement: it writes into the box and redraws, and
+   reads back from it only when the typed value is inside its own range. Typing
+   a seventy-bit number therefore leaves the bar where it was rather than
+   clamping the number down to 1023. */
+const SWEEP = UI.slider("sweep", {onInput: v => { $("num").value = String(Math.round(v)); draw(); }});
+UI.slider("speed", {out: "speedv", fmt: v => v.toFixed(1) + "×", onInput: v => { SPEED = v; }});
+PHASEBAR = UI.slider("phase", {onInput: v => {
+  PLAYING = false;                        // grabbing the bar takes over the clock
+  const b = $("play"); if(b){ b.textContent = "▸ play"; b.setAttribute("aria-pressed", "false"); }
+  VT = v * VCYCLE;
+}});
+if($("play")) $("play").addEventListener("click", () => {
+  PLAYING = !PLAYING;
+  const b = $("play");
+  b.textContent = PLAYING ? "‖ pause" : "▸ play";
+  b.setAttribute("aria-pressed", PLAYING ? "true" : "false");
+});
+/* One way back. Every control here can be left somewhere that looks broken --
+   speed at zero, the clock paused mid-scrub, the sphere dragged until the
+   equator is edge-on -- and none of those states says how to undo itself. This
+   does, and it deliberately does not touch the integer: the number you are
+   looking at is the one thing you did not get wrong. */
+function resetView(){
+  SPEED = 1; VT = 0; PLAYING = true;
+  const sp = UI.slider("speed"); if(sp.ok){ sp.set(1); sp.sync(); }
+  const ph = UI.slider("phase"); if(ph.ok) ph.set(0);
+  const b = $("play");
+  if(b){ b.textContent = "‖ pause"; b.setAttribute("aria-pressed", "true"); }
+  ORBIT.az = 0; ORBIT.el = 0.42;
+  if(OPEN) closeBox(true);
+  fit(); draw();
+}
+if($("reset")) $("reset").addEventListener("click", resetView);
+
+/* ---------------------------------------------------------- live caption
+   The four stat cards above are exact and wordless. This says the same thing
+   as a sentence, which is what someone who has not read the spec needs. */
+function specCap(){
+  const cap = $("scap");
+  if(!cap || !LAST) return;
+  /* LAST is {shown, groups, n} -- the digits as displayed, in whichever form
+     is selected, which is exactly what the caption should describe */
+  const {n, shown} = LAST;
+  if(!shown) return;
+  let k;
+  try{ const q = parse($("num").value); k = (q.neg ? -q.v : q.v).toString(); }
+  catch(e){ return; }
+  const cells = shown.length, pad = n * n - cells;
+  const lit = shown.filter(d => d !== 0).length;
+  cap.innerHTML = `<b>${k}</b> is ${cells} cells of signed digits, `
+    + `${lit === 0 ? "none of them lit" : `<b>${lit}</b> of them lit`}, `
+    + `folded into a <b>${n}×${n}</b> square`
+    + (pad > 0 ? ` with <b>${pad}</b> green cells padding the rest.` : `, exactly filled.`)
+    + ` The Fold is the <b class="f">${n}</b> cells on its anti-diagonal.`;
+}
+
+/* -------------------------------------------------------------- try this */
+function preset(id, fn){ const b = $(id); if(b && b.addEventListener) b.addEventListener("click", fn); }
+/* 3 is 0b11: both its lit cells land on the anti-diagonal of a 2x2 */
+preset("sp_fold", () => { $("num").value = "3"; $("f_plain").checked = true; syncSweep(); fit(); draw(); });
+preset("sp_push", () => { $("f_push").checked = true; draw(); });
+preset("sp_neg",  () => {
+  try{ const q = parse($("num").value); $("num").value = (q.neg ? q.v : -q.v).toString(); }
+  catch(e){ return; }
+  syncSweep(); fit(); draw();
+});
+preset("sp_big",  () => { $("num").value = "1180591620717411303424"; syncSweep(); fit(); draw(); });
+
+UI.tips.scan();
+
+/* keep the sweep bar under the number when the number changes some other way */
+function syncSweep(){
+  try{
+    const p = parse($("num").value);
+    const k = (p.neg ? -p.v : p.v);
+    if(k >= -1023n && k <= 1023n && SWEEP.ok) SWEEP.el.value = String(k);
+  }catch(e){ /* an unreadable box is the error line's problem, not the bar's */ }
+}
+
+/* drag the unit sphere to turn it. ORBIT replaces what were two fixed tilts,
+   so the point on the sphere can be looked at from underneath -- the one view
+   that shows whether it is north or south of the equator. */
+let SPHERE = null;                 // the last angles the sphere was drawn at
+const ORBIT = {az: 0, el: 0.42};
+UI.drag("unit", {onMove: p => {
+  if(p.phase === "down"){ ORBIT.grabX = p.x; ORBIT.grabY = p.y; ORBIT.az0 = ORBIT.az; ORBIT.el0 = ORBIT.el; return; }
+  if(p.phase !== "drag") return;
+  ORBIT.az = ORBIT.az0 + (p.x - ORBIT.grabX) * 0.02;
+  ORBIT.el = UI.clamp(ORBIT.el0 - (p.y - ORBIT.grabY) * 0.02, -1.45, 1.45);
+  /* NOT draw(). draw() rebuilds the stalk, the stat cards and the whole square
+     from innerHTML -- up to twenty thousand cells -- and a drag fires this a
+     hundred times a second. Turning the sphere redraws the sphere. */
+  if(SPHERE) drawSphereDot(SPHERE.theta, SPHERE.phi);
+}});
+
+/* ------------------------------------------------------- opening a widget
+   Six panels, each too small to read at rest. Clicking or tabbing to one hands
+   it a bigger --wh and a full row; leaving it puts it back. Nothing here knows
+   what any panel draws -- the size is a custom property and the drawing code
+   already reads its own box every frame.
+
+   focusout fires when focus moves *within* the panel too -- the sphere has a
+   dropdown inside it -- so the new target is checked against the panel before
+   closing. Without that, reaching for the latitude select would shut the panel
+   the select lives in. */
+const VKEYS = ["wavey", "wavez", "wavex", "helix", "unit", "spin"];
+const VBOXES = VKEYS.map(k => $("vb_" + k)).filter(Boolean);
+/* the hint is found by id rather than by class: this page reaches for elements
+   with $() everywhere, and a class lookup is one of the things the DOM harness
+   cannot see through, so it would put this whole panel beyond testing */
+const vzoomOf = box => $("vz_" + VKEYS[VBOXES.indexOf(box)]);
+let OPEN = null;
+
+function openBox(box){
+  if(OPEN === box) return;
+  if(OPEN) closeBox(true);
+  OPEN = box;
+  box.classList.add("big");
+  if($("viz")) $("viz").classList.add("zoomed");
+  box.setAttribute("aria-expanded", "true");
+  const z = vzoomOf(box);
+  if(z) z.textContent = "close";
+  sizeViz(); draw();
+}
+function closeBox(quiet){
+  if(!OPEN) return;
+  const box = OPEN;
+  OPEN = null;
+  box.classList.remove("big");
+  box.style.removeProperty("--wh");
+  if($("viz")) $("viz").classList.remove("zoomed");
+  box.setAttribute("aria-expanded", "false");
+  const z = vzoomOf(box);
+  if(z) z.textContent = "open";
+  sizeViz(); draw();
+  if(!quiet && box.focus) box.focus();
+}
+for(const box of VBOXES){
+  /* state is published from here, not inherited from the markup. The attribute
+     is in the HTML too, for a reader who arrives before this runs, but leaving
+     it as the only source lets the two drift the first time someone edits one
+     and not the other. */
+  box.setAttribute("aria-expanded", "false");
+  UI.tips.attachEl(box, "t_panel");
+  box.addEventListener("click", e => {
+    /* a click on the dropdown inside the sphere panel is not a click on the
+       panel; let the control have it */
+    if(e.target && e.target.closest && e.target.closest("select,option")) return;
+    OPEN === box ? closeBox(true) : openBox(box);
+  });
+  box.addEventListener("focusin", () => openBox(box));
+  box.addEventListener("focusout", e => {
+    const to = e.relatedTarget;
+    if(to && box.contains && box.contains(to)) return;   // still inside
+    if(OPEN === box) closeBox(true);
+  });
+  box.addEventListener("keydown", e => {
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); OPEN === box ? closeBox(true) : openBox(box); }
+    if(e.key === "Escape" && OPEN === box){ e.preventDefault(); closeBox(); }
+  });
+}
+if(typeof addEventListener === "function")
+  addEventListener("keydown", e => { if(e.key === "Escape" && OPEN) closeBox(); });
+
 $("latmode").addEventListener("change", draw);
-$("num").addEventListener("input", draw);
+$("num").addEventListener("input", () => { syncSweep(); draw(); });
 $("f_plain").addEventListener("change", draw);
 $("f_push").addEventListener("change", draw);
 addEventListener("resize", fit);
 draw();
 if(typeof requestAnimationFrame === "function") requestAnimationFrame(frame);
+
+/* ---------------------------------------------------------------- permalink */
+function saveHash(){
+  UI.hash.write({k: $("num").value, f: FORM(), lat: $("latmode").value,
+                 az: ORBIT.az.toFixed(3), el: ORBIT.el.toFixed(3)});
+}
+(function loadHash(){
+  const st = UI.hash.read();
+  if(!Object.keys(st).length) return;
+  if(st.k) $("num").value = st.k;
+  if(st.f === "push") $("f_push").checked = true;
+  if(st.lat && $("latmode")) $("latmode").value = st.lat;
+  ORBIT.az = UI.hash.num(st, "az", ORBIT.az);
+  ORBIT.el = UI.hash.num(st, "el", ORBIT.el, -1.45, 1.45);
+  syncSweep();
+})();
+
 </script>
 </body>
 </html>
