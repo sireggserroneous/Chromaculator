@@ -1,0 +1,15 @@
+[project]
+name = "chromaculator"
+version = "0.1.0"
+description = "An instrument for looking at integers. Static pages plus a one-file server."
+readme = "README.md"
+requires-python = ">=3.9"
+
+# Empty by design. serve.py imports http.server, os, pathlib, socketserver and
+# sys -- stdlib, all of it. The site itself has no Python at all; it is HTML,
+# CSS and hand-written JS. If this list ever grows, something has gone wrong.
+dependencies = []
+
+# No [build-system]: this is an application, not a package. uv treats it as a
+# virtual project, so the venv holds the interpreter and nothing is installed
+# into it. serve.py is run from the root, where it expects to be.
