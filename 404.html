@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nothing here · chronochromatic.org</title>
+<meta name="description" content="Numbers have a shape. Fold an integer's signed digits along the anti-diagonals of a square: Inner, Fold and Outer add back to it exactly.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+.wrap{max-width:760px; margin:0 auto; padding:70px clamp(16px,4vw,34px) 90px;
+  display:flex; flex-direction:column; gap:26px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; margin:0; letter-spacing:-.025em;
+  font-size:clamp(2.2rem,6vw,3.4rem); line-height:1}
+p{margin:0; color:var(--ink2); max-width:60ch; line-height:1.6}
+.sq{display:grid; grid-template-columns:repeat(4,44px); gap:4px; margin:6px 0 4px}
+.c{height:44px; border-radius:3px; display:flex; align-items:center; justify-content:center;
+  font-family:"IBM Plex Mono",monospace; font-size:.8rem; font-weight:600}
+.doors{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+.doors a{font-family:"IBM Plex Mono",monospace; font-size:.76rem; color:var(--ink2);
+  background:var(--panel); border:1px solid var(--rule2); border-radius:99px;
+  padding:6px 14px; text-decoration:none}
+.doors a:hover{border-color:var(--brass); color:var(--brass)}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="index.html">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="index.html">Home</a>
+    <a href="spectrometer.html">Spectrometer</a>
+    <a href="atlas.html">Atlas</a>
+    <a href="wub.html">Wub ±</a>
+    <a href="wubx.html">Wub ×</a>
+    <a href="wubdiv.html">Wub ÷</a>
+    <a href="wubbadub.html">Wubba Dub</a>
+    <a href="spec.html">Spec</a>
+    <a href="inspirations.html">Inspirations</a>
+  </nav>
+</header>
+<div class="wrap">
+  <span class="eyebrow">404 &middot; no such page</span>
+  <h1>Nothing is here.</h1>
+  <div class="sq" id="sq" role="img" aria-label="404 folded into a 4 by 4 square"></div>
+  <p><b>404</b> does fold, though. In binary it is <code id="bits"></code>, which needs a
+    4&times;4 square once the reserved cell is taken out. Its three regions add back to it,
+    like every other integer&rsquo;s &mdash; which is more than can be said for this URL.</p>
+  <p>Whatever you were looking for has moved or never existed. The nine pages of the site
+    are in the bar above; these are the ones most people want.</p>
+  <div class="doors">
+    <a href="index.html">Start at the beginning</a>
+    <a href="spectrometer.html">One integer in full</a>
+    <a href="atlas.html">Every dyadic at once</a>
+    <a href="spec.html">The convention itself</a>
+  </div>
+</div>
+<script src="stalk.js"></script>
+<script>
+/* the fold of 404, drawn by the site's own code rather than described */
+(function(){
+  var st = stalkOf(404n, false), cells = st.cells, n = st.n;
+  var g = square(cells, n), reg = regions(cells, n);
+  var where = {};
+  ["inner","fold","outer"].forEach(function(k){
+    reg[k].forEach(function(s){ where[s.r + "," + s.c] = k; });
+  });
+  var out = [], sq = document.getElementById("sq");
+  sq.style.gridTemplateColumns = "repeat(" + n + ",44px)";
+  for(var r = 0; r < n; r++) for(var c = 0; c < n; c++){
+    var v = g[r][c], k = where[r + "," + c];
+    var col = k === "fold" ? "var(--brass)" : k === "inner" ? "var(--blue)" : "var(--red)";
+    out.push('<div class="c" style="background:' + col + ';opacity:' + (v ? .85 : .17)
+           + ';color:' + (v ? "var(--panel)" : "var(--ink3)") + '">' + glyph(v) + '</div>');
+  }
+  sq.innerHTML = out.join("");
+  document.getElementById("bits").textContent = (404).toString(2);
+})();
+</script>
+</body>
+</html>

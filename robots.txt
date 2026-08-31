@@ -1,0 +1,5 @@
+# chronochromatic.org — everything here is meant to be read.
+User-agent: *
+Allow: /
+
+Sitemap: https://chronochromatic.org/sitemap.xml
