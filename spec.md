@@ -181,6 +181,13 @@ ring `e` plus one step is the bottom of ring `e+1`, with no gap and no overlap.
 That deficit is load-bearing. If a ring closed, its top would equal the next ring's bottom and the
 value would have two addresses. **The tiny is what makes the address unique.**
 
+**The edge tile is a Mersenne number.** Ring `r` spans `[2^r, 2^(r+1)−1]`, so its outermost tile is
+`2^(r+1)−1` — all ones, the binary repunit of length `r+1`, whose value is exactly `1 − 2^-L`. The
+horizon tile and the Mersenne number are the same tile. It is prime exactly when `r+1` is a Mersenne
+exponent: rings 1, 2, 4 and 6 in the default eight-ring Atlas, then 12, 16, 18, 30, 60, 88, 106,
+126. And since `2^n−1` can only be prime when `n` is, rings 3, 5, 7, 8 and 9 are ruled out without
+factoring anything. 52 Mersenne primes are known, the largest `2^136279841−1`.
+
 The surreals are short the same way. Each generation holds exactly `2^n`, and everything up to and
 including it holds `2^(n+1) − 1` — always one short of a power of two, forever. The missing one is
 the horizon itself.

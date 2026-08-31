@@ -258,6 +258,31 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
           <br><span class="who">Engineers machined this geometry into shafts because it is the efficient way to read an angle.</span></span>
       </div>
       <div class="item">
+        <span class="mine">the outermost tile of every ring is all ones</span>
+        <span class="theirs">Those are the <a href="https://en.wikipedia.org/wiki/Mersenne_prime">Mersenne numbers</a>,
+          2<sup><i>n</i></sup>&minus;1 &mdash; and all-ones in a base is a
+          <a href="https://en.wikipedia.org/wiki/Repunit">repunit</a>, so ring <i>r</i>&rsquo;s edge is
+          the binary repunit of length <i>r</i>+1
+          <br><span class="who">Forced, not chosen: ring <i>r</i> spans [2<sup><i>r</i></sup>,
+          2<sup><i>r</i>+1</sup>&minus;1], so its last tile <i>is</i> 2<sup><i>r</i>+1</sup>&minus;1.
+          Which means the edge tile&rsquo;s value is 1&nbsp;&minus;&nbsp;2<sup>&minus;<i>L</i></sup> &mdash;
+          the horizon tile, one place value short of closing the ring.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">so some rings have a prime on their edge</span>
+        <span class="theirs">Ring <i>r</i>&rsquo;s edge is prime exactly when <i>r</i>+1 is a Mersenne
+          exponent. In the default eight-ring Atlas that is rings <b>1, 2, 4 and 6</b> &mdash; 3, 7, 31, 127.
+          Next are <i>r</i> = 12, 16, 18, 30, 60, 88, 106, 126.
+          <br><span class="who">A free filter comes with it: 2<sup><i>n</i></sup>&minus;1 can only be prime
+          if <i>n</i> is, so rings 3, 5, 7, 8 and 9 are ruled out without factoring anything.
+          52 Mersenne primes are known; the largest is 2<sup>136279841</sup>&minus;1, 41,024,320 digits,
+          found by <a href="https://en.wikipedia.org/wiki/Great_Internet_Mersenne_Prime_Search">GIMPS</a>
+          in October 2024. Each is confirmed by the
+          <a href="https://en.wikipedia.org/wiki/Lucas%E2%80%93Lehmer_primality_test">Lucas&ndash;Lehmer test</a>,
+          which exists because the numbers have this shape.
+          See <a href="https://en.wikipedia.org/wiki/Largest_known_prime_number">largest known prime</a>.</span></span>
+      </div>
+      <div class="item">
         <span class="mine">big in the middle, small at the rim, a boundary never reached</span>
         <span class="theirs">The <a href="https://en.wikipedia.org/wiki/Poincar%C3%A9_disk_model">Poincar&eacute; disc model</a>
           of <a href="https://en.wikipedia.org/wiki/Hyperbolic_geometry">hyperbolic geometry</a>
