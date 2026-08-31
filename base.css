@@ -51,3 +51,165 @@ body{margin:0; background:var(--paper); color:var(--ink);
 .sitebar nav a:hover{color:var(--ink)}
 .sitebar nav a.cur{color:var(--brass); border-bottom-color:var(--brass)}
 .sitebar nav a:focus-visible,.brand:focus-visible{outline:2px solid var(--brass); outline-offset:3px}
+
+/* ---- live figures: the shared chrome for every interactive panel ----
+   One copy here rather than nine in the pages. chroma-ui.js binds the
+   controls; these are the clothes they wear. */
+.fig{border:1px solid var(--rule); border-radius:12px; background:var(--panel);
+  box-shadow:var(--shadow); overflow:hidden; flex:1; min-width:min(340px,100%)}
+.fig canvas{display:block; width:100%; touch-action:none; cursor:crosshair}
+.figbar{display:flex; align-items:center; gap:14px 18px; flex-wrap:wrap;
+  padding:11px 14px; border-top:1px solid var(--rule); background:var(--sunk)}
+.ctl{display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono",monospace;
+  font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3)}
+.ctl input[type=range]{width:clamp(90px,17vw,150px); accent-color:var(--brass); cursor:grab}
+.ctl input[type=range]:active{cursor:grabbing}
+.ctl select{font:inherit; text-transform:none; letter-spacing:0; color:var(--ink);
+  background:var(--panel); border:1px solid var(--rule2); border-radius:6px; padding:3px 6px}
+.ctl b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums;
+  min-width:3.4em; text-align:right; text-transform:none; letter-spacing:0}
+.pbtn{font:inherit; font-family:"IBM Plex Mono",monospace; font-size:.72rem;
+  color:var(--ink); background:var(--panel); border:1px solid var(--rule2);
+  border-radius:6px; padding:4px 11px; cursor:pointer; min-width:5.6em}
+.pbtn:hover{border-color:var(--brass); color:var(--brass)}
+.pbtn:focus-visible,.ctl input:focus-visible,.ctl select:focus-visible{
+  outline:2px solid var(--brass); outline-offset:2px}
+.readout{padding:9px 14px; border-top:1px solid var(--rule); background:var(--panel);
+  font-family:"IBM Plex Mono",monospace; font-size:.78rem; color:var(--ink2);
+  min-height:2.5em; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.readout .hi{color:var(--ink); font-weight:600}
+/* each group is its own flex item; the separator is drawn rather than typed, so
+   a group that wraps to the next line does not strand a bare punctuation mark */
+.readout > span + span::before{content:"·"; color:var(--rule2); margin-right:10px}
+/* a trailing instruction is not another reading, so it takes no separator --
+   otherwise, the moment it wraps, the line opens with a stray middot.
+   It is .aside, not .tip: .tip is the floating tooltip card, and one class
+   doing both jobs styled this hint as a fixed-position popover. */
+.readout > span.aside{color:var(--ink3)}
+.readout > span.aside::before{content:none}
+.readout .i{color:var(--blue)} .readout .f{color:var(--brass)} .readout .o{color:var(--red)}
+.hint{color:var(--ink3); font-size:.84rem; margin:.5em 0 0}
+@media (prefers-reduced-motion:reduce){ .fig canvas{transition:none} }
+
+/* ---- tooltips, captions, presets ----
+   One floating card, reused for every tooltip on the site. It is positioned in
+   script and only styled here. */
+.cc-tip{position:fixed; z-index:200; max-width:min(300px,86vw); pointer-events:none;
+  background:var(--panel); color:var(--ink2); border:1px solid var(--rule2);
+  border-top:3px solid var(--brass); border-radius:8px; padding:11px 13px;
+  box-shadow:0 2px 6px #0000001f, 0 14px 40px #00000024;
+  display:flex; flex-direction:column; gap:6px; font-size:.82rem; line-height:1.5;
+  animation:tipin .13s ease-out}
+.cc-tip b{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.cc-tip span{color:var(--ink)}
+.cc-tip em{font-style:normal; color:var(--ink3); font-size:.78rem;
+  border-top:1px solid var(--rule); padding-top:6px}
+@keyframes tipin{from{opacity:0; transform:translateY(-3px)} to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){ .cc-tip{animation:none} }
+
+/* anything that carries an explanation says so, quietly */
+[data-tip]{cursor:help}
+label[data-tip],.ctl[data-tip]{text-decoration:underline dotted var(--rule2); text-underline-offset:3px}
+label[data-tip]:hover,.ctl[data-tip]:hover{text-decoration-color:var(--brass)}
+/* a term in running prose */
+.term{border-bottom:1px dashed var(--brass-soft); cursor:help; color:inherit}
+.term:hover{border-bottom-style:solid; color:var(--brass)}
+.term:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+/* the sentence under a figure that says what you are looking at */
+.caption{padding:10px 14px; border-top:1px solid var(--rule); background:var(--panel);
+  color:var(--ink2); font-size:.85rem; line-height:1.55}
+.caption b{color:var(--ink); font-weight:600}
+.caption .i{color:var(--blue)} .caption .f{color:var(--brass)} .caption .o{color:var(--red)}
+
+/* try-this presets */
+.presets{display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  padding:9px 14px; border-top:1px solid var(--rule); background:var(--sunk)}
+.presets .plabel{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600; margin-right:2px}
+.preset{font:inherit; font-size:.76rem; color:var(--ink2); background:var(--panel);
+  border:1px solid var(--rule2); border-radius:99px; padding:4px 12px; cursor:pointer}
+.preset:hover{border-color:var(--brass); color:var(--brass)}
+.preset:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+/* first-visit orientation */
+.orient{border:1px solid var(--brass-soft); border-left:3px solid var(--brass);
+  border-radius:8px; background:var(--panel); box-shadow:var(--shadow);
+  padding:15px 17px; display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap}
+.orient .obody{flex:1; min-width:260px; display:flex; flex-direction:column; gap:7px}
+.orient h3{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; margin:0; color:var(--ink)}
+.orient p{margin:0; color:var(--ink2); font-size:.9rem; line-height:1.55; max-width:74ch}
+.orient .okeys{display:flex; gap:14px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
+  font-size:.72rem; color:var(--ink3)}
+.orient .osw{display:inline-block; width:10px; height:10px; border-radius:2px;
+  margin-right:5px; vertical-align:-1px}
+.odismiss{font:inherit; font-family:"IBM Plex Mono",monospace; font-size:.68rem;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); background:transparent;
+  border:1px solid var(--rule2); border-radius:6px; padding:5px 12px; cursor:pointer; flex:none}
+.odismiss:hover{border-color:var(--brass); color:var(--brass)}
+.odismiss:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+/* ---- phones ----
+   Six pages set body{overflow:hidden} with a fixed two-column grid, which is
+   right on a desktop and unusable below about 700px: the content is clipped at
+   the right edge and, because overflow is hidden, you cannot scroll to reach
+   it. Not degraded -- unreachable.
+
+   Below 700px the page becomes an ordinary scrolling document. Anything that
+   was sized to the viewport height stops being, because there is no viewport
+   height to spare once one column is stacked on another. */
+@media (max-width: 700px){
+  /* Specificity, not just order: base.css is linked before each page's own
+     <style>, so a rule of equal weight here loses to the page every time.
+     `html body` and `body .thing` outrank the page's `body` and `.thing`
+     without resorting to !important. This is why the first attempt at these
+     rules changed nothing at all. */
+  html, html body{ height:auto; overflow:visible; }
+  html body{ -webkit-text-size-adjust:100%; }
+
+  /* the instrument pages stop trying to fill exactly one screen */
+  body .wrap{ height:auto; min-height:0; padding-left:14px; padding-right:14px; }
+  body .sqsec, body .sqbody, body .body,
+  body .side, body .fieldhold, body .stalkpanel{ min-height:0; overflow:visible; }
+  body .top, body .sqbody, body .body{ display:flex; flex-direction:column; }
+  body .side{ align-self:stretch; }
+  body .stalkrow{ overflow:visible; }
+
+  /* every control row wraps instead of running off the edge */
+  body .bar, body .figbar, body .presets, body .forms,
+  body .drow, body .speedrow, body .zoomrow{ flex-wrap:wrap; }
+  body .speedrow, body .zoomrow{ display:flex; align-items:center; gap:8px; }
+  body .speedrow input[type=range],
+  body .zoomrow input[type=range]{ flex:1; min-width:110px; width:auto; }
+  body .ctl{ flex-wrap:wrap; }
+  body .ctl input[type=range]{ width:auto; flex:1; min-width:100px; }
+
+  /* the site bar is nine links on a narrow screen; let it breathe */
+  body .sitebar{ gap:9px 14px; padding:9px 14px; }
+  body .sitebar nav{ gap:11px; font-size:.66rem; }
+
+  /* nothing may be wider than the screen it is on */
+  body canvas, body .sq, body .ng, body table, body pre, body img{ max-width:100%; }
+  body .stats{ grid-template-columns:1fr; }
+  body .viz{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  body .rack, body #rack, body #cards{ max-height:50vh; }
+  body table, body pre{ overflow-x:auto; }
+  body .cc-tip{ max-width:calc(100vw - 24px); }
+}
+
+/* ---- paper ----
+   The figures are the point, so print keeps them and drops the machinery that
+   cannot be operated on paper. */
+@media print{
+  .sitebar, .figbar, .presets, .orient, .cc-tip, .spin, .kspin,
+  .pbtn, .odismiss, .exbtn, button{ display:none !important; }
+  html, body{ height:auto; overflow:visible; background:#fff; color:#000; }
+  .wrap{ max-width:none; padding:0; }
+  .panel, .fig, .card, .stat{ break-inside:avoid; box-shadow:none; }
+  a{ text-decoration:underline; color:inherit; }
+  /* a printed link that says "here" is useless; give the reader the address */
+  .doc a[href^="http"]::after, .theirs a[href^="http"]::after{
+    content:" (" attr(href) ")"; font-size:.75em; word-break:break-all;
+  }
+}
