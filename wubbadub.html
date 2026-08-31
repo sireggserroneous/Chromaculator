@@ -239,6 +239,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .ccell.r{color:var(--red); border-color:var(--red); background:var(--red-w)}
 .ccell.g{color:var(--green); border-color:var(--green); background:var(--green-w); opacity:.55}
 .ccell.car{color:var(--brass); border-color:var(--brass); font-weight:700}
+.crule{height:1px; background:var(--rule2); margin:1px 0}
 .cexp{display:flex; gap:2px; overflow:hidden}
 .cexp span{flex:none; min-width:26px; text-align:center; font-family:"IBM Plex Mono",monospace;
   font-size:.5rem; color:var(--ink3)}
@@ -651,12 +652,11 @@ function model(){
           acc = {d: dv.Q, E: acc.E + dv.e};
         }
       } else {
-        const A = stalkFrac(acc.d, acc.E), B = stalkFrac(opd, 0);
-        const n = sym === "+" ? A.num * B.den + B.num * A.den
-                              : A.num * B.den - B.num * A.den;
-        const st = fracToStalk(n, A.den * B.den);
-        q = stalkPhasor(st.d, st.E);
-        acc = st;
+        /* the sum is computed ON the array, column by column, not on the values */
+        const ov = overlayArray(acc.d, acc.E, opd, 0, sym === "-");
+        q = stalkPhasor(ov.stalk.d, ov.stalk.E);
+        q.overlay = ov;
+        acc = ov.stalk;
       }
       if(q){ q.op = sym; q.operand = opd; }
     }
@@ -1248,6 +1248,43 @@ function dominoesHTML(digits){
     + `<div class="dground"></div></div>`;
 }
 
+/* ---- overlay: addition and subtraction done on the grid ----
+   Lay the two stalks over each other at matching place values and add column by
+   column. That is the whole point of a signed-digit array -- nothing has to
+   line up with anything but its own weight. What comes out is redundant, with
+   columns anywhere in -2..+2, exactly like a squashed product; reconciling
+   settles it. Multiplication has always worked this way; addition used to be
+   computed on the values and only shown as a result, which is why negating one
+   reshuffled the whole array instead of flipping a row. */
+function overlayArray(accD, accE, opD, opE, sub){
+  const put = (map, d, E, sign) => {
+    for(let i = 0; i < d.length; i++){
+      if(!d[i]) continue;
+      const w = i + 1 - E;
+      map.set(w, (map.get(w) || 0) + d[i] * sign);
+    }
+  };
+  const A = new Map(), B = new Map(), S = new Map();
+  put(A, accD, accE, 1);
+  put(B, opD, opE, sub ? -1 : 1);
+  put(S, accD, accE, 1);
+  put(S, opD, opE, sub ? -1 : 1);
+  const keys = [...new Set([...A.keys(), ...B.keys(), ...S.keys()])];
+  if(!keys.length) return {ws: [], a: [], b: [], sums: [], owed: 0, num: 0n, den: 1n, stalk: {d: [0], E: 0}};
+  const lo = Math.min(...keys), hi = Math.max(...keys);
+  const ws = [], a = [], b = [], sums = [];
+  for(let w = lo; w <= hi; w++){
+    ws.push(w); a.push(A.get(w) || 0); b.push(B.get(w) || 0); sums.push(S.get(w) || 0);
+  }
+  let num = 0n;
+  ws.forEach((w, i) => { if(sums[i]) num += BigInt(sums[i]) * (1n << BigInt(hi - w)); });
+  const den = 1n << BigInt(hi);
+  const g = (x, y) => { x = x < 0n ? -x : x; while(y){ [x, y] = [y, x % y]; } return x || 1n; };
+  const h = g(num, den);
+  return {ws, a, b, sums, owed: sums.filter(v => Math.abs(v) > 1).length,
+          num: num / h, den: den / h, stalk: fracToStalk(num / h, den / h)};
+}
+
 /* ---- the composite array ----
    Every card's vector sits on its own ring, so cell i of a card with ring E
    weighs 2^-(i+1-E). Line them all up by that absolute weight and add. What
@@ -1325,11 +1362,28 @@ function stalkSquare(digits){
   while(cells.length < n * n) cells.push(0);
   return boxes(cells, n, n, n - 1);
 }
+/* the two stalks laid over each other, and what the columns add up to */
+function overlayHTML(ov, sym){
+  const cell = (v, cls2) => `<div class="ccell ${cls2}">${v > 0 ? "+" + v : v || 0}</div>`;
+  const row = (vals, mark) => `<div class="crow">`
+    + vals.map(v => cell(v, mark && Math.abs(v) > 1 ? "car" : cls(v))).join("") + `</div>`;
+  return `<div class="carr">`
+    + `<div class="rval dim">overlay \u00b7 ${ov.ws.length} place values`
+    + ` \u00b7 ${ov.owed ? `${ov.owed} owe a carry` : "already digits"}</div>`
+    + row(ov.a, false)
+    + `<div class="rval dim" style="margin:-2px 0">${sym === "-" ? "\u2212" : "+"}</div>`
+    + row(ov.b, false)
+    + `<div class="crule"></div>`
+    + row(ov.sums, true)
+    + `<div class="cexp">${ov.ws.map(w => `<span>${-w}</span>`).join("")}</div>`
+    + `</div>`;
+}
 function page1HTML(p, e){
   const cap = p.kind === "grid"
     ? `${p.rows}\u00d7${p.cols} ${p.op === "/" ? "tableau" : "grid"}`
     : (p.mode === "op" ? `${OPNAME[p.op]}` : `${p.n}\u00d7${p.n}`);
   return `<div class="p1">`
+    + (p.overlay ? overlayHTML(p.overlay, p.op) : "")
     + dominoesHTML(p.vec || p.shown)
     + `<div class="gcol">` + boxes(p.cells, p.cols, p.rows, p.foldAt)
     + `<div class="gcap">${cap}</div></div>`

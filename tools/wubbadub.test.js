@@ -311,4 +311,69 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   console.log("  chevron: [hidden] beats display:flex, one .addrow rule,"
     + " 44px target, hidden gallery is not drawn");
 }
+/* 16. + and − are done ON the grid, not on the values.
+       × has always built a rectangle and ÷ a tableau; addition used to be
+       computed on the values and only shown as a result, which is why negating
+       an operand reshuffled the whole array instead of flipping a row. */
+{
+  const ABS = x => x < 0n ? -x : x;
+  const gg = (a,b) => { a = ABS(a); while(b){ [a,b] = [b, a % b]; } return a || 1n; };
+  const red = (n,d) => { if(d < 0n){ n = -n; d = -d; } const h = gg(n,d); return [n/h, d/h]; };
+  const val = k => { const v = run(`(()=>{const f=hexValue(ownDigits({k:${k},mode:"plain"}));`
+    + `return [String(f.num),String(f.den)];})()`); return [BigInt(v[0]), BigInt(v[1])]; };
+
+  let bad = 0, n = 0, owed = 0;
+  for(const a of [3, -3, 7, -7, 200, -200, 255, -255, 4095, -4095])
+    for(const b of [3, -3, 10, -10, 255, -255])
+      for(const sym of ["+", "-"]){
+    run(`KS=[{k:${a},pg:0,mode:"plain",op:"+"},{k:${b},pg:0,mode:"op",op:"${sym}"}]; refresh();`);
+    const r = run(`(()=>{const p=M.P[1], o=p.overlay; const f=stalkFrac(p.vec||p.shown,p.E);
+      return {sum:[String(o.num),String(o.den)], val:[String(f.num),String(f.den)], owed:o.owed,
+              contiguous:o.ws.every((w,i)=>i===0||w===o.ws[i-1]+1),
+              addsUp:o.sums.every((v,i)=>v===o.a[i]+o.b[i]),
+              inRange:o.a.concat(o.b).every(v=>v>=-1&&v<=1)};})()`);
+    const A = val(a), B = val(b);
+    const [wn, wd] = red(sym === "+" ? A[0]*B[1] + B[0]*A[1] : A[0]*B[1] - B[0]*A[1], A[1]*B[1]);
+    n++; owed += r.owed;
+    const good = BigInt(r.sum[0]) === wn && BigInt(r.sum[1]) === wd
+              && BigInt(r.val[0]) === wn && BigInt(r.val[1]) === wd
+              && r.contiguous && r.addsUp && r.inRange;
+    if(!good) bad++;
+  }
+  ok(bad === 0, `${bad} of ${n} overlays wrong`);
+  console.log(`  overlay: ${n}/${n} exact — columns contiguous, every column = a+b,`
+    + ` the two rows stay signed digits, ${owed} carries owed`);
+
+  /* negating the operand must flip exactly one row */
+  let bad2 = 0, n2 = 0;
+  for(const a of [3, 200, 255, 4095]) for(const b of [3, 5, 10, 200, 255]){
+    const grab = k => run(`KS=[{k:${a},pg:0,mode:"plain",op:"+"},{k:${k},pg:0,mode:"op",op:"+"}];`
+      + ` refresh(); (()=>{const o=M.P[1].overlay;`
+      + ` return {a:o.a.join(","), b:o.b.join(","), ws:o.ws.join(",")};})()`);
+    const P = grab(b), N = grab(-b);
+    n2++;
+    if(P.a !== N.a || P.ws !== N.ws) bad2++;
+    else if(P.b.split(",").map(Number).map(x => -x).join(",") !== N.b) bad2++;
+  }
+  ok(bad2 === 0, `${bad2} of ${n2} negations disturbed more than the operand row`);
+
+  /* and a − b must draw the same row as a + (−b) */
+  let bad3 = 0, n3 = 0;
+  for(const a of [3, -200, 255]) for(const b of [5, -10, 4095]){
+    const row = (k, sym) => run(`KS=[{k:${a},pg:0,mode:"plain",op:"+"},`
+      + `{k:${k},pg:0,mode:"op",op:"${sym}"}]; refresh(); M.P[1].overlay.b.join(",")`);
+    n3++;
+    if(row(b, "-") !== row(-b, "+")) bad3++;
+  }
+  ok(bad3 === 0, `${bad3} of ${n3}: a−b should draw the same row as a+(−b)`);
+  console.log(`  negation flips one row and nothing else (${n2}/${n2}),`
+    + ` and a−b draws the same row as a+(−b) (${n3}/${n3})`);
+
+  /* the card actually shows it */
+  run(`KS=[{k:200,pg:0,mode:"plain",op:"+"},{k:-7,pg:0,mode:"op",op:"+"}]; refresh();`);
+  const html = run(`page1HTML(M.P[1], KS[1])`);
+  ok(/overlay/.test(html) && (html.match(/class="crow"/g) || []).length === 3,
+     "the card should show both rows and their sum");
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+}
 console.log("\nall good.");
