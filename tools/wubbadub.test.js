@@ -188,4 +188,40 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
     + ` grids squash ${g.map(([v,c]) => c + "\u2192" + v).join(", ")}`);
   run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
 }
+/* 11. the mode and the operator are one control, and it is sized for a finger.
+       cards() writes the whole list as markup, so the bar can be read back. */
+{
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"}]; refresh();`);
+  const html = run(`$("cards").innerHTML`);
+  const bars = html.split(`class="seg"`).length - 1;
+  ok(bars === 2, `${bars} choice bars for 2 cards`);
+  const per = (html.match(/class="sg[^"]*"/g) || []).length / 2;
+  ok(per === 6, `${per} choices per card, wanted plain + pushed + 4 operators`);
+  /* row 0 has nothing above it, so its operators must be unavailable */
+  const first = html.slice(0, html.indexOf(`data-i="1"`));
+  ok((first.match(/disabled/g) || []).length === 4, "row 0's four operators must be disabled");
+  ok(!/disabled/.test(html.slice(html.indexOf(`data-i="1"`))), "row 1's operators must be live");
+  /* exactly one choice is lit per card, and on card 2 it is the operator */
+  const on = (html.match(/class="sg[^"]*\bon\b/g) || []).length;
+  ok(on === 2, `${on} lit choices across 2 cards`);
+  ok(/class="sg op on"[^>]*data-o="\*"/.test(html), "card 2 should light × itself");
+  /* picking an operator has to carry the mode with it */
+  ok(/data-m="op" data-o="\+"/.test(html), "each operator must also set the mode");
+  console.log("  choice bar: 6 options per card, row 0's operators disabled,"
+    + " one lit, operator carries the mode");
+}
+
+/* 12. touch targets: nothing on a card smaller than 44px */
+{
+  const css = run(`document`) && require("fs").readFileSync(__dirname + "/../wubbadub.html", "utf8");
+  const need = [
+    [".sg", /\.sg\{[^}]*min-height:44px/],
+    ["input.kin", /input\.kin\{[^}]*min-height:44px/],
+    [".rm", /\.rm\{[^}]*min-height:44px/],
+    [".dt", /\.dt\{[^}]*width:34px;\s*height:34px/],
+    ["add buttons", /\.addrow button\{min-height:44px\}/],
+  ];
+  for(const [what, re] of need) ok(re.test(css), `${what} is not sized for touch`);
+  console.log("  touch: choices, input, remove and the add row at 44px; dots hit 34px");
+}
 console.log("\nall good.");

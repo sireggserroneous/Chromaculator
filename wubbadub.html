@@ -45,14 +45,18 @@ h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.55rem;
 .controls{display:flex; flex-direction:column; gap:12px}
 .addrow{display:flex; gap:8px; flex-wrap:wrap}
 button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px; cursor:pointer;
+  touch-action:manipulation;
   background:transparent; color:var(--ink2); border:1px solid var(--rule2); border-radius:2px}
 button:hover{border-color:var(--brass); color:var(--brass)}
 button.add{border-color:var(--brass); color:var(--brass)}
+.addrow button{min-height:44px}
+.pinned select, .pinned .chip{min-height:38px; display:inline-flex; align-items:center}
 button.ghost{color:var(--ink3)}
 .speedrow{display:flex; align-items:center; gap:10px}
 label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
   text-transform:uppercase; color:var(--ink3); font-weight:600; min-width:52px}
-input[type=range]{accent-color:var(--brass); flex:1; min-width:0}
+input[type=range]{accent-color:var(--brass); flex:1; min-width:0;
+  height:36px; touch-action:manipulation}
 /* the bias track shows which way it leans before you read the number */
 input[type=range].rb{accent-color:var(--ink3);
   background:linear-gradient(to right, var(--red), var(--rule2) 50%, var(--blue));
@@ -156,12 +160,16 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .mcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink3)}
 /* the little dots */
-.dots{display:flex; gap:5px; justify-content:center; align-items:center; padding-top:2px}
-.dt{width:7px; height:7px; padding:0; border-radius:50%; border:1px solid var(--rule2);
-  background:transparent; cursor:pointer; flex:none}
-.dt:hover{border-color:var(--brass)}
-.dt.on{background:var(--brass); border-color:var(--brass)}
-.dt:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.dots{display:flex; gap:2px; justify-content:center; align-items:center}
+/* a 10px dot inside a 34px target -- the dot is what you see, the button is
+   what you hit */
+.dt{width:34px; height:34px; padding:0; border:0; background:transparent;
+  position:relative; cursor:pointer; flex:none; touch-action:manipulation}
+.dt::after{content:""; position:absolute; inset:12px; border-radius:50%;
+  border:1px solid var(--rule2)}
+.dt:hover::after{border-color:var(--brass)}
+.dt.on::after{background:var(--brass); border-color:var(--brass)}
+.dt:focus-visible{outline:2px solid var(--brass); outline-offset:-4px; border-radius:50%}
 
 /* the variable part */
 .cards{flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain;
@@ -176,10 +184,15 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .dnum{font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3)}
 .dgut .dot{width:11px; height:11px; border-radius:50%; flex:none}
 .dmain{min-width:0; display:flex; flex-direction:column; gap:5px; padding:7px 9px 6px}
-.dhead{display:flex; align-items:center; gap:5px; flex-wrap:wrap}
+.dhead{display:flex; align-items:center; gap:8px}
+.dhead .knum{flex:1 1 auto}
+.dhead input.kin{width:100%; min-height:44px; font-size:1.02rem; padding:6px 26px 6px 10px}
+.kspin button{width:22px; touch-action:manipulation}
+.rm{width:44px; min-height:44px; font-size:1rem; touch-action:manipulation; flex:none}
 .dpg{display:flex; flex-direction:column; gap:4px; min-height:112px}
 .dpg[hidden]{display:none}
-.p1{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start}
+.p1{display:flex; flex-direction:column; gap:8px}
+.p1 .gcol{align-self:start}
 .gcol{min-width:0; overflow:auto} .gcol::-webkit-scrollbar{display:none}
 .tcol{min-width:0}
 .gsq{display:grid; gap:2px; width:max-content}
@@ -194,25 +207,30 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .gcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink3); padding-top:3px}
 /* plain | pushed | operand, and the operator when it is one */
-.seg{display:inline-flex; border:1px solid var(--rule2); border-radius:3px; overflow:hidden; flex:none}
-.sg{font-family:"IBM Plex Mono",monospace; font-size:.56rem; letter-spacing:.08em;
-  text-transform:uppercase; padding:3px 6px; border:0; border-right:1px solid var(--rule2);
-  background:transparent; color:var(--ink3); cursor:pointer}
+/* Plain, pushed and the four operators are one choice, not two controls, so
+   they are one bar. Everything here is sized for a fingertip: 44px is Apple's
+   minimum target and nothing on a card goes under it. */
+.seg{display:flex; width:100%; border:1px solid var(--rule2); border-radius:5px;
+  overflow:hidden; flex:none}
+.sg{flex:1 1 0; min-width:0; min-height:44px; touch-action:manipulation;
+  font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.06em;
+  text-transform:uppercase; padding:0 4px; border:0; border-right:1px solid var(--rule2);
+  background:transparent; color:var(--ink3); cursor:pointer;
+  display:flex; align-items:center; justify-content:center}
+.sg.op{font-size:1.15rem; letter-spacing:0; flex:0 0 15%}
 .sg:last-child{border-right:0}
 .sg:hover:not(:disabled){color:var(--ink)}
 .sg.on{background:var(--brass); color:var(--panel)}
-.sg:disabled{opacity:.3; cursor:default}
-.opsel{font-family:"IBM Plex Mono",monospace; font-size:.8rem; padding:2px 4px;
-  background:var(--panel); color:var(--ink); border:1px solid var(--rule2); border-radius:3px}
-.opsel[hidden]{display:none}
+.sg:disabled{opacity:.28; cursor:default}
+.sg:focus-visible{outline:2px solid var(--brass); outline-offset:-2px}
 .dgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
 .dgrid canvas{width:100%; height:88px; display:block; background:var(--sunk);
   border:1px solid var(--rule); border-radius:2px}
 .dpg canvas.solo{width:min(100%,230px); height:150px; display:block; margin:0 auto;
   background:var(--sunk); border:1px solid var(--rule); border-radius:2px}
-.facts{display:grid; grid-template-columns:auto minmax(0,1fr); gap:2px 10px;
-  font-family:"IBM Plex Mono",monospace; font-size:.68rem; line-height:1.5}
-.facts dt{color:var(--ink3); text-transform:uppercase; letter-spacing:.07em; font-size:.55rem;
+.facts{display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 12px;
+  font-family:"IBM Plex Mono",monospace; font-size:.78rem; line-height:1.55}
+.facts dt{color:var(--ink3); text-transform:uppercase; letter-spacing:.07em; font-size:.6rem;
   align-self:center}
 .facts dd{margin:0; color:var(--ink2); min-width:0; overflow-x:auto; white-space:nowrap}
 .facts dd::-webkit-scrollbar{display:none}
@@ -1247,17 +1265,17 @@ function cards(){
               <button class="kdn" tabindex="-1" aria-label="Decrease by one">&#9660;</button>
             </span>
           </span>
-          <span class="seg" role="group" aria-label="How this card reads">
-            ${["plain", "pushed", "op"].map(m =>
-              `<button class="sg${(e.mode || "plain") === m ? " on" : ""}" data-m="${m}"`
-              + `${i === 0 && m === "op" ? " disabled" : ""}>`
-              + `${m === "op" ? "operand" : m}</button>`).join("")}
-          </span>
-          <select class="opsel" aria-label="Operator"${(e.mode || "plain") === "op" ? "" : " hidden"}>
-            ${["+", "-", "*", "/"].map(o =>
-              `<option value="${o}"${(e.op || "+") === o ? " selected" : ""}>${OPSYM[o]}</option>`).join("")}
-          </select>
           <button class="rm" aria-label="Remove">\u00d7</button>
+        </div>
+        <div class="seg" role="group" aria-label="How this card reads">
+          ${[["plain", "plain"], ["pushed", "pushed"]].map(([m, lab]) =>
+            `<button class="sg${(e.mode || "plain") === m ? " on" : ""}" data-m="${m}"`
+            + ` aria-pressed="${(e.mode || "plain") === m}">${lab}</button>`).join("")}
+          ${["+", "-", "*", "/"].map(o =>
+            `<button class="sg op${(e.mode === "op" && (e.op || "+") === o) ? " on" : ""}"`
+            + ` data-m="op" data-o="${o}"${i === 0 ? " disabled" : ""}`
+            + ` aria-label="${OPNAME[o]}"`
+            + ` aria-pressed="${e.mode === "op" && (e.op || "+") === o}">${OPSYM[o]}</button>`).join("")}
         </div>
         <div class="dpg" data-p="0"></div>
         <div class="dpg" data-p="1" hidden><div class="dgrid">
@@ -1314,10 +1332,12 @@ function cards(){
     });
     card.querySelectorAll(".seg .sg").forEach(b => {
       if(b.disabled) return;
-      b.addEventListener("click", () => { KS[i].mode = b.dataset.m; refresh(); });
+      b.addEventListener("click", () => {
+        KS[i].mode = b.dataset.m;
+        if(b.dataset.o) KS[i].op = b.dataset.o;   // picking an operator IS picking operand
+        refresh();
+      });
     });
-    const osel = card.querySelector(".opsel");
-    if(osel) osel.addEventListener("change", ev => { KS[i].op = ev.target.value; refresh(); });
     card.querySelectorAll(".dots .dt").forEach(d => {
       d.addEventListener("click", () => { KS[i].pg = +d.dataset.p; showPage(card, KS[i].pg); });
     });
