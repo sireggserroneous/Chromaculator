@@ -43,7 +43,8 @@ h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.55rem;
 .panel{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
   box-shadow:var(--shadow); padding:14px}
 .controls{display:flex; flex-direction:column; gap:12px}
-.addrow{display:flex; gap:8px; flex-wrap:wrap}
+.addrow{display:flex; gap:8px; flex-wrap:nowrap; align-items:flex-start}
+.addrow .btns{display:flex; gap:8px; flex-wrap:wrap; flex:1 1 auto; min-width:0}
 button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px; cursor:pointer;
   touch-action:manipulation;
   background:transparent; color:var(--ink2); border:1px solid var(--rule2); border-radius:2px}
@@ -149,6 +150,15 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .pinned{flex:none; display:flex; flex-direction:column; gap:8px;
   border-bottom:1px solid var(--rule); padding-bottom:9px; margin-bottom:8px}
 .gal{display:flex; flex-direction:column; gap:6px}
+/* display:flex beats the hidden attribute, so say it outright -- this trap has
+   already cost this project two blank panels */
+.gal[hidden]{display:none}
+.chev{width:44px; min-height:44px; flex:none; padding:0;
+  display:flex; align-items:center; justify-content:center; touch-action:manipulation;
+  font-size:.8rem; line-height:1}
+.chev i{font-style:normal; display:block; transition:transform .16s ease}
+.chev[aria-expanded="false"] i{transform:rotate(-90deg)}
+/* the chevron stays pinned at the corner while the buttons wrap beneath it */
 .galpg{display:flex; flex-direction:column; gap:7px}
 .galpg[hidden]{display:none}
 .minis{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px}
@@ -286,13 +296,17 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
   <aside class="left">
     <div class="pinned">
       <div class="addrow">
-        <button class="add" id="addbtn">+ Add integer</button>
-        <button class="add ghost" id="randbtn">Randomise</button>
-        <button class="add ghost" id="resetbtn">Reset</button>
-        <button class="add ghost" id="expbtn">Export curve</button>
+        <div class="btns">
+          <button class="add" id="addbtn">+ Add integer</button>
+          <button class="add ghost" id="randbtn">Randomise</button>
+          <button class="add ghost" id="resetbtn">Reset</button>
+          <button class="add ghost" id="expbtn">Export curve</button>
+        </div>
+        <button class="chev" id="galtoggle" aria-expanded="true" aria-controls="gal"
+                aria-label="Hide the controls"><i>&#9662;</i></button>
       </div>
 
-      <div class="gal">
+      <div class="gal" id="gal">
         <div class="galpg" data-p="0">
           <div class="speedrow"><label for="wid">Digits</label>
             <input type="range" id="wid" min="1" max="24" step="1" value="8"
@@ -972,8 +986,8 @@ function draw(ts){
   const tip = joints.at(-1);
   drawSphere(tip, joints);
 
-  /* the pinned gallery: only the page that is showing */
-  if(TOPPAGE === 1){
+  /* the pinned gallery: only the page that is showing, and only when it is */
+  if(GALOPEN && TOPPAGE === 1){
     drawWave("wavex", WX, AVGX);
     drawWave("wavey", WY, AVGY);
     drawWave("wavez", WZ, AVGZ);
@@ -1530,6 +1544,16 @@ function setZoom(z, moveSlider){
   if(moveSlider) $("zoom").value = sliderFromZ(ZOOM);
   $("zoomval").textContent = (ZOOM < 10 ? ZOOM.toFixed(2) : ZOOM.toFixed(1)) + "×";
 }
+/* tuck the whole gallery away -- controls, waves and the composite array --
+   so the cards get the height back. What is hidden is not drawn. */
+let GALOPEN = true;
+$("galtoggle").addEventListener("click", () => {
+  GALOPEN = !GALOPEN;
+  const g = $("gal"), b = $("galtoggle");
+  g.hidden = !GALOPEN;
+  b.setAttribute("aria-expanded", String(GALOPEN));
+  b.setAttribute("aria-label", GALOPEN ? "Hide the controls" : "Show the controls");
+});
 $("wid").addEventListener("input", e => {
   WIDTH = parseInt(e.target.value, 10);
   $("widval").textContent = `${WIDTH} cell${WIDTH === 1 ? "" : "s"}`;

@@ -292,4 +292,23 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   console.log("  dominoes: one edge per cell, commas on the anti-diagonals, on the card");
   run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
 }
+/* 15. the chevron tucks the gallery away. The trap here is that a flex
+       container ignores the hidden attribute unless the CSS says otherwise --
+       this project has shipped two blank panels to exactly that. */
+{
+  const src = require("fs").readFileSync(__dirname + "/../wubbadub.html", "utf8");
+  ok(/\.gal\[hidden\]\{display:none\}/.test(src),
+     "display:flex would beat [hidden] without an explicit rule");
+  ok(/id="galtoggle"[\s\S]{0,200}aria-controls="gal"/.test(src),
+     "the chevron must point at what it collapses");
+  ok(/\.chev\{[^}]*min-height:44px/.test(src), "the chevron is a touch target");
+  /* one .addrow rule, not two fighting over flex-wrap */
+  const rules = (src.match(/^\.addrow\{/gm) || []).length;
+  ok(rules === 1, `${rules} .addrow rules — a second one silently keeps the first's flex-wrap`);
+  /* and a hidden gallery must not be drawn */
+  ok(/if\(GALOPEN && TOPPAGE === 1\)/.test(src),
+     "the gallery should not be drawn while it is tucked away");
+  console.log("  chevron: [hidden] beats display:flex, one .addrow rule,"
+    + " 44px target, hidden gallery is not drawn");
+}
 console.log("\nall good.");
