@@ -368,3 +368,47 @@ function fracToStalk(num, den){
   const sgn = num < 0n ? -1 : 1, mag = abs(num);
   return {d: mag.toString(2).padStart(L, "0").split("").map(c => c === "1" ? sgn : 0), E: e};
 }
+
+/* ---- aligning stalks by place value ----
+   A stalk on ring E has its cell i at absolute weight 2^-(i+1-E). Adding
+   stalks means lining them up on that weight and summing the columns -- which
+   is what the arrays were shaped for, and the only thing addition, subtraction
+   and the composite of a whole rack have in common.
+
+   `sources` is a list of {d, E, sign}. Returns the columns from the coarsest
+   place value to the finest, contiguous, each holding the summed digit; the
+   per-source rows, so a caller can draw what went in; the exact total; and the
+   stalk it reconciles to. Columns can land anywhere outside {-1,0,+1} -- that
+   is the carry the array deferred, exactly as a squashed product does. */
+function alignByWeight(sources){
+  const maps = sources.map(s => {
+    const m = new Map();
+    const sign = s.sign === undefined ? 1 : s.sign;
+    for(let i = 0; i < s.d.length; i++){
+      if(!s.d[i]) continue;
+      const w = i + 1 - (s.E || 0);
+      m.set(w, (m.get(w) || 0) + s.d[i] * sign);
+    }
+    return m;
+  });
+  const keys = [];
+  for(const m of maps) for(const w of m.keys()) keys.push(w);
+  if(!keys.length)
+    return {ws: [], rows: sources.map(() => []), sums: [], owed: 0,
+            num: 0n, den: 1n, stalk: {d: [0], E: 0}};
+  const lo = Math.min(...keys), hi = Math.max(...keys);
+  const ws = [], rows = maps.map(() => []), sums = [];
+  for(let w = lo; w <= hi; w++){
+    ws.push(w);
+    let t = 0;
+    maps.forEach((m, j) => { const v = m.get(w) || 0; rows[j].push(v); t += v; });
+    sums.push(t);
+  }
+  let num = 0n;
+  ws.forEach((w, i) => { if(sums[i]) num += BigInt(sums[i]) * (1n << BigInt(hi - w)); });
+  const den = 1n << BigInt(hi);
+  const g = (a, b) => { a = a < 0n ? -a : a; while(b){ [a, b] = [b, a % b]; } return a || 1n; };
+  const h = g(num, den);
+  return {ws, rows, sums, owed: sums.filter(v => Math.abs(v) > 1).length,
+          num: num / h, den: den / h, stalk: fracToStalk(num / h, den / h)};
+}

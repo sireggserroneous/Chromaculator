@@ -1257,32 +1257,8 @@ function dominoesHTML(digits){
    computed on the values and only shown as a result, which is why negating one
    reshuffled the whole array instead of flipping a row. */
 function overlayArray(accD, accE, opD, opE, sub){
-  const put = (map, d, E, sign) => {
-    for(let i = 0; i < d.length; i++){
-      if(!d[i]) continue;
-      const w = i + 1 - E;
-      map.set(w, (map.get(w) || 0) + d[i] * sign);
-    }
-  };
-  const A = new Map(), B = new Map(), S = new Map();
-  put(A, accD, accE, 1);
-  put(B, opD, opE, sub ? -1 : 1);
-  put(S, accD, accE, 1);
-  put(S, opD, opE, sub ? -1 : 1);
-  const keys = [...new Set([...A.keys(), ...B.keys(), ...S.keys()])];
-  if(!keys.length) return {ws: [], a: [], b: [], sums: [], owed: 0, num: 0n, den: 1n, stalk: {d: [0], E: 0}};
-  const lo = Math.min(...keys), hi = Math.max(...keys);
-  const ws = [], a = [], b = [], sums = [];
-  for(let w = lo; w <= hi; w++){
-    ws.push(w); a.push(A.get(w) || 0); b.push(B.get(w) || 0); sums.push(S.get(w) || 0);
-  }
-  let num = 0n;
-  ws.forEach((w, i) => { if(sums[i]) num += BigInt(sums[i]) * (1n << BigInt(hi - w)); });
-  const den = 1n << BigInt(hi);
-  const g = (x, y) => { x = x < 0n ? -x : x; while(y){ [x, y] = [y, x % y]; } return x || 1n; };
-  const h = g(num, den);
-  return {ws, a, b, sums, owed: sums.filter(v => Math.abs(v) > 1).length,
-          num: num / h, den: den / h, stalk: fracToStalk(num / h, den / h)};
+  const r = alignByWeight([{d: accD, E: accE}, {d: opD, E: opE, sign: sub ? -1 : 1}]);
+  return {...r, a: r.rows[0] || [], b: r.rows[1] || []};
 }
 
 /* ---- the composite array ----
@@ -1291,28 +1267,7 @@ function overlayArray(accD, accE, opD, opE, sub){
    comes out is redundant -- a column can hold any integer -- so it is the same
    shape as a squashed product, and reconciling it gives the sum's own stalk. */
 function compositeArray(){
-  const col = new Map();                      // absolute weight w -> summed digit
-  for(const p of M.P){
-    const d = p.vec || p.shown;
-    for(let i = 0; i < d.length; i++){
-      if(!d[i]) continue;
-      const w = i + 1 - p.E;
-      col.set(w, (col.get(w) || 0) + d[i]);
-    }
-  }
-  if(!col.size) return {ws: [], sums: [], owed: 0, num: 0n, den: 1n, stalk: {d: [0], E: 0}};
-  const ws = [...col.keys()].sort((a, b) => a - b);
-  const lo = ws[0], hi = ws[ws.length - 1];
-  const all = [], sums = [];
-  for(let w = lo; w <= hi; w++){ all.push(w); sums.push(col.get(w) || 0); }
-  /* exact: value = sum over w of sums[w] * 2^-w, over the finest weight */
-  let num = 0n;
-  all.forEach((w, i) => { if(sums[i]) num += BigInt(sums[i]) * (1n << BigInt(hi - w)); });
-  const den = 1n << BigInt(hi);
-  const g = (a, b) => { a = a < 0n ? -a : a; while(b){ [a, b] = [b, a % b]; } return a || 1n; };
-  const h = g(num, den);
-  return {ws: all, sums, owed: sums.filter(v => Math.abs(v) > 1).length,
-          num: num / h, den: den / h, stalk: fracToStalk(num / h, den / h)};
+  return alignByWeight(M.P.map(p => ({d: p.vec || p.shown, E: p.E})));
 }
 
 function paintComposite(){

@@ -93,3 +93,47 @@ const isPow2 = d => (d & (d - 1n)) === 0n;
     + `${hexValue(s.d).num}/${hexValue(s.d).den} — outside the disc, so the ring carries it`);
 }
 console.log("\nall good.");
+
+/* alignByWeight — the one walk that addition, subtraction and the composite of
+   a whole rack all share. Checked directly against the arithmetic. */
+{
+  const digs2 = k => { const {v, neg} = parse(String(k)); return hexSequence(v, neg).raw; };
+  let bad = 0, n = 0, owedTot = 0;
+  const NUMS = [3, -3, 7, -7, 200, -200, 255, -255, 1, -1, 4095];
+  const RINGS = [-3, 0, 2];
+  for(const a of NUMS) for(const b of NUMS) for(const E of RINGS) for(const sign of [1, -1]){
+    const A = {d: digs2(a), E, sign: 1}, B = {d: digs2(b), E: 0, sign};
+    const r = alignByWeight([A, B]);
+    const fa = stalkFrac(A.d, E), fb = stalkFrac(B.d, 0);
+    const wn = fa.num * fb.den + BigInt(sign) * fb.num * fa.den, wd = fa.den * fb.den;
+    const g = (x, y) => { x = x < 0n ? -x : x; while(y){ [x, y] = [y, x % y]; } return x || 1n; };
+    const h = g(wn, wd);
+    n++; owedTot += r.owed;
+    const back = stalkFrac(r.stalk.d, r.stalk.E);
+    if(r.num !== wn / h || r.den !== wd / h) bad++;
+    else if(back.num !== r.num || back.den !== r.den) bad++;
+    else if(!r.ws.every((w, i) => i === 0 || w === r.ws[i-1] + 1)) bad++;
+    else if(!r.sums.every((v, i) => v === r.rows[0][i] + r.rows[1][i])) bad++;
+    else if(!r.rows.every(row => row.every(v => v >= -1 && v <= 1))) bad++;
+  }
+  ok(bad === 0, `alignByWeight wrong on ${bad} of ${n}`);
+  console.log(`  alignByWeight: ${n - bad}/${n} exact across signs and rings —`
+    + ` columns contiguous, sums = the rows, inputs stay digits, ${owedTot} carries owed`);
+
+  /* and with more than two sources, which is what a whole rack is */
+  let bad2 = 0, n2 = 0;
+  for(let t = 0; t < 200; t++){
+    const src = [0,1,2,3].map(j => ({d: digs2(NUMS[(t*3+j*5) % NUMS.length]),
+                                     E: RINGS[(t+j) % RINGS.length]}));
+    const r = alignByWeight(src);
+    let wn = 0n, wd = 1n;
+    for(const s of src){ const f = stalkFrac(s.d, s.E); wn = wn * f.den + f.num * wd; wd = wd * f.den; }
+    const g = (x, y) => { x = x < 0n ? -x : x; while(y){ [x, y] = [y, x % y]; } return x || 1n; };
+    const h = g(wn, wd);
+    n2++;
+    if(r.num !== wn / h || r.den !== wd / h) bad2++;
+    else if(r.rows.length !== src.length) bad2++;
+  }
+  ok(bad2 === 0, `alignByWeight wrong on ${bad2} of ${n2} four-source racks`);
+  console.log(`  alignByWeight: ${n2 - bad2}/${n2} four-source racks, one row kept per source`);
+}
