@@ -401,4 +401,41 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
      "the card should show both rows and their sum");
   run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
 }
+/* 17. the spelling reaches what a card PRODUCES, not just what it consumes.
+       0,+1 is the same number as 1,-1 and 0,-1 the same as -1,1, so a pushed
+       card must leave no 0,+-1 pair anywhere -- operand or result. That means
+       push runs a second time, on the way out. */
+{
+  const pairs = a => { let c = 0; for(let i = 1; i < a.length; i++)
+    if(a[i-1] === 0 && a[i] !== 0) c++; return c; };
+  let left = 0, n = 0, valBad = 0, plainHad = 0;
+  const NUMS = [3, -3, 7, -7, 200, -200, 255, 1000, -1000, 4095];
+  for(const a of NUMS) for(const b of NUMS) for(const sym of ["+", "-", "*", "/"]){
+    const grab = sp => run(`WIDTH = 12; KS = [{k:${a},pg:0,spell:"${sp}",role:"num",op:"+"},`
+      + `{k:${b},pg:0,spell:"${sp}",role:"op",op:"${sym}"}]; refresh();`
+      + ` M.P.map(p => ({vec: p.vec || p.shown,`
+      + ` v: (()=>{const f = stalkFrac(p.vec || p.shown, p.E);`
+      + ` return String(f.num) + "/" + String(f.den);})()}))`);
+    const P = grab("pushed"), Q = grab("plain");
+    P.forEach((p, i) => { n++; left += pairs(p.vec); if(p.v !== Q[i].v) valBad++; });
+    Q.forEach(q => { plainHad += pairs(q.vec); });
+  }
+  ok(left === 0, `${left} of ${n} pushed cards still hold a 0,±1 pair`);
+  ok(valBad === 0, `${valBad} values moved when the spelling changed`);
+  ok(plainHad > 0, "the plain spelling should still have them — otherwise this proves nothing");
+  console.log(`  pushed cards: 0 of ${n} keep a 0,±1 pair (plain keeps ${plainHad}),`
+    + ` and no value moved`);
+
+  /* and it reaches through a chain, not just one step */
+  run(`WIDTH = 12; KS = [{k:200,pg:0,spell:"pushed",role:"num",op:"+"},`
+    + `{k:7,pg:0,spell:"pushed",role:"op",op:"*"},`
+    + `{k:5,pg:0,spell:"pushed",role:"op",op:"+"},`
+    + `{k:3,pg:0,spell:"pushed",role:"op",op:"/"}]; refresh();`);
+  const chain = run(`M.P.map(p => p.vec || p.shown)`);
+  const tot = chain.reduce((s, v) => s + pairs(v), 0);
+  ok(tot === 0, `a fully pushed chain still holds ${tot} 0,±1 pairs`);
+  console.log(`  and through a four-card chain of all four operations: 0 pairs left`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},`
+    + `{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
+}
 console.log("\nall good.");

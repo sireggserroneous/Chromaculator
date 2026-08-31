@@ -637,6 +637,11 @@ function model(){
   KS.forEach((e, i) => {
     const role = i === 0 ? "num" : (e.role || "num");
     const own = ownDigits(e);
+    /* the spelling applies to what the card PRODUCES as well as what it
+       consumes. 0,+1 is the same number as 1,-1 and 0,-1 is the same as -1,1,
+       so a pushed card should have no 0,+-1 pair left anywhere -- not in its
+       operand, and not in its result. That is the second run. */
+    const spell = d => (e.spell || "plain") === "pushed" ? pushLeft(d) : d;
     let q = null, note = null;
     if(role !== "op" || !acc){
       const bits = Math.abs(e.k) ? Math.abs(e.k).toString(2).length : 1;
@@ -651,11 +656,13 @@ function model(){
         const g = hexProduct(acc.d, opd);
         q = gridPhasor(g, acc.E);
         q.grid = g;
-        acc = {d: productDigits(g), E: acc.E};
+        q.vec = spell(productDigits(g));
+        acc = {d: q.vec, E: acc.E};
       } else if(sym === "/"){
         const dv = divide(acc.d, opd, WIDTH);
         if(!dv){ note = "nothing divides by green"; }
         else {
+          dv.Q = spell(dv.Q);
           const g = hexProduct(opd, dv.Q);
           q = gridPhasor(g, acc.E + dv.e);
           /* the tableau is B x Q, but the number this card produced is Q --
@@ -668,9 +675,10 @@ function model(){
       } else {
         /* the sum is computed ON the array, column by column, not on the values */
         const ov = overlayArray(acc.d, acc.E, opd, 0, sym === "-");
-        q = stalkPhasor(ov.stalk.d, ov.stalk.E);
+        const out = spell(ov.stalk.d);
+        q = stalkPhasor(out, ov.stalk.E);
         q.overlay = ov;
-        acc = ov.stalk;
+        acc = {d: out, E: ov.stalk.E};
       }
       if(q){ q.op = sym; q.operand = opd; }
     }
