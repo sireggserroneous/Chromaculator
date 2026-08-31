@@ -204,6 +204,34 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .gsc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
 .gsc.g{background:var(--green-w); color:var(--green); border-color:var(--green); opacity:.6}
 .gsc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
+/* the dominoes: one solid edge per cell standing on a ground line -- a
+   Hackenbush stalk, which is what the digits are. The bars share the row, so
+   this fits any width without measuring anything. */
+.doms{display:flex; flex-direction:column; justify-content:flex-end; min-width:0}
+.dbars{display:flex; align-items:flex-end; gap:2px; width:100%}
+.dbar{flex:1 1 0; min-width:2px; max-width:15px; height:34px; border-radius:1px}
+.dbar.b{background:var(--blue)}
+.dbar.r{background:var(--red)}
+.dbar.g{background:var(--green); opacity:.45}
+.dcma{align-self:flex-end; color:var(--ink3); font-family:"IBM Plex Mono",monospace;
+  font-size:.85rem; line-height:.5; padding:0 2px; user-select:none; flex:none}
+.dground{height:3px; background:var(--ink); margin-top:4px; border-radius:2px}
+/* the composite array: one column per place value, holding the summed digit */
+.carr{display:flex; flex-direction:column; gap:6px}
+.crow{display:flex; gap:2px; overflow-x:auto; padding-bottom:2px}
+.crow::-webkit-scrollbar{height:4px}
+.crow::-webkit-scrollbar-thumb{background:var(--rule2); border-radius:2px}
+.ccell{flex:none; min-width:26px; height:30px; display:flex; align-items:center;
+  justify-content:center; border-radius:2px; border:1px solid var(--rule2);
+  background:var(--sunk); font-family:"IBM Plex Mono",monospace; font-size:.72rem;
+  font-weight:600; color:var(--ink2)}
+.ccell.b{color:var(--blue); border-color:var(--blue); background:var(--blue-w)}
+.ccell.r{color:var(--red); border-color:var(--red); background:var(--red-w)}
+.ccell.g{color:var(--green); border-color:var(--green); background:var(--green-w); opacity:.55}
+.ccell.car{color:var(--brass); border-color:var(--brass); font-weight:700}
+.cexp{display:flex; gap:2px; overflow:hidden}
+.cexp span{flex:none; min-width:26px; text-align:center; font-family:"IBM Plex Mono",monospace;
+  font-size:.5rem; color:var(--ink3)}
 .gcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink3); padding-top:3px}
 /* plain | pushed | operand, and the operator when it is one */
@@ -319,9 +347,14 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
           </div>
         </div>
 
+        <div class="galpg" data-p="2" hidden>
+          <div class="carr" id="comp"></div>
+        </div>
+
         <div class="dots" id="topdots">
           <button class="dt on" data-p="0" aria-label="Controls"></button>
           <button class="dt" data-p="1" aria-label="Composite waves"></button>
+          <button class="dt" data-p="2" aria-label="Composite array"></button>
         </div>
       </div>
     </div>
@@ -1189,6 +1222,78 @@ function drawSphere(tip, joints){
 /* ---- the cards ----
    One numbered card per integer, the way a graphing calculator lists its
    expressions, each paged by its own dots. Nothing off-page is drawn. */
+/* the dominoes -- the stalk as Hackenbush edges, grouped on the anti-diagonals */
+function dominoesHTML(digits){
+  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
+  const out = [];
+  commas(digits, n).forEach((g, gi) => {
+    if(gi) out.push(`<span class="dcma">,</span>`);
+    g.forEach((v, j) => out.push(`<div class="dbar ${cls(v)}" title="2^-${j + 1}"></div>`));
+  });
+  return `<div class="doms"><div class="dbars">${out.join("")}</div>`
+    + `<div class="dground"></div></div>`;
+}
+
+/* ---- the composite array ----
+   Every card's vector sits on its own ring, so cell i of a card with ring E
+   weighs 2^-(i+1-E). Line them all up by that absolute weight and add. What
+   comes out is redundant -- a column can hold any integer -- so it is the same
+   shape as a squashed product, and reconciling it gives the sum's own stalk. */
+function compositeArray(){
+  const col = new Map();                      // absolute weight w -> summed digit
+  for(const p of M.P){
+    const d = p.vec || p.shown;
+    for(let i = 0; i < d.length; i++){
+      if(!d[i]) continue;
+      const w = i + 1 - p.E;
+      col.set(w, (col.get(w) || 0) + d[i]);
+    }
+  }
+  if(!col.size) return {ws: [], sums: [], owed: 0, num: 0n, den: 1n, stalk: {d: [0], E: 0}};
+  const ws = [...col.keys()].sort((a, b) => a - b);
+  const lo = ws[0], hi = ws[ws.length - 1];
+  const all = [], sums = [];
+  for(let w = lo; w <= hi; w++){ all.push(w); sums.push(col.get(w) || 0); }
+  /* exact: value = sum over w of sums[w] * 2^-w, over the finest weight */
+  let num = 0n;
+  all.forEach((w, i) => { if(sums[i]) num += BigInt(sums[i]) * (1n << BigInt(hi - w)); });
+  const den = 1n << BigInt(hi);
+  const g = (a, b) => { a = a < 0n ? -a : a; while(b){ [a, b] = [b, a % b]; } return a || 1n; };
+  const h = g(num, den);
+  return {ws: all, sums, owed: sums.filter(v => Math.abs(v) > 1).length,
+          num: num / h, den: den / h, stalk: fracToStalk(num / h, den / h)};
+}
+
+function paintComposite(){
+  const el = $("comp");
+  if(!el) return;
+  const c = compositeArray();
+  if(!c.ws.length){ el.innerHTML = `<div class="rval dim">nothing on the rack</div>`; return; }
+  const cells = c.sums.map(v => {
+    const k = Math.abs(v) > 1 ? "car" : cls(v);
+    return `<div class="ccell ${k}">${v > 0 ? "+" + v : v}</div>`;
+  }).join("");
+  const exps = c.ws.map(w => `<span>${-w}</span>`).join("");
+  const st = c.stalk;
+  const U = pushLeft(st.d);
+  el.innerHTML =
+      `<div class="rval"><b>composite array</b> \u00b7 ${c.ws.length} place values`
+    + ` \u00b7 ${c.owed ? `${c.owed} owe a carry` : "already digits"}</div>`
+    + `<div class="crow">${cells}</div>`
+    + `<div class="cexp">${exps}</div>`
+    + `<div class="rval">= ${fmt({num: c.num, den: c.den})}`
+    + `${st.E ? ` \u00b7 2<sup>${st.E}</sup> \u00d7 ${fmt(hexValue(st.d))}` : ""}</div>`
+    + dominoesHTML(st.d)
+    + `<div class="p1"><div class="gcol">${stalkSquare(st.d)}`
+    + `<div class="gcap">reconciled</div></div>`
+    + `<div class="tcol"><dl class="facts">`
+    + `<dt>Cells</dt><dd class="bits">${st.d.map(v => `<i class="${cls(v)}">${glyph(v)}</i>`).join("")}`
+    + ` \u00b7 ${st.d.length}</dd>`
+    + `<dt>Push</dt><dd class="bits">${U.map(v => `<i class="${cls(v)}">${glyph(v)}</i>`).join("")}`
+    + ` = ${fmt(hexValue(U))}</dd>`
+    + `</dl></div></div>`;
+}
+
 /* the spectrometer's cells, sized to the room the card has */
 function boxes(cells, cols, rows, foldAt){
   const sz = Math.max(6, Math.min(22, Math.floor(104 / cols), Math.floor(96 / rows)));
@@ -1200,12 +1305,19 @@ function boxes(cells, cols, rows, foldAt){
   return `<div class="gsq" style="--sc:${sz}px;`
     + ` grid-template-columns:repeat(${cols},var(--sc))">${body}</div>`;
 }
+function stalkSquare(digits){
+  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
+  const cells = digits.slice();
+  while(cells.length < n * n) cells.push(0);
+  return boxes(cells, n, n, n - 1);
+}
 function page1HTML(p, e){
   const cap = p.kind === "grid"
     ? `${p.rows}\u00d7${p.cols} ${p.op === "/" ? "tableau" : "grid"}`
     : (p.mode === "op" ? `${OPNAME[p.op]}` : `${p.n}\u00d7${p.n}`);
-  return `<div class="p1"><div class="gcol">`
-    + boxes(p.cells, p.cols, p.rows, p.foldAt)
+  return `<div class="p1">`
+    + dominoesHTML(p.vec || p.shown)
+    + `<div class="gcol">` + boxes(p.cells, p.cols, p.rows, p.foldAt)
     + `<div class="gcap">${cap}</div></div>`
     + `<div class="tcol">${factsHTML(p, e)}</div></div>`;
 }
@@ -1319,7 +1431,7 @@ function cards(){
     const setK = v => { KS[i].k = v; kin.value = v; refresh(); };
     kin.addEventListener("input", ev => {
       const v = parseInt(ev.target.value, 10);
-      if(!isNaN(v)){ KS[i].k = v; recompute(); repaintAll(); TRAILS = []; }
+      if(!isNaN(v)){ KS[i].k = v; recompute(); repaintAll(); paintComposite(); TRAILS = []; }
     });
     kin.addEventListener("keydown", ev => {
       if(ev.key === "ArrowUp"){ setK((parseInt(kin.value, 10) || 0) + 1); ev.preventDefault(); }
@@ -1367,7 +1479,10 @@ function stats(){
     + `<span class="sval">${v}</span><span class="sfoot">${f}</span></div>`).join("");
 }
 
-function refresh(){ recompute(); cards(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = []; }
+function refresh(){
+  recompute(); cards(); paintComposite(); stats();
+  DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = [];
+}
 
 $("addbtn").addEventListener("click", () => {
   KS.push({k: KS.length + 2, pg: 0, mode: "plain", op: "+"});

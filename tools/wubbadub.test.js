@@ -224,4 +224,72 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   for(const [what, re] of need) ok(re.test(css), `${what} is not sized for touch`);
   console.log("  touch: choices, input, remove and the add row at 44px; dots hit 34px");
 }
+/* 13. the composite array. Every card's vector sits on its own ring, so cell i
+       of a card with ring E weighs 2^-(i+1-E). Lining them up by that absolute
+       weight and adding must give the sum of the cards, and reconciling the
+       redundant column sums must give that same number back. */
+{
+  const RACKS = {
+    "3,5,7 plain": `[{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]`,
+    "chained ×": `[{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"},{k:200,pg:0,mode:"op",op:"*"}]`,
+    "across rings": `[{k:3,pg:0,mode:"plain",op:"+"},{k:8,pg:0,mode:"plain",op:"+"},{k:-7,pg:0,mode:"op",op:"+"}]`,
+    "all four ops": `[{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"},`
+      + `{k:200,pg:0,mode:"op",op:"+"},{k:6,pg:0,mode:"op",op:"/"},{k:5,pg:0,mode:"pushed",op:"+"}]`,
+  };
+  const line = [];
+  for(const [name, KS] of Object.entries(RACKS)){
+    run(`WIDTH = 8; KS = ${KS}; refresh();`);
+    const r = run(`(() => {
+      const gg = (a,b) => { a = a<0n?-a:a; while(b){ [a,b] = [b, a % b]; } return a || 1n; };
+      const c = compositeArray();
+      let n = 0n, d = 1n;
+      for(const p of M.P){ const f = stalkFrac(p.vec || p.shown, p.E);
+        n = n * f.den + f.num * d; d = d * f.den; }
+      const h = gg(n, d);
+      const back = stalkFrac(c.stalk.d, c.stalk.E);
+      return {
+        sum: [String(c.num), String(c.den)],
+        want: [String(n/h), String(d/h)],
+        back: [String(back.num), String(back.den)],
+        places: c.ws.length, owed: c.owed,
+        realOwed: c.sums.filter(v => Math.abs(v) > 1).length,
+        contiguous: c.ws.every((w, i) => i === 0 || w === c.ws[i-1] + 1),
+      };
+    })()`);
+    ok(r.sum.join("/") === r.want.join("/"),
+       `${name}: composite ${r.sum.join("/")} != sum of cards ${r.want.join("/")}`);
+    ok(r.back.join("/") === r.sum.join("/"),
+       `${name}: reconciled stalk reads ${r.back.join("/")}, not ${r.sum.join("/")}`);
+    ok(r.owed === r.realOwed, `${name}: ${r.owed} carries reported, ${r.realOwed} actual`);
+    ok(r.contiguous, `${name}: place values must run without gaps`);
+    line.push(`${name} ${r.places}pv/${r.owed}c`);
+  }
+  console.log(`  composite array: sums the cards and reconciles back — ${line.join(", ")}`);
+}
+
+/* 14. the dominoes: one edge per cell, comma-grouped on the anti-diagonals */
+{
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  for(const k of [1, 3, 200, 65535]){
+    run(`KS = [{k:${k},pg:0,mode:"plain",op:"+"}]; refresh();`);
+    const d = run(`M.P[0].vec || M.P[0].shown`);
+    const html = run(`dominoesHTML(M.P[0].vec || M.P[0].shown)`);
+    const bars = (html.match(/class="dbar /g) || []).length;
+    ok(bars === d.length, `${k}: ${bars} edges for ${d.length} cells`);
+    const cmas = (html.match(/class="dcma"/g) || []).length;
+    const want = run(`commas(M.P[0].vec || M.P[0].shown,
+      Math.max(1, Math.ceil(Math.sqrt((M.P[0].vec || M.P[0].shown).length)))).length`) - 1;
+    ok(cmas === want, `${k}: ${cmas} commas, wanted ${want}`);
+    ok(/dground/.test(html), `${k}: the stalk needs its ground line`);
+  }
+  /* and they are on the card, which is where they were asked for. This page
+     paints through page1HTML, not paintRow. */
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  const card = run(`page1HTML(M.P[0], KS[0])`);
+  ok(/dbar/.test(card), "the int card must carry its dominoes");
+  ok(/gsc /.test(card), "...and still its square");
+  ok(/<dt>Push<\/dt>/.test(card), "...and its facts");
+  console.log("  dominoes: one edge per cell, commas on the anti-diagonals, on the card");
+  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+}
 console.log("\nall good.");
