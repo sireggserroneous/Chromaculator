@@ -120,6 +120,22 @@ rectangle deferred — 4,972 of 7,200 grids owe something, and the largest anti-
 Summing a lattice along its diagonals and carrying is **gelosia**, the method Napier's bones
 mechanise. The rectangle is the lattice; the squash is its diagonal sum.
 
+**The squash is a convolution, and it is row two of Pascal's triangle.** Measured:
+`squashDiagonals(hexProduct(A,B))` equals the convolution of A and B on 81 of 81 shapes, and
+`arcs(n)` — where the commas fall — equals the squash of an `n × n` all-ones grid on 12 of 12.
+Convolving all-ones `k` times gives `C(i+k−1, k−1)` exactly, checked for `k` = 2 to 6. So
+`arcs(8) = 1 2 3 4 5 6 7 8 7 6 5 4 3 2 1`, the `255 × 255` pyramid above, is the two-fold
+convolution — the site has been printing a row of Pascal's triangle since its first commit.
+
+The cascade does not iterate here, and that is the cost of the digit set. One step through the grid
+is one convolution, but the result leaves `{−1,0,+1}` and cannot be fed back in as digits;
+reconciling first destroys the counts. Kummer's theorem says the power of 2 dividing a binomial is
+the number of carries when adding in base 2 — so the carries this arrangement was built to avoid
+are exactly what gives the cascade its structure. Dividing by a repunit instead of multiplying by
+one turns the convolution into a suffix sum and the cascade runs; that is the route taken in
+Vladimir Cepeda's draft note *The Straggler Sets of Greedy Mersenne Decomposition are Pascal's
+Triangle in Base 2* (30 August 2026), which is where this connection came from.
+
 **Push is an answer, not a respelling.** The grid is always built from the plain operands and is
 never rewritten. Ticking push adds the result's vector beside the rectangle: squash, settle, push.
 Push conserves the value, so nothing in the picture moves — which is exactly why the answer can sit

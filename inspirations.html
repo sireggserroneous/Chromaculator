@@ -363,6 +363,85 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
   </section>
 
   <section>
+    <h2>The cascade</h2>
+    <p class="lead">The anti-diagonal sums this site has drawn since its first commit turn out to be
+      one step of a cascade that generates Pascal&rsquo;s triangle. We had been printing row two the
+      whole time without knowing what it was.</p>
+    <div class="items">
+      <div class="item">
+        <span class="mine">summing a grid&rsquo;s anti-diagonals</span>
+        <span class="theirs">That is <a href="https://en.wikipedia.org/wiki/Convolution">convolution</a>
+          &mdash; a <a href="https://en.wikipedia.org/wiki/Cauchy_product">Cauchy product</a> of the two
+          digit strings
+          <br><span class="who">Measured, not assumed:
+          <code>squashDiagonals(hexProduct(A,B))</code> equals the convolution of A and B on 81 of 81
+          shapes. Weight depending only on <i>r</i>+<i>c</i> is what makes it one.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine"><code>arcs(n)</code> &mdash; where the commas fall</span>
+        <span class="theirs">The two-fold convolution of all-ones, which is
+          <a href="https://en.wikipedia.org/wiki/Pascal%27s_triangle">Pascal&rsquo;s</a> second diagonal
+          <br><span class="who"><code>arcs(n)</code> equals the squash of an <i>n</i>&times;<i>n</i>
+          all-ones grid, 12/12. <code>arcs(8) = 1 2 3 4 5 6 7 8 7 6 5 4 3 2 1</code> is the
+          <code>255&nbsp;&times;&nbsp;255</code> pyramid in the spec. Convolving all-ones <i>k</i> times
+          gives <a href="https://en.wikipedia.org/wiki/Binomial_coefficient">C(<i>i</i>+<i>k</i>&minus;1,
+          <i>k</i>&minus;1)</a> exactly &mdash; checked for <i>k</i> = 2 to 6.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">dividing by a repunit, over and over</span>
+        <span class="theirs">Division by <i>B</i>&minus;1 in base <i>B</i> is the suffix-sum operator
+          &mdash; a <a href="https://en.wikipedia.org/wiki/Prefix_sum">prefix sum</a> from the other end
+          &mdash; and iterating it on all-ones builds the same triangle
+          <br><span class="who">The same cascade as the row above, run backwards. We multiply by
+          <a href="https://en.wikipedia.org/wiki/Repunit">repunits</a> and convolve; dividing by them
+          sums. Casting out the remainder is
+          <a href="https://en.wikipedia.org/wiki/Casting_out_nines">casting out nines</a> in base
+          2<sup><i>p</i></sup>.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">a ring that comes back to itself under doubling</span>
+        <span class="theirs">Multiplication by 2<sup><i>m</i></sup> modulo 2<sup><i>p</i></sup>&minus;1 is a
+          <a href="https://en.wikipedia.org/wiki/Circular_shift">circular shift</a> of the
+          <i>p</i>-bit register
+          <br><span class="who">Checked on 25,644 of 25,644 cases. The algebraic form of the rotary
+          encoder disc two sections up &mdash; and <i>D</i>&nbsp;&minus;&nbsp;<i>x</i> is the bitwise
+          complement, 2,344/2,344, which is the colour flip for 0/1 digits.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">all-ones rows behave unlike every other row</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Lucas%27s_theorem">Lucas&rsquo;s theorem</a>
+          &mdash; every binomial in row 2<sup><i>k</i></sup>&minus;1 is odd, because the row index is all
+          ones in binary
+          <br><span class="who">Those rows are the repunits, which are the
+          <a href="https://en.wikipedia.org/wiki/Mersenne_prime">Mersenne numbers</a>, which are the
+          horizon tiles of the Atlas rings. The same integers keep turning out to be the exceptional
+          ones.</span></span>
+      </div>
+      <div class="item open">
+        <span class="mine">signed digits, chosen so nothing carries</span>
+        <span class="theirs"><a href="https://en.wikipedia.org/wiki/Kummer%27s_theorem">Kummer&rsquo;s theorem</a>
+          says the power of 2 dividing a binomial is the number of <i>carries</i> when you add in base 2.
+          So carries are not noise in this cascade &mdash; they are what decides its structure.
+          <br><span class="who">Which makes our digit set a trade rather than a free win. One step
+          through the grid is one convolution, but the result leaves
+          {&minus;1,&nbsp;0,&nbsp;+1} and cannot be fed back in as digits; reconciling first destroys
+          the counts. We killed the carries and lost the iteration. Held open: what the cascade looks
+          like in signed digits, where the borrows Kummer counts have nowhere to
+          live.</span></span>
+      </div>
+      <div class="item">
+        <span class="mine">where this section came from</span>
+        <span class="theirs">Vladimir Cepeda, <i>The Straggler Sets of Greedy Mersenne Decomposition
+          are Pascal&rsquo;s Triangle in Base 2</i>, draft note, 30 August 2026
+          <br><span class="who">His result, not ours: he found the triangle inside repeated division by
+          2<sup><i>p</i></sup>&minus;1, and reading it sent us looking for the same cascade here. An
+          unrefereed draft &mdash; the suffix-sum slope is derived, the bridge from his model to the true
+          chain is measured, and he labels which is which.</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
     <h2>The wub ±</h2>
     <p class="lead">Phasors summed tip to tail, riding surfaces, tying knots.</p>
     <div class="items">

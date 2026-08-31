@@ -177,3 +177,61 @@ console.log("\nall good.");
   ok(same === 6001 && canon === 6001, "push must be an idempotent, canonical fixpoint");
   console.log(`  push: idempotent ${same}/6001, same fixpoint scanned either way ${canon}/6001`);
 }
+
+/* the cascade: our squash is a convolution, and arcs() is a row of Pascal's
+   triangle. Recorded because the Inspirations page and spec.md now claim it. */
+{
+  const ones = n => Array(n).fill(1);
+  const conv = (a, b) => { const r = new Array(a.length + b.length - 1).fill(0);
+    for(let i = 0; i < a.length; i++) for(let j = 0; j < b.length; j++) r[i+j] += a[i] * b[j];
+    return r; };
+  const C = (n, k) => { let r = 1; for(let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+    return Math.round(r); };
+
+  let bad = 0, n = 0;
+  for(let a = 1; a <= 9; a++) for(let b = 1; b <= 9; b++){
+    const A = ones(a), B = ones(b);
+    n++;
+    if(squashDiagonals(hexProduct(A, B)).join(",") !== conv(B, A).join(",")) bad++;
+  }
+  ok(bad === 0, `the squash is not a convolution on ${bad} of ${n} shapes`);
+
+  let bad2 = 0, n2 = 0;
+  for(let m = 1; m <= 12; m++){
+    n2++;
+    if(arcs(m).join(",") !== squashDiagonals(hexProduct(ones(m), ones(m))).join(",")) bad2++;
+  }
+  ok(bad2 === 0, `arcs(n) is not the all-ones squash on ${bad2} of ${n2}`);
+
+  /* and k-fold convolution of all-ones is a diagonal of Pascal */
+  let bad3 = 0;
+  for(let k = 2; k <= 6; k++){
+    let v = ones(40);
+    for(let i = 1; i < k; i++) v = conv(v, ones(40));
+    for(let i = 0; i < 7; i++) if(v[i] !== C(i + k - 1, k - 1)) bad3++;
+  }
+  ok(bad3 === 0, `${bad3} binomials wrong in the all-ones cascade`);
+  console.log(`  cascade: squash == convolution ${n}/${n}, arcs(n) == the all-ones squash ${n2}/${n2},`
+    + ` k-fold all-ones == C(i+k-1,k-1) for k = 2..6`);
+
+  /* the register facts the Atlas rings rest on */
+  let bad4 = 0, n4 = 0;
+  for(const p of [3, 4, 5, 7, 8, 11]){
+    const D = (1 << p) - 1;
+    for(let x = 1; x < D; x++) for(let m = 1; m <= p; m++){
+      const rot = ((x << m) | (x >> (p - m))) & D;
+      const mul = (x * Math.pow(2, m)) % D;
+      n4++;
+      if(rot !== (mul === 0 ? D : mul)) bad4++;
+    }
+  }
+  ok(bad4 === 0, `rotation != multiplication by 2^m mod 2^p-1 on ${bad4} of ${n4}`);
+  let bad5 = 0, n5 = 0;
+  for(const p of [3, 5, 8, 11]){
+    const D = (1 << p) - 1;
+    for(let x = 0; x <= D; x++){ n5++; if((D - x) !== ((~x) & D)) bad5++; }
+  }
+  ok(bad5 === 0, `D-x != ~x on ${bad5} of ${n5}`);
+  console.log(`  the ring: x·2^m mod 2^p−1 is a rotation ${n4}/${n4},`
+    + ` and D−x is the complement ${n5}/${n5}`);
+}
