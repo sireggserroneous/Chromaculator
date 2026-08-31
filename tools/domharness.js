@@ -33,15 +33,42 @@ function harness(html){
       style:{_v:{}, setProperty(k,v){this._v[k]=v}, getPropertyValue(k){return this._v[k]||""},
              removeProperty(k){delete this._v[k]}},
       width:300, height:300, clientWidth:300, clientHeight:300,
-      classList:{add(){},remove(){},toggle(){},contains(){return false}},
+      /* a real classList, backed by className. The no-op version it replaces
+         swallowed every add/remove, so a page that shows and hides things by
+         class -- an opening panel, a disabled button -- passed whatever it did,
+         including doing nothing. contains() returning a flat false was the
+         worst of it: a guard written around it never took its own branch. */
+      classList:{
+        _o: null,
+        _list(){ return String(this._o.className || "").split(/\s+/).filter(Boolean); },
+        _set(a){ this._o.className = a.join(" "); },
+        add(...c){ const a = this._list(); for(const x of c) if(!a.includes(x)) a.push(x); this._set(a); },
+        remove(...c){ this._set(this._list().filter(x => !c.includes(x))); },
+        toggle(c, force){
+          const has = this.contains(c);
+          const on = force === undefined ? !has : !!force;
+          on ? this.add(c) : this.remove(c);
+          return on;
+        },
+        contains(c){ return this._list().includes(c); },
+      },
       children:[], dataset:{}, files:[],
+      /* real elements have these; leaving them off turned a faithful page into
+         a THROW that says nothing about the page. They record, so a test can
+         assert on what a control published to assistive tech. */
+      attrs:{}, setAttribute(k,v){this.attrs[k]=String(v)},
+      getAttribute(k){return k in this.attrs ? this.attrs[k] : null},
+      removeAttribute(k){delete this.attrs[k]}, hasAttribute(k){return k in this.attrs},
       getContext:()=>ctx, addEventListener(){}, removeEventListener(){},
       setPointerCapture(){}, focus(){}, appendChild(c){this.children.push(c)},
       showModal(){this._open=true}, close(){this._open=false}, ownerDocument:null,
-      getBoundingClientRect:()=>({left:0,top:0,width:300,height:300}),
+      /* a real DOMRect has all six. Leaving right and bottom off made any code
+   that reads them see undefined and quietly compare against NaN. */
+      getBoundingClientRect:()=>({left:0,top:0,width:300,height:300,right:300,bottom:300,x:0,y:0}),
       closest(){return null}, querySelectorAll(){return []},
       get parentElement(){ return mkEl(id+":parent"); },
     };
+    el.classList._o = el;          // the list edits the element's own className
     return el;
   };
   const doc = {
