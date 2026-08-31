@@ -340,9 +340,10 @@ const UI = (function(){
      belongs to. pointerleave is the normal way one closes, but it is not
      guaranteed to arrive: opening a native <select> puts an OS popup over the
      page and the label underneath never gets its leave event, so the card sat
-     there until something else happened to move it. The floor under that is a
-     hard cap and a pointer check, both below. */
-  const TIP_LIFE = 7000;
+     there until something else happened to move it. The floor under all of it
+     is this cap: however a card was opened and whatever events do or do not
+     arrive afterwards, it is gone within TIP_LIFE. */
+  const TIP_LIFE = 4000;
 
   /* is (x,y) within `pad` of this rect? Pure, so the dismissal rule can be
      tested without a pointer to move. */
@@ -491,21 +492,53 @@ const UI = (function(){
     missing(keys){ return keys.filter(k => !TIPS[k]); },
     stale: tipStale, overRect, life: TIP_LIFE,
   };
+  /* Closing a tooltip must not depend on any one event arriving.
+     pointerleave is the obvious one and it is not reliable: a native <select>
+     popup swallows it, an implicit pointer capture during a slider drag
+     retargets it, and a pointer that leaves the window fires nothing at all.
+     Each of those left a card up with nothing watching it.
+
+     So every one of these closes it, and any single one is enough. */
   if(typeof document !== "undefined" && document.addEventListener){
+    const away = () => { if(tipFor) hideTip(); };
+
     document.addEventListener("keydown", e => { if(e.key === "Escape") hideTip(true); });
-    /* the pointer moved and it is not near the anchor any more. This is what
-       actually closes the card after a native <select> popup ate the leave
-       event, and it costs one rect read per move while a card is up. */
+
+    /* the pointer is over some other element now. pointerover bubbles and
+       fires on entering anything, so it catches the cases a missed
+       pointerleave does -- this is the one that does most of the work. */
+    document.addEventListener("pointerover", e => {
+      if(!tipFor) return;
+      const t = e.target;
+      if(t === tipFor || (tipFor.contains && t && tipFor.contains(t))) return;
+      hideTip();
+    }, {passive: true});
+
+    /* and the pointer moved somewhere not near the anchor */
     document.addEventListener("pointermove", e => {
       if(tipFor && tipStale(e.clientX, e.clientY)) hideTip();
     }, {passive: true});
-    /* scrolling moves the anchor out from under a card that is fixed to the
-       viewport, so the two would drift apart; and a page that loses focus
-       should not leave one hanging over it */
+
+    /* the pointer left the document entirely: no move, no leave, nothing */
+    document.addEventListener("mouseleave", away);
+    document.addEventListener("pointerleave", away);
+
+    /* any click, anywhere, is the reader doing something else */
+    document.addEventListener("pointerdown", e => {
+      if(!tipFor) return;
+      const t = e.target;
+      if(t === tipFor || (tipFor.contains && t && tipFor.contains(t))) return;
+      hideTip(true);
+    }, {passive: true});
+
+    /* scrolling moves the anchor out from under a card fixed to the viewport */
     document.addEventListener("scroll", () => hideTip(true), {passive: true, capture: true});
+    document.addEventListener("visibilitychange", () => hideTip(true));
   }
-  if(typeof addEventListener === "function")
+  if(typeof addEventListener === "function"){
     addEventListener("blur", () => hideTip(true));
+    addEventListener("resize", () => hideTip(true));
+  }
 
   /* ---- first-visit orientation -------------------------------------------
      Shown once per page, then remembered. Storage can throw outright in a

@@ -143,7 +143,7 @@ const PAGES = ["index", "spectrometer", "atlas", "spec", "inspirations",
 
   /* and the hard cap is a real number, in the range a reader would accept */
   const life = run(`UI.tips.life`);
-  ok(life >= 3000 && life <= 10000, `the life cap is ${life}ms, outside a sane range`);
+  ok(life >= 2000 && life <= 6000, `the life cap is ${life}ms, outside a sane range`);
   console.log(`  a card closes when the pointer leaves, and dies after ${life / 1000}s regardless`);
 }
 
