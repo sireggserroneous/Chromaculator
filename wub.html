@@ -1166,6 +1166,12 @@ if(SOUNDBTN){
 }
 UI.slider("vol", {onInput: v => UI.audio.level(v)});
 
+/* The labels on this page carry data-tip and nothing was binding them, so
+   every one of those tooltips was dead on arrival. The glossary entries they
+   point at all existed and all resolved -- which is exactly why the content
+   test passed while the feature did not work. */
+UI.tips.scan();
+
 /* ------------------------------------------------------------- permalink
    Everything on this page is a state nobody can send anyone. The hash makes
    each arrangement quotable, and replaceState keeps the back button meaning

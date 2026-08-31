@@ -98,6 +98,21 @@ node tools/tips.test.js         # tooltip placement, and that every data-tip res
 node tools/bulk.test.js         # 10,000 integers through both grids (~20s)
 ```
 
+The suites above run against a stand-in DOM, which is enough for arithmetic and
+not enough for a pointer. Dispatching `pointerleave` proves the handler works,
+not that the browser ever sends it -- and a tooltip that stuck in a real Chrome
+passed every synthetic test there was. So the pointer is tested with a real one:
+
+```
+npm i && npx playwright install chromium
+node tools/tips.pw.js            # needs the server running
+node tools/tips.pw.js --headed   # watch it
+```
+
+That is what caught 28 tooltips across the four Wub pages that could never
+open: the entries all existed and all resolved, so the content check passed,
+and nothing asked whether anything was listening.
+
 `tools/sequences.js` is not a test. It prints the integer sequences this construction
 makes -- distinct grids, the integers carried entirely by the Fold, the side of the
 square -- computed from the site's own functions, in the form the OEIS takes. A

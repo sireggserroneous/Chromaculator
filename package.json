@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  },
+  "scripts": {
+    "test:pw": "node tools/tips.pw.js"
+  },
+  "private": true,
+  "description": "dev tooling only. The site itself has no dependencies and no build step."
+}

@@ -8,3 +8,6 @@ refs/*.pdf
 # uv's virtual environment. Rebuilt by `uv sync` from pyproject.toml and
 # uv.lock, both of which are committed.
 .venv/
+
+# playwright's browsers and node_modules; the site needs neither.
+node_modules/

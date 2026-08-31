@@ -147,4 +147,22 @@ const PAGES = ["index", "spectrometer", "atlas", "spec", "inspirations",
   console.log(`  a card closes when the pointer leaves, and dies after ${life / 1000}s regardless`);
 }
 
+/* 8. a page that carries data-tip must also bind it.
+      Four pages had 28 tooltips between them that never opened: the entries
+      existed, so the content check above passed, and nothing anywhere asked
+      whether anything was listening. That is the gap a resolver test leaves. */
+{
+  const fs2 = require("fs");
+  const dead = [];
+  for(const name of PAGES){
+    const html = fs2.readFileSync(`${__dirname}/../${name}.html`, "utf8");
+    const n = (html.match(/data-tip="/g) || []).length;
+    if(!n) continue;
+    const bound = html.indexOf("UI.tips.scan()") >= 0 || html.indexOf("UI.tips.attach") >= 0;
+    if(!bound) dead.push(`${name}.html (${n} attributes, nothing binding them)`);
+  }
+  ok(dead.length === 0, `tooltips that can never open: ${dead.join("; ")}`);
+  console.log(`  every page with data-tip attributes also binds them`);
+}
+
 console.log("tips ok");
