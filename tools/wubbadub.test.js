@@ -9,7 +9,7 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 {
   run(`KS = [{k:3,pg:0},{k:5,pg:0},{k:7,pg:0}]; refresh();`);
   ok(run("M.N") === 3, `3 integers -> 3 phasors, got ${run("M.N")}`);
-  ok(run(`KS.every(e => !("plain" in e) && !("push" in e))`), "cards carry no spelling toggle");
+  ok(run(`KS.every(e => !("plain" in e) && !("push" in e) && !("mode" in e))`), "cards carry no spelling toggle");
   console.log(`  ${run("M.N")} integers, ${run("M.N")} phasors, `
     + run(`M.P.map(p => fmt(p.value)).join(" ")`));
 }
@@ -119,14 +119,14 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 
   const A = lp(__dirname + "/../wub.html");
   A.run(`KS = ${JSON.stringify(ks.map(k => ({k, plain: true, push: false, op: .55})))}; refresh();`);
-  run(`KS = ${JSON.stringify(ks.map(k => ({k, pg: 0, mode: "plain", op: "+"})))}; refresh();`);
+  run(`KS = ${JSON.stringify(ks.map(k => ({k, pg: 0, spell: "plain", role: "num", op: "+"})))}; refresh();`);
   ok(shape(A.run, 0, false) === shape(run, 0, false), "all-plain must reproduce Wub ±");
 
   for(const [page, sym] of [["wubx.html", "*"], ["wubdiv.html", "/"]]){
     const O = lp(__dirname + "/../" + page);
     O.run(`WIDTH = 8; KS = ${JSON.stringify(ks.map(k => ({k, push: false, op: .55})))}; refresh();`);
     run(`WIDTH = 8; KS = ${JSON.stringify(ks.map((k, i) =>
-      ({k, pg: 0, mode: i ? "op" : "plain", op: sym})))}; refresh();`);
+      ({k, pg: 0, role: i ? "op" : "num", op: sym})))}; refresh();`);
     ok(shape(O.run, 0, true) === shape(run, 1, true), `seed + all-${sym} must reproduce ${page}`);
   }
   console.log("  reproduces Wub ± exactly, and Wub × and Wub ÷ step for step");
@@ -140,11 +140,11 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
     const red = (n,d) => { const h = gg(n,d); return [n/h, d/h]; };
     let bad = 0, rings = 0, n = 0;
     for(const sym of ["+", "-"]) for(const a of [3, 200, 255, 4095]) for(const b of [5, 60, 255, 1000]){
-      KS = [{k:a,pg:0,mode:"plain",op:"+"}, {k:b,pg:0,mode:"op",op:sym}];
+      KS = [{k:a,pg:0,spell:"plain",role:"num",op:"+"}, {k:b,pg:0,role:"op",op:sym}];
       refresh();
       const p = M.P[1];
-      const A = stalkFrac(ownDigits({k:a,mode:"plain"}), 0);
-      const B = stalkFrac(ownDigits({k:b,mode:"plain"}), 0);
+      const A = stalkFrac(ownDigits({k:a,spell:"plain",role:"num"}), 0);
+      const B = stalkFrac(ownDigits({k:b,spell:"plain",role:"num"}), 0);
       const want = red(sym === "+" ? A.num*B.den + B.num*A.den : A.num*B.den - B.num*A.den,
                        A.den * B.den);
       const got = stalkFrac(p.shown.slice(0, p.shown.length), p.E);
@@ -158,12 +158,12 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   ok(exact.bad === 0, `${exact.bad} of ${exact.n} sums were wrong`);
   console.log(`  + and −: ${exact.n - exact.bad}/${exact.n} exact,`
     + ` ${exact.rings} needed a ring to stay inside the disc`);
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
 }
 
 /* 9. a card cannot be an operand with nothing above it */
 {
-  run(`KS = [{k:3,pg:0,mode:"op",op:"*"},{k:5,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,role:"op",op:"*"},{k:5,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
   ok(run("M.N") === 2, "an operand in row 0 should still yield a phasor");
   ok(run(`M.P[0].kind`) === "square" && run(`M.P[0].op === undefined`),
      "row 0 must fall back to being a plain number");
@@ -173,8 +173,8 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
        2^-(r+c+2), so reading a rectangle left to right is a different value --
        Cells, Commas and Push all have to use the squashed vector. */
 {
-  run(`WIDTH = 8; KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"},
-       {k:200,pg:0,mode:"op",op:"+"},{k:6,pg:0,mode:"op",op:"/"}]; refresh();`);
+  run(`WIDTH = 8; KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:10,pg:0,role:"op",op:"*"},
+       {k:200,pg:0,role:"op",op:"+"},{k:6,pg:0,role:"op",op:"/"}]; refresh();`);
   const rows = run(`M.P.map(p => { const v = hexValue(p.vec), u = hexValue(pushLeft(p.vec));
     return [p.kind, fmt(p.value), fmt(v), fmt(u)]; })`);
   rows.forEach((r, i) => {
@@ -186,29 +186,54 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   ok(g.length > 0 && g.every(([v, c]) => v < c), "a grid's vector should be its squash");
   console.log(`  facts: value == vector == pushed on all ${rows.length} cards;`
     + ` grids squash ${g.map(([v,c]) => c + "\u2192" + v).join(", ")}`);
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
 }
-/* 11. the mode and the operator are one control, and it is sized for a finger.
-       cards() writes the whole list as markup, so the bar can be read back. */
+/* 11. spelling and role are two choices, not one. A card can be pushed AND an
+       operand -- push conserves the value, so it moves the working and never
+       the answer, which is the whole reason to allow it. */
 {
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},`
+    + `{k:10,pg:0,spell:"pushed",role:"op",op:"*"}]; refresh();`);
   const html = run(`$("cards").innerHTML`);
-  const bars = html.split(`class="seg"`).length - 1;
-  ok(bars === 2, `${bars} choice bars for 2 cards`);
-  const per = (html.match(/class="sg[^"]*"/g) || []).length / 2;
-  ok(per === 6, `${per} choices per card, wanted plain + pushed + 4 operators`);
-  /* row 0 has nothing above it, so its operators must be unavailable */
+  ok((html.split(`class="segs"`).length - 1) === 2, "each card needs its two bars");
+  const spells = (html.match(/class="sg sp/g) || []).length / 2;
+  const roles = (html.match(/class="sg rl/g) || []).length / 2;
+  ok(spells === 2, `${spells} spellings per card, wanted plain + pushed`);
+  ok(roles === 5, `${roles} roles per card, wanted num + four operators`);
+  /* row 0 has nothing above it, so only its operators are unavailable */
   const first = html.slice(0, html.indexOf(`data-i="1"`));
   ok((first.match(/disabled/g) || []).length === 4, "row 0's four operators must be disabled");
-  ok(!/disabled/.test(html.slice(html.indexOf(`data-i="1"`))), "row 1's operators must be live");
-  /* exactly one choice is lit per card, and on card 2 it is the operator */
-  const on = (html.match(/class="sg[^"]*\bon\b/g) || []).length;
-  ok(on === 2, `${on} lit choices across 2 cards`);
-  ok(/class="sg op on"[^>]*data-o="\*"/.test(html), "card 2 should light × itself");
-  /* picking an operator has to carry the mode with it */
-  ok(/data-m="op" data-o="\+"/.test(html), "each operator must also set the mode");
-  console.log("  choice bar: 6 options per card, row 0's operators disabled,"
-    + " one lit, operator carries the mode");
+  ok(/data-s="pushed"[^>]*>/.test(first) && !/data-s="pushed"[^>]*disabled/.test(first),
+     "row 0 must still be free to be pushed");
+  /* card 2 is pushed AND an operand: one lit in each bar */
+  const second = html.slice(html.indexOf(`data-i="1"`));
+  ok(/class="sg sp on" data-s="pushed"/.test(second), "card 2 should light pushed");
+  ok(/class="sg rl op on"[^>]*data-o="\*"/.test(second), "card 2 should light ×");
+  ok(!/class="sg rl on"/.test(second), "...and not also light num");
+  console.log("  two bars: 2 spellings + 5 roles, row 0 keeps its spelling,"
+    + " a card can be pushed and an operand at once");
+}
+
+/* 11b. and pushing an operand moves the working without moving the answer */
+{
+  let same = 0, moved = 0, n = 0;
+  for(const a of [3, -3, 200, 255, 4095]) for(const b of [5, -5, 10, 200, -255])
+    for(const sym of ["+", "-", "*", "/"]){
+    const grab = sp => run(`WIDTH = 12; KS = [{k:${a},pg:0,spell:"plain",role:"num",op:"+"},`
+      + `{k:${b},pg:0,spell:"${sp}",role:"op",op:"${sym}"}]; refresh();`
+      + `(()=>{const p = M.P[1], f = stalkFrac(p.vec || p.shown, p.E);`
+      + ` return {v: String(f.num) + "/" + String(f.den),`
+      + ` work: p.overlay ? p.overlay.rows.map(r => r.join(",")).join("|") : p.cells.join(",")};})()`);
+    const P = grab("plain"), U = grab("pushed");
+    n++;
+    if(P.v === U.v) same++;
+    if(P.work !== U.work) moved++;
+  }
+  ok(same === n, `${n - same} of ${n}: pushing an operand changed the answer`);
+  ok(moved > n * 0.6, `only ${moved} of ${n} workings moved — push should be visible`);
+  console.log(`  pushed operand: ${same}/${n} answers unchanged, ${moved}/${n} workings moved`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},`
+    + `{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
 }
 
 /* 12. touch targets: nothing on a card smaller than 44px */
@@ -230,11 +255,11 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
        redundant column sums must give that same number back. */
 {
   const RACKS = {
-    "3,5,7 plain": `[{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]`,
-    "chained ×": `[{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"},{k:200,pg:0,mode:"op",op:"*"}]`,
-    "across rings": `[{k:3,pg:0,mode:"plain",op:"+"},{k:8,pg:0,mode:"plain",op:"+"},{k:-7,pg:0,mode:"op",op:"+"}]`,
-    "all four ops": `[{k:3,pg:0,mode:"plain",op:"+"},{k:10,pg:0,mode:"op",op:"*"},`
-      + `{k:200,pg:0,mode:"op",op:"+"},{k:6,pg:0,mode:"op",op:"/"},{k:5,pg:0,mode:"pushed",op:"+"}]`,
+    "3,5,7 plain": `[{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},{k:7,pg:0,spell:"plain",role:"num",op:"+"}]`,
+    "chained ×": `[{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:10,pg:0,role:"op",op:"*"},{k:200,pg:0,role:"op",op:"*"}]`,
+    "across rings": `[{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:8,pg:0,spell:"plain",role:"num",op:"+"},{k:-7,pg:0,role:"op",op:"+"}]`,
+    "all four ops": `[{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:10,pg:0,role:"op",op:"*"},`
+      + `{k:200,pg:0,role:"op",op:"+"},{k:6,pg:0,role:"op",op:"/"},{k:5,pg:0,spell:"pushed",role:"num",op:"+"}]`,
   };
   const line = [];
   for(const [name, KS] of Object.entries(RACKS)){
@@ -269,9 +294,9 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 
 /* 14. the dominoes: one edge per cell, comma-grouped on the anti-diagonals */
 {
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
   for(const k of [1, 3, 200, 65535]){
-    run(`KS = [{k:${k},pg:0,mode:"plain",op:"+"}]; refresh();`);
+    run(`KS = [{k:${k},pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
     const d = run(`M.P[0].vec || M.P[0].shown`);
     const html = run(`dominoesHTML(M.P[0].vec || M.P[0].shown)`);
     const bars = (html.match(/class="dbar /g) || []).length;
@@ -284,13 +309,13 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   }
   /* and they are on the card, which is where they were asked for. This page
      paints through page1HTML, not paintRow. */
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
   const card = run(`page1HTML(M.P[0], KS[0])`);
   ok(/dbar/.test(card), "the int card must carry its dominoes");
   ok(/gsc /.test(card), "...and still its square");
   ok(/<dt>Push<\/dt>/.test(card), "...and its facts");
   console.log("  dominoes: one edge per cell, commas on the anti-diagonals, on the card");
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
 }
 /* 15. the chevron tucks the gallery away. The trap here is that a flex
        container ignores the hidden attribute unless the CSS says otherwise --
@@ -319,14 +344,14 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   const ABS = x => x < 0n ? -x : x;
   const gg = (a,b) => { a = ABS(a); while(b){ [a,b] = [b, a % b]; } return a || 1n; };
   const red = (n,d) => { if(d < 0n){ n = -n; d = -d; } const h = gg(n,d); return [n/h, d/h]; };
-  const val = k => { const v = run(`(()=>{const f=hexValue(ownDigits({k:${k},mode:"plain"}));`
+  const val = k => { const v = run(`(()=>{const f=hexValue(ownDigits({k:${k},spell:"plain",role:"num"}));`
     + `return [String(f.num),String(f.den)];})()`); return [BigInt(v[0]), BigInt(v[1])]; };
 
   let bad = 0, n = 0, owed = 0;
   for(const a of [3, -3, 7, -7, 200, -200, 255, -255, 4095, -4095])
     for(const b of [3, -3, 10, -10, 255, -255])
       for(const sym of ["+", "-"]){
-    run(`KS=[{k:${a},pg:0,mode:"plain",op:"+"},{k:${b},pg:0,mode:"op",op:"${sym}"}]; refresh();`);
+    run(`KS=[{k:${a},pg:0,spell:"plain",role:"num",op:"+"},{k:${b},pg:0,role:"op",op:"${sym}"}]; refresh();`);
     const r = run(`(()=>{const p=M.P[1], o=p.overlay; const f=stalkFrac(p.vec||p.shown,p.E);
       return {sum:[String(o.num),String(o.den)], val:[String(f.num),String(f.den)], owed:o.owed,
               contiguous:o.ws.every((w,i)=>i===0||w===o.ws[i-1]+1),
@@ -347,7 +372,7 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   /* negating the operand must flip exactly one row */
   let bad2 = 0, n2 = 0;
   for(const a of [3, 200, 255, 4095]) for(const b of [3, 5, 10, 200, 255]){
-    const grab = k => run(`KS=[{k:${a},pg:0,mode:"plain",op:"+"},{k:${k},pg:0,mode:"op",op:"+"}];`
+    const grab = k => run(`KS=[{k:${a},pg:0,spell:"plain",role:"num",op:"+"},{k:${k},pg:0,role:"op",op:"+"}];`
       + ` refresh(); (()=>{const o=M.P[1].overlay;`
       + ` return {a:o.a.join(","), b:o.b.join(","), ws:o.ws.join(",")};})()`);
     const P = grab(b), N = grab(-b);
@@ -360,8 +385,8 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
   /* and a − b must draw the same row as a + (−b) */
   let bad3 = 0, n3 = 0;
   for(const a of [3, -200, 255]) for(const b of [5, -10, 4095]){
-    const row = (k, sym) => run(`KS=[{k:${a},pg:0,mode:"plain",op:"+"},`
-      + `{k:${k},pg:0,mode:"op",op:"${sym}"}]; refresh(); M.P[1].overlay.b.join(",")`);
+    const row = (k, sym) => run(`KS=[{k:${a},pg:0,spell:"plain",role:"num",op:"+"},`
+      + `{k:${k},pg:0,role:"op",op:"${sym}"}]; refresh(); M.P[1].overlay.b.join(",")`);
     n3++;
     if(row(b, "-") !== row(-b, "+")) bad3++;
   }
@@ -370,10 +395,10 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
     + ` and a−b draws the same row as a+(−b) (${n3}/${n3})`);
 
   /* the card actually shows it */
-  run(`KS=[{k:200,pg:0,mode:"plain",op:"+"},{k:-7,pg:0,mode:"op",op:"+"}]; refresh();`);
+  run(`KS=[{k:200,pg:0,spell:"plain",role:"num",op:"+"},{k:-7,pg:0,role:"op",op:"+"}]; refresh();`);
   const html = run(`page1HTML(M.P[1], KS[1])`);
   ok(/overlay/.test(html) && (html.match(/class="crow"/g) || []).length === 3,
      "the card should show both rows and their sum");
-  run(`KS = [{k:3,pg:0,mode:"plain",op:"+"},{k:5,pg:0,mode:"plain",op:"+"},{k:7,pg:0,mode:"plain",op:"+"}]; refresh();`);
+  run(`KS = [{k:3,pg:0,spell:"plain",role:"num",op:"+"},{k:5,pg:0,spell:"plain",role:"num",op:"+"},{k:7,pg:0,spell:"plain",role:"num",op:"+"}]; refresh();`);
 }
 console.log("\nall good.");

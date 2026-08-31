@@ -249,14 +249,20 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 /* Plain, pushed and the four operators are one choice, not two controls, so
    they are one bar. Everything here is sized for a fingertip: 44px is Apple's
    minimum target and nothing on a card goes under it. */
-.seg{display:flex; width:100%; border:1px solid var(--rule2); border-radius:5px;
-  overflow:hidden; flex:none}
+.segs{display:flex; gap:6px; width:100%}
+.seg{display:flex; border:1px solid var(--rule2); border-radius:5px; overflow:hidden; flex:none}
+.seg:first-child{flex:0 0 auto}
+.seg:last-child{flex:1 1 auto; min-width:0}
 .sg{flex:1 1 0; min-width:0; min-height:44px; touch-action:manipulation;
   font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.06em;
   text-transform:uppercase; padding:0 4px; border:0; border-right:1px solid var(--rule2);
   background:transparent; color:var(--ink3); cursor:pointer;
   display:flex; align-items:center; justify-content:center}
-.sg.op{font-size:1.15rem; letter-spacing:0; flex:0 0 15%}
+/* the spelling bar sizes to its words -- flex:1 1 0 collapses a content-width
+   bar and clips the label. The role bar shares what is left. */
+.sg.sp{flex:0 0 auto; padding:0 12px}
+.sg.rl{flex:1 1 0}
+.sg.op{font-size:1.15rem; letter-spacing:0; flex:0 0 auto; padding:0 13px}
 .sg:last-child{border-right:0}
 .sg:hover:not(:disabled){color:var(--ink)}
 .sg.on{background:var(--brass); color:var(--panel)}
@@ -462,7 +468,7 @@ function gridPhasor(g, E){
 function ownDigits(e){
   const {v, neg} = parse(String(e.k));
   const raw = hexSequence(v, neg).raw;
-  return e.mode === "pushed" ? pushLeft(raw) : raw;
+  return (e.spell || "plain") === "pushed" ? pushLeft(raw) : raw;
 }
 const OPNAME = {"+": "plus", "-": "minus", "*": "times", "/": "over"};
 const OPSYM  = {"+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7"};
@@ -608,9 +614,13 @@ function drawPoint(g, x, y, h, size, u, inverted){
 
 /* one card per integer. `pg` is which page of that card is showing; TOPPAGE
    is which page of the pinned gallery is. Only what is showing gets drawn. */
-let KS = [{k: 3, pg: 0, mode: "plain", op: "+"},
-          {k: 5, pg: 0, mode: "plain", op: "+"},
-          {k: 7, pg: 0, mode: "plain", op: "+"}];
+/* Two independent choices per card, not one. `spell` is how the number is
+   written -- plain or pushed, which conserves the value either way. `role` is
+   what the card does -- be a number, or transform the running value with an
+   operator. Pushing an operand changes the working (the overlay rows, the
+   rectangle, the tableau) and cannot change the answer, which is the point. */
+const card = (k, o) => ({k, pg: 0, spell: "plain", role: "num", op: "+", ...(o || {})});
+let KS = [card(3), card(5), card(7)];
 let TOPPAGE = 0;
 let WIDTH = 8;                     // cells the quotient gets when a card divides
 let CV = [];                       // per-card canvases, rebuilt with the list
@@ -623,16 +633,18 @@ function model(){
   const P = [];
   let acc = null;
   KS.forEach((e, i) => {
-    const mode = i === 0 && e.mode === "op" ? "plain" : (e.mode || "plain");
+    const role = i === 0 ? "num" : (e.role || "num");
     const own = ownDigits(e);
     let q = null, note = null;
-    if(mode !== "op" || !acc){
+    if(role !== "op" || !acc){
       const bits = Math.abs(e.k) ? Math.abs(e.k).toString(2).length : 1;
       q = stalkPhasor(own, 0, bits);
       acc = {d: own, E: 0};
     } else {
       const sym = e.op || "+";
-      const opd = ownDigits({k: e.k, mode: "plain"});
+      /* the operand is spelled the way the card says. Push conserves the value,
+         so this moves the working and never the answer. */
+      const opd = own;
       if(sym === "*"){
         const g = hexProduct(acc.d, opd);
         q = gridPhasor(g, acc.E);
@@ -660,7 +672,9 @@ function model(){
       }
       if(q){ q.op = sym; q.operand = opd; }
     }
-    if(q){ q.k = e.k; q.mode = mode; q.row = i; q.opacity = 0.55; P.push(q); }
+    if(q){ q.k = e.k; q.role = role; q.spell = e.spell || "plain";
+           q.mode = role === "op" ? "op" : (e.spell || "plain");   // legacy readers
+           q.row = i; q.opacity = 0.55; P.push(q); }
     else KS[i]._note = note;
   });
   const N = P.length;
@@ -1402,15 +1416,21 @@ function cards(){
           </span>
           <button class="rm" aria-label="Remove">\u00d7</button>
         </div>
-        <div class="seg" role="group" aria-label="How this card reads">
-          ${[["plain", "plain"], ["pushed", "pushed"]].map(([m, lab]) =>
-            `<button class="sg${(e.mode || "plain") === m ? " on" : ""}" data-m="${m}"`
-            + ` aria-pressed="${(e.mode || "plain") === m}">${lab}</button>`).join("")}
-          ${["+", "-", "*", "/"].map(o =>
-            `<button class="sg op${(e.mode === "op" && (e.op || "+") === o) ? " on" : ""}"`
-            + ` data-m="op" data-o="${o}"${i === 0 ? " disabled" : ""}`
-            + ` aria-label="${OPNAME[o]}"`
-            + ` aria-pressed="${e.mode === "op" && (e.op || "+") === o}">${OPSYM[o]}</button>`).join("")}
+        <div class="segs">
+          <div class="seg" role="group" aria-label="How this card is spelled">
+            ${["plain", "pushed"].map(m =>
+              `<button class="sg sp${(e.spell || "plain") === m ? " on" : ""}" data-s="${m}"`
+              + ` aria-pressed="${(e.spell || "plain") === m}">${m}</button>`).join("")}
+          </div>
+          <div class="seg" role="group" aria-label="What this card does">
+            <button class="sg rl${(e.role || "num") === "num" ? " on" : ""}" data-r="num"
+                    aria-pressed="${(e.role || "num") === "num"}">num</button>
+            ${["+", "-", "*", "/"].map(o =>
+              `<button class="sg rl op${(e.role === "op" && (e.op || "+") === o) ? " on" : ""}"`
+              + ` data-r="op" data-o="${o}"${i === 0 ? " disabled" : ""}`
+              + ` aria-label="${OPNAME[o]}"`
+              + ` aria-pressed="${e.role === "op" && (e.op || "+") === o}">${OPSYM[o]}</button>`).join("")}
+          </div>
         </div>
         <div class="dpg" data-p="0"></div>
         <div class="dpg" data-p="1" hidden><div class="dgrid">
@@ -1468,8 +1488,11 @@ function cards(){
     card.querySelectorAll(".seg .sg").forEach(b => {
       if(b.disabled) return;
       b.addEventListener("click", () => {
-        KS[i].mode = b.dataset.m;
-        if(b.dataset.o) KS[i].op = b.dataset.o;   // picking an operator IS picking operand
+        if(b.dataset.s) KS[i].spell = b.dataset.s;
+        if(b.dataset.r){
+          KS[i].role = b.dataset.r;
+          if(b.dataset.o) KS[i].op = b.dataset.o;   // an operator IS the operand role
+        }
         refresh();
       });
     });
@@ -1508,7 +1531,7 @@ function refresh(){
 }
 
 $("addbtn").addEventListener("click", () => {
-  KS.push({k: KS.length + 2, pg: 0, mode: "plain", op: "+"});
+  KS.push(card(KS.length + 2));
   refresh();
   const el = $("cards");
   el.scrollTop = el.scrollHeight;       // bring the one just added into view
@@ -1517,8 +1540,7 @@ $("randbtn").addEventListener("click", () => {
   KS = KS.map(e => ({...e, k: Math.floor(Math.random()*127) - 63 || 1})); refresh();
 });
 $("resetbtn").addEventListener("click", () => {
-  KS = [{k:3, pg:0, mode:"plain", op:"+"}, {k:5, pg:0, mode:"plain", op:"+"},
-        {k:7, pg:0, mode:"plain", op:"+"}];
+  KS = [card(3), card(5), card(7)];
   refresh();
 });
 /* the sampled curve as plain xyz, for feeding to something that can actually
@@ -1526,8 +1548,8 @@ $("resetbtn").addEventListener("click", () => {
 $("expbtn").addEventListener("click", () => {
   const head = [
     `# chronochromatic wub curve`,
-    `# sequence: ${KS.map((e, i) => (i && e.mode === "op" ? OPSYM[e.op] + " " : "")
-        + e.k + (e.mode === "pushed" ? "(pushed)" : "")).join(" ")}`,
+    `# sequence: ${KS.map((e, i) => (i && e.role === "op" ? OPSYM[e.op] + " " : "")
+        + e.k + (e.spell === "pushed" ? "(pushed)" : "")).join(" ")}`,
     `# phasors: ${M.N}, period ${M.period} rad, samples ${CURVE.length}`,
     `# rates: ${M.P.map(p => `${p.k}:A=${p.rateA},B=${p.rateB}`).join(" ")}`,
     `# crossing bound found here: ${BOUND === null ? "not measured" : `<= ${BOUND} (best of ${CROSS_DIRS} projections)`}`,
