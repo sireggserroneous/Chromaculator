@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wub ÷ · chronochromatic.org</title>
-<meta name="description" content="Division that refuses to round: a quotient grid, a multiplier on the boundary, and the remainder drawn as the part that did not fit.">
+<title>Wubba Dub · chronochromatic.org</title>
+<meta name="description" content="The wub laid out like a graphing calculator: a pinned gallery of controls and composite waves, then one paged card per integer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -65,7 +65,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 
 /* every card is exactly one row tall, whatever it holds, so a card can never
    change its neighbours' geometry. three rows visible, the rest scrolls. */
-.rack{--cardh:220px;
+.rack{--cardh:152px;
   display:grid; grid-template-columns:1fr;        /* one integer per row */
   grid-auto-rows:var(--cardh); gap:10px; align-items:stretch;
   max-height:calc(var(--cardh)*3 + 20px);
@@ -76,24 +76,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .row{display:flex; flex-direction:column; gap:5px; padding:8px 9px; height:100%; overflow:hidden;
   background:var(--sunk); border:1px solid var(--rule); border-left:3px solid var(--brass); border-radius:3px}
 .row .body{flex:1; min-height:0; overflow:hidden;
-  display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start}
-.gcol{min-width:0; overflow:auto; align-self:start}
-.gcol::-webkit-scrollbar{display:none}
-.tcol{min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:3px}
-.tcol::-webkit-scrollbar{width:5px}
-.tcol::-webkit-scrollbar-thumb{background:var(--rule2); border-radius:3px}
-/* cells as the spectrometer draws them: a bordered, tinted box per digit */
-.gsq{display:grid; gap:2px; width:max-content}
-.gsc{width:var(--sc,14px); height:var(--sc,14px); display:flex; align-items:center;
-  justify-content:center; border-radius:2px; border:1px solid transparent;
-  font-family:"IBM Plex Mono",monospace; font-size:calc(var(--sc,14px) * .62);
-  font-weight:600; line-height:1}
-.gsc.b{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
-.gsc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
-.gsc.g{background:var(--green-w); color:var(--green); border-color:var(--green); opacity:.6}
-.gsc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
-.gcap{font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.09em;
-  text-transform:uppercase; color:var(--ink3); padding-top:3px}
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:12px}
 .form{min-width:0; display:flex; flex-direction:column; gap:3px; justify-content:flex-start}
 .rhead,.row .speedrow{flex:none}
 .rhead{display:flex; align-items:center; gap:7px}
@@ -107,23 +90,7 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .kspin button:hover{color:var(--brass); border-color:var(--brass)}
 .kspin button:active{background:var(--brass); color:var(--panel)}
 .dot{width:11px; height:11px; border-radius:50%; flex:none}
-.rm{margin-left:6px; width:24px; padding:2px 0; text-align:center}
-.mv{margin-left:auto; display:flex; gap:3px}
-.mv button{width:22px; padding:2px 0; text-align:center; line-height:1}
-.mv button:disabled{opacity:.3; cursor:default}
-.ord{font-family:"IBM Plex Mono",monospace; font-size:.66rem; color:var(--ink3);
-  border:1px solid var(--rule); border-radius:3px; padding:1px 4px; flex:none}
-/* the product grid, laid out as the rectangle it is — one character per cell,
-   so the anti-diagonals read straight off the screen */
-.gbits{display:grid; gap:0 0; justify-content:start; max-width:100%; overflow-x:auto;
-  font-family:"IBM Plex Mono",monospace; font-size:.72rem; line-height:1.3;
-  letter-spacing:0; padding-bottom:2px}
-.gbits::-webkit-scrollbar{display:none}
-.gbits i{font-style:normal; text-align:center}
-.gbits i.b{color:var(--blue); font-weight:600}
-.gbits i.r{color:var(--red)}
-.gbits i.g{color:var(--green); opacity:.5}
-.gbits i.f{box-shadow:inset 0 -1.5px 0 var(--brass)}
+.rm{margin-left:auto; width:24px; padding:2px 0; text-align:center}
 .chip{display:flex; align-items:center; gap:5px; font-family:"IBM Plex Mono",monospace;
   font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); cursor:pointer}
 .chip input{accent-color:var(--brass); width:13px; height:13px; margin:0; cursor:pointer}
@@ -139,10 +106,6 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rval b{color:var(--ink)}
 .rval.dim{color:var(--ink3)}
-.rval i{font-style:normal}
-.rval i.car{color:var(--brass); font-weight:600}   /* an anti-diagonal that owes a carry */
-.ans{border-left:2px solid var(--brass); padding-left:7px; margin-top:2px;
-  display:flex; flex-direction:column; gap:2px}
 
 .info{display:flex; flex-direction:column; gap:12px}
 .legend{display:flex; gap:15px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
@@ -173,6 +136,62 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 .rail canvas{aspect-ratio:1.55}
 .cap{font-size:.76rem; color:var(--ink3); line-height:1.45}
 .cap b{color:var(--ink2)}
+
+/* ---- Wubba Dub: a graphing-calculator column ----
+   Pinned at the top: the buttons, then a two-page gallery. Below it the
+   variable part, one numbered card per integer, each its own little gallery.
+   Dots page both, and only the visible page is ever drawn. */
+.left{display:flex; flex-direction:column; gap:0; overflow:hidden; padding-right:0}
+.pinned{flex:none; display:flex; flex-direction:column; gap:8px;
+  border-bottom:1px solid var(--rule); padding-bottom:9px; margin-bottom:8px}
+.gal{display:flex; flex-direction:column; gap:6px}
+.galpg{display:flex; flex-direction:column; gap:7px}
+.galpg[hidden]{display:none}
+.minis{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px}
+.minis figure{margin:0; display:flex; flex-direction:column; gap:2px; min-width:0}
+.minis figure.wide{grid-column:1 / -1}
+.minis canvas{width:100%; height:74px; display:block; background:var(--sunk);
+  border:1px solid var(--rule); border-radius:2px}
+.minis figure.wide canvas{width:min(100%,230px); height:150px; margin:0 auto}
+.mcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3)}
+/* the little dots */
+.dots{display:flex; gap:5px; justify-content:center; align-items:center; padding-top:2px}
+.dt{width:7px; height:7px; padding:0; border-radius:50%; border:1px solid var(--rule2);
+  background:transparent; cursor:pointer; flex:none}
+.dt:hover{border-color:var(--brass)}
+.dt.on{background:var(--brass); border-color:var(--brass)}
+.dt:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+/* the variable part */
+.cards{flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  display:flex; flex-direction:column; scrollbar-gutter:stable; padding-right:4px}
+.dcard{display:grid; grid-template-columns:30px minmax(0,1fr); align-items:stretch;
+  border-bottom:1px solid var(--rule); background:var(--panel)}
+.dcard:first-child{border-top:1px solid var(--rule)}
+.dcard.sel{background:var(--sunk)}
+/* Desmos puts the row number in a gutter; ours carries the colour too */
+.dgut{display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 0;
+  border-right:1px solid var(--rule); background:var(--sunk)}
+.dnum{font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3)}
+.dgut .dot{width:11px; height:11px; border-radius:50%; flex:none}
+.dmain{min-width:0; display:flex; flex-direction:column; gap:5px; padding:7px 9px 6px}
+.dhead{display:flex; align-items:center; gap:7px}
+.dpg{display:flex; flex-direction:column; gap:4px; min-height:112px}
+.dpg[hidden]{display:none}
+.dgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
+.dgrid canvas{width:100%; height:88px; display:block; background:var(--sunk);
+  border:1px solid var(--rule); border-radius:2px}
+.dpg canvas.solo{width:min(100%,230px); height:150px; display:block; margin:0 auto;
+  background:var(--sunk); border:1px solid var(--rule); border-radius:2px}
+.facts{display:grid; grid-template-columns:auto minmax(0,1fr); gap:2px 10px;
+  font-family:"IBM Plex Mono",monospace; font-size:.68rem; line-height:1.5}
+.facts dt{color:var(--ink3); text-transform:uppercase; letter-spacing:.07em; font-size:.55rem;
+  align-self:center}
+.facts dd{margin:0; color:var(--ink2); min-width:0; overflow-x:auto; white-space:nowrap}
+.facts dd::-webkit-scrollbar{display:none}
+.facts dd b{color:var(--ink)}
+.facts .bits i{font-style:normal}
 </style>
 </head>
 <body>
@@ -184,8 +203,8 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
     <a href="/atlas.html">Atlas</a>
     <a href="/wub.html">Wub ±</a>
     <a href="/wubx.html">Wub ×</a>
-    <a href="/wubdiv.html" class="cur" aria-current="page">Wub ÷</a>
-    <a href="/wubbadub.html">Wubba Dub</a>
+    <a href="/wubdiv.html">Wub ÷</a>
+    <a href="/wubbadub.html" class="cur" aria-current="page">Wubba Dub</a>
     <a href="/spec.html">Spec</a>
     <a href="/inspirations.html">Inspirations</a>
   </nav>
@@ -193,109 +212,73 @@ input[type=range].rb::-moz-range-thumb{width:13px; height:13px; border-radius:50
 
 <div class="stage">
   <aside class="left">
-  <header class="mast">
-    <span class="eyebrow">A = 2ᵉ · Q · B + R · exact at every width</span>
-    <h1>Wub ÷</h1>
-    <p class="sub">Division will not fit a grid the way multiplication does, and most quotients
-      do not terminate at all. Both problems go away by refusing to round: run the division only as
-      far as the grid allows and keep what is left over, so
-      <b>A</b> = 2<sup><i>e</i></sup>·<b>Q</b>·<b>B</b> + <b>R</b> holds <i>exactly</i> at every
-      width. <b>Q</b> is an ordinary stalk inside (−1,1), so it draws like any other number.
-      <b>e</b> is the multiplier on the boundary — the shift that brings the quotient back inside,
-      normalised so the leading cell is never wasted. <b>R</b> is a stalk too, and it is what the
-      repeating digits would have been. The grid drawn is the <b>tableau</b>: the rows of <b>B</b>
-      that got subtracted, which is the same rectangle <a href="/wubx.html">Wub ×</a> draws — only
-      solved for rather than read off. <b>Fold</b> is the equator, <b>Inner</b> reaches north,
-      <b>Outer</b> south. Mantissas carry down the rack and exponents add, so the running
-      <b>ring</b> is where the answer actually sits; colour comes from the mantissa, radius from the
-      ring. <b>Push</b> leaves the tableau alone and answers beside it: the quotient
-      <b>Q</b> spelled with as many lit cells as it has, which is its address. Push conserves the
-      value, so nothing else moves — that is the point of it. The phasors sit <span id="spacing">180°</span> apart and sum tip to tail.
-      The faint green dot on each arm is <b>R</b> — the part that did not fit. Widen the grid
-      and watch it fall back toward the arm it came from.</p>
-  </header>
-
-    <div class="panel controls">
+    <div class="pinned">
       <div class="addrow">
         <button class="add" id="addbtn">+ Add integer</button>
         <button class="add ghost" id="randbtn">Randomise</button>
         <button class="add ghost" id="resetbtn">Reset</button>
         <button class="add ghost" id="expbtn">Export curve</button>
       </div>
-      <div class="speedrow"><label for="wid">Digits</label>
-        <input type="range" id="wid" min="1" max="24" step="1" value="8"
-               aria-label="Quotient cells">
-        <span class="rv" id="widval">8 cells</span></div>
-      <div class="speedrow"><label for="speed">Sweep</label>
-        <input type="range" id="speed" min="0" max="1.5" step="0.01" value="0.12"
-               aria-label="Sweep frequency in laps per second">
-        <span class="rv" id="speedval">0.12 Hz</span></div>
-      <div class="speedrow"><label for="jit">Greens</label>
-        <input type="range" id="jit" min="0" max="360" step="1" value="0"
-               aria-label="Green rerolls per lap">
-        <span class="rv" id="jitval">frozen</span></div>
-      <div class="speedrow"><label for="bias">Bias</label>
-        <input type="range" id="bias" class="rb" min="-1" max="1" step="0.02" value="0"
-               aria-label="Green reroll bias, red to blue">
-        <span class="rv" id="biasval">50 / 50</span></div>
-      <div class="speedrow"><label for="shell">Shell</label>
-        <input type="range" id="shell" min="0" max="1" step="0.01" value="0.10"
-               aria-label="Sphere shell opacity">
-        <span class="rv" id="shellval">10%</span></div>
-      <div class="zoomrow"><label for="pstyle">Points</label>
-        <select id="pstyle" aria-label="How the points are drawn">
-          <option value="lights">lights</option>
-          <option value="birds">birds</option>
-          <option value="flames">flames</option>
-        </select>
-        <label class="chip" style="margin-left:auto"><input type="checkbox" id="pulse" checked><span>pulse</span></label>
-        <label class="chip"><input type="checkbox" id="autospin" checked><span>auto-spin</span></label>
+
+      <div class="gal">
+        <div class="galpg" data-p="0">
+          <div class="speedrow"><label for="speed">Sweep</label>
+            <input type="range" id="speed" min="0" max="1.5" step="0.01" value="0.12"
+                   aria-label="Sweep frequency in laps per second">
+            <span class="rv" id="speedval">0.12 Hz</span></div>
+          <div class="speedrow"><label for="jit">Greens</label>
+            <input type="range" id="jit" min="0" max="360" step="1" value="0"
+                   aria-label="Green rerolls per lap">
+            <span class="rv" id="jitval">frozen</span></div>
+          <div class="speedrow"><label for="bias">Bias</label>
+            <input type="range" id="bias" class="rb" min="-1" max="1" step="0.02" value="0"
+                   aria-label="Green reroll bias, red to blue">
+            <span class="rv" id="biasval">50 / 50</span></div>
+          <div class="speedrow"><label for="shell">Shell</label>
+            <input type="range" id="shell" min="0" max="1" step="0.01" value="0.05"
+                   aria-label="Sphere shell opacity">
+            <span class="rv" id="shellval">5%</span></div>
+          <div class="zoomrow"><label for="zoom">Zoom</label>
+            <input type="range" id="zoom" min="0" max="100" step="0.5" value="34" aria-label="Zoom">
+            <span class="rv" id="zoomval">1.0×</span></div>
+          <div class="zoomrow"><label for="pstyle">Points</label>
+            <select id="pstyle" aria-label="How the points are drawn">
+              <option value="lights">lights</option>
+              <option value="birds">birds</option>
+              <option value="flames">flames</option>
+            </select>
+            <label class="chip" style="margin-left:auto"><input type="checkbox" id="pulse" checked><span>pulse</span></label>
+            <label class="chip"><input type="checkbox" id="autospin" checked><span>auto-spin</span></label>
+          </div>
+        </div>
+
+        <div class="galpg" data-p="1" hidden>
+          <div class="minis">
+            <figure><canvas id="wavex" role="img" aria-label="Every integer's X"></canvas>
+              <figcaption class="mcap">1D · X</figcaption></figure>
+            <figure><canvas id="wavey" role="img" aria-label="Every integer's Y"></canvas>
+              <figcaption class="mcap">1D · Y</figcaption></figure>
+            <figure><canvas id="wavez" role="img" aria-label="Every integer's Z"></canvas>
+              <figcaption class="mcap">1D · Z</figcaption></figure>
+            <figure><canvas id="wubxy" tabindex="0" role="img" aria-label="The curve down Z"></canvas>
+              <figcaption class="mcap">2D · X–Y</figcaption></figure>
+            <figure><canvas id="wubyz" tabindex="0" role="img" aria-label="The curve down X"></canvas>
+              <figcaption class="mcap">2D · Y–Z</figcaption></figure>
+            <figure><canvas id="wubzx" tabindex="0" role="img" aria-label="The curve down Y"></canvas>
+              <figcaption class="mcap">2D · Z–X</figcaption></figure>
+            <figure class="wide"><canvas id="chelix" role="img" aria-label="Helix of the summed curve"></canvas>
+              <figcaption class="mcap">Helix · the summed curve, <span id="windfoot">—</span></figcaption></figure>
+          </div>
+        </div>
+
+        <div class="dots" id="topdots">
+          <button class="dt on" data-p="0" aria-label="Controls"></button>
+          <button class="dt" data-p="1" aria-label="Composite waves"></button>
+        </div>
       </div>
-      <div class="zoomrow"><label>Show</label>
-        <label class="chip"><input type="checkbox" id="rings" checked><span>rings</span></label>
-        <label class="chip"><input type="checkbox" id="showr" checked><span>remainder</span></label>
-      </div>
-      <div class="zoomrow"><label for="zoom">Zoom</label>
-        <input type="range" id="zoom" min="0" max="100" step="0.5" value="34" aria-label="Zoom">
-        <span class="rv" id="zoomval">1.0×</span></div>
     </div>
 
-      <div class="legend">
-        <span>colour is each grid&rsquo;s wavelength — violet 380 nm to red 730 nm</span>
-        <span><i class="sw" style="background:var(--ink)"></i>the average</span>
-        <span><i class="sw" style="background:var(--brass)"></i>the summed trace</span>
-        <span><i class="sw" style="background:var(--green)"></i>the remainder — the part that did not fit</span>
-        <span>drag the sphere to turn it — the corner cross snaps to an axis, its middle comes home</span>
-      </div>
-      <div class="stats" id="stats"></div>
-
-    <div class="rail">
-      <figure class="chart">
-        <canvas id="wavex" role="img" aria-label="Each integer's X over one period"></canvas>
-        <figcaption class="cap"><b>1D · X</b> <i>(i)</i> — round the equator.</figcaption>
-      </figure>
-      <figure class="chart">
-        <canvas id="wavey" role="img" aria-label="Each integer's Y over one period"></canvas>
-        <figcaption class="cap"><b>1D · Y</b> <i>(j)</i> — a quarter turn on.</figcaption>
-      </figure>
-      <figure class="chart">
-        <canvas id="wavez" role="img" aria-label="Each integer's Z over one period"></canvas>
-        <figcaption class="cap"><b>1D · Z</b> <i>(k)</i> — north by <b>Inner</b>, south by <b>Outer</b>.</figcaption>
-      </figure>
-      <figure class="chart">
-        <canvas id="wubxy" tabindex="0" role="img" aria-label="The curve seen down Z"></canvas>
-        <figcaption class="cap"><b>2D · X–Y</b> — seen down <i>k</i>. Drag to scrub.</figcaption>
-      </figure>
-      <figure class="chart">
-        <canvas id="wubyz" tabindex="0" role="img" aria-label="The curve seen down X"></canvas>
-        <figcaption class="cap"><b>2D · Y–Z</b> — seen down <i>i</i>.</figcaption>
-      </figure>
-      <figure class="chart">
-        <canvas id="wubzx" tabindex="0" role="img" aria-label="The curve seen down Y"></canvas>
-        <figcaption class="cap"><b>2D · Z–X</b> — seen down <i>j</i>.</figcaption>
-      </figure>
-    </div>
-    <div class="rack" id="rack"></div>
+    <div class="cards" id="cards"></div>
   </aside>
   <div class="right">
     <canvas id="sph" tabindex="0" role="img"
@@ -314,85 +297,40 @@ const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
    the stalk's three regions each become a channel. a green is undecided, so
    rolling it red-or-blue gives one concrete draw from inside that region's
    range; with no greens the region is a single number and never jitters. */
-const wOf = c => c.v * Math.pow(2, -c.w);
+const wOf = c => c.v * Math.pow(2, -(c.i + 1));
 const settled = cells => cells.reduce((s, c) => s + wOf(c), 0);
 /* a green is undecided, so it is rolled. BIAS leans that coin: -1 always red,
    +1 always blue, 0 an even chance. */
 let BIAS = 0;
 const coin = () => (Math.random() < (BIAS + 1) / 2 ? 1 : -1);
 const rolled = cells => cells.reduce((s, c) =>
-  s + (c.v !== 0 ? wOf(c) : coin() * Math.pow(2, -c.w)), 0);
-const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c.w) : 0), 0);
+  s + (c.v !== 0 ? wOf(c) : coin() * Math.pow(2, -(c.i + 1))), 0);
+const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -(c.i + 1)) : 0), 0);
 
-/* an operand as it is spelled: hex bits, most significant first, optionally
-   pushed toward the coarse end. */
-function operandDigits(e){
-  const {v, neg} = parse(String(e.k));
-  return hexSequence(v, neg).raw;
-}
-/* push is an answer, not a respelling: the grid is always built from the plain
-   operands, and ticking push adds the result's vector beside it rather than
-   rewriting anything. squash the anti-diagonals, settle the carries, push. */
-function answerHTML(digits){
-  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
-  const U = pushLeft(digits);
-  return `<div class="rval"><b>vector</b> ${digits.map(gl).join("")} = ${fmt(hexValue(digits))}</div>`
-    + `<div class="rval"><b>pushed</b> ${U.map(gl).join("")} = ${fmt(hexValue(U))}</div>`;
-}
-function squashHTML(P){
-  const S = squashDiagonals(P);
-  const owed = S.filter(v => Math.abs(v) > 1).length;
-  return `<div class="rval dim">squash `
-    + S.map(v => `<i class="${Math.abs(v) > 1 ? "car" : ""}">${v}</i>`).join(" ")
-    + ` \u00b7 ${owed ? `${owed} owe a carry` : "already digits"}</div>`;
-}
-/* the rack is a sequence divided left to right: A / B / C. Each step hands its
-   quotient down as the next dividend and adds its exponent to a running ring,
-   which is floating point exactly -- mantissas carry, exponents add. The
-   remainder is not carried. That is what makes it a remainder: it is shown, and
-   the step it belongs to owns it. */
-function steps(){
-  const out = [];
-  if(!KS.length) return out;
-  let acc = operandDigits(KS[0]), E = 0;
-  for(let i = 1; i < KS.length; i++){
-    const B = operandDigits(KS[i]);
-    const d = divide(acc, B, WIDTH);
-    if(!d){ out.push(null); continue; }        // a green divides into nothing
-    E += d.e;
-    out.push({d, B, E, dividend: acc, tab: hexProduct(B, d.Q)});
-    acc = d.Q;
-  }
-  return out;
-}
-function stepPhasor(s, i){
-  const g = s.tab, R = productRegions(g);
-  /* the ring is where this step's answer actually sits. turn it off and every
-     step is drawn at its own scale -- shape without size. */
-  const ring = RINGS ? Math.pow(2, s.E) : 1;
-  const inner = settled(R.inner) * ring, outer = settled(R.outer) * ring,
-        fold  = settled(R.fold)  * ring;
-  const runs = g.cells.reduce((c, d, j) => c + (j && d !== g.cells[j-1] ? 1 : 0), g.cells.length ? 1 : 0);
-  const qv = hexValue(s.d.Q);
-  const rem = Math.abs(Number(s.d.R.num)) / Number(s.d.R.den);
-  const dvd = Math.abs(dec(hexValue(s.dividend))) || 1;
+function phasor(k, push){
+  const {v, neg} = parse(String(k));
+  const {n, raw, cells} = hexSequence(v, neg);
+  const shown = push ? pushLeft(raw) : raw;
+  const full = shown.concat(cells.slice(raw.length));
+  const R = hexRegions(full, n);
+  const runs = full.reduce((c, d, i) => c + (i && d !== full[i-1] ? 1 : 0), full.length ? 1 : 0);
+  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
   return {
-    label: KS.slice(0, i + 2).map(e => `${e.k}${e.push ? "P" : ""}`).join("\u00f7"),
-    grid: g, n: g.cols, rows: g.rows, cols: g.cols, foldAt: g.foldAt,
-    shown: g.cells, R, ring,
-    Q: s.d.Q, e: s.d.e, E: s.E, rem: s.d.R, exact: s.d.exact, B: s.B,
-    /* how much of the dividend did not fit. the remainder dot rides this far up
-       its own arm, so widening the grid walks it back to where the arm began. */
-    rratio: Math.min(1, rem / dvd),
+    k, push, n, R, shown,
     inner, outer, fold,
-    greens: g.cells.filter(d => d === 0).length,
-    spread: spreadOf(R.outer) * ring,
+    greens: full.filter(d => d === 0).length,
+    spread: spreadOf(R.outer),
     amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
-    dir: Math.sign(fold) || (qv.num < 0n ? -1 : 1),
-    rateA: Math.max(1, g.cols),
-    rateB: Math.max(1, runs),
-    /* colour is the mantissa -- the shape. size is the ring. */
-    value: qv,
+    /* handedness must reverse with the sign, always. the Fold usually says
+       which way, but it can be exactly zero — then the integer's own sign
+       does, rather than defaulting everything to one direction. */
+    dir: Math.sign(fold) || (neg ? -1 : 1),
+    /* the hex string is nibble-quantised, so its length alone would put every
+       integer under 16 on the same rate. the bit length is what actually
+       varies, and it is what the stalk length stood for before. */
+    rateA: Math.max(1, v === 0n ? 1 : v.toString(2).length),
+    rateB: Math.max(1, runs),                // one per run of like colour
+    value: hexValue(shown),
   };
 }
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
@@ -534,24 +472,17 @@ function drawPoint(g, x, y, h, size, u, inverted){
   }
 }
 
-/* read by model(), so it has to be live before the first call */
-let WIDTH = 8, RINGS = true, SHOWR = true;
-
-let KS = [{k: 3, push: false, op: 0.55},
-          {k: 10, push: false, op: 0.55},
-          {k: 200, push: false, op: 0.55}];
+/* one card per integer. `pg` is which page of that card is showing; TOPPAGE
+   is which page of the pinned gallery is. Only what is showing gets drawn. */
+let KS = [{k: 3, pg: 0}, {k: 5, pg: 0}, {k: 7, pg: 0}];
+let TOPPAGE = 0;
+let CV = [];                       // per-card canvases, rebuilt with the list
 
 function model(){
-  /* step i is produced by row i+1, so that row owns its opacity slider */
-  const P = [];
-  steps().forEach((g, i) => {
-    if(!g) return;                            // the step that could not divide
-    const q = stepPhasor(g, i);
-    q.row = i + 1;
-    const e = KS[i + 1];
-    q.opacity = e && e.op !== undefined ? e.op : 0.55;
-    P.push(q);
-  });
+  /* one phasor per card, plain spelling. The pushed form is a fact on the
+     card rather than a second phasor -- push conserves the value, so it would
+     ride the same curve anyway. */
+  const P = KS.map(e => { const q = phasor(e.k, false); q.opacity = 0.55; return q; });
   const N = P.length;
   P.forEach((p, j) => {
     p.phase = TAU * j / N;                 // position in the ring stays positional
@@ -582,7 +513,7 @@ const comp = (p, t) => {
 let M = model(), CURVE = [], EXTENT = 1, RAD = [], RMAX = 1, RMEAN = 1;
 let WX = [], WY = [], WZ = [], AVGX = [], AVGY = [], AVGZ = [];
 let T = 0, FREQ = 0.12, LAST = null, DIVS = 0, LASTSLOT = null, DRAWN = null, PREV = null, BOUND = 0;
-let DRAG = null, SPIN = 0, TILT = .38, DRAG3 = null, ZOOM = 1, SHELL = 0.10;
+let DRAG = null, SPIN = 0, TILT = .38, DRAG3 = null, ZOOM = 1, SHELL = 0.05;
 let SNAP = null, AUTOSPIN = true;
 let MEASURE_T = null;
 /* the path each integer's joint has traced, newest last */
@@ -627,6 +558,120 @@ function fitCanvas(cv, ratio){
   ctx.clearRect(0, 0, W, H);
   return {ctx, W, H};
 }
+
+/* a helix on any canvas: the wave that a sine is one shadow of.
+
+   Two things this has to get right. A helix seen side-on IS a sine wave --
+   that is the projection, not a bug -- so the axis is turned partly into the
+   screen and the turns overlap. And the shape is built at unit scale and then
+   fitted to whatever canvas it is handed, because a tilted helix spreads much
+   further vertically than its radius suggests and any fixed constant either
+   overflows a short box or rattles around in a tall one. */
+function helixOn(cv, freq, colour, t){
+  if(!cv || !cv.getContext) return;
+  const {ctx: g, W, H} = fitCanvas(cv);
+  if(!(freq > 0)) return;
+  const spin = 1.05 + t * 0.00035;                 // never side-on
+  const ca = Math.cos(spin), sa = Math.sin(spin);
+  const TL = 0.55, ct = Math.cos(TL), st = Math.sin(TL);
+  /* the spectrometer's proportions, which is what makes a small one read: a
+     short axis and a fat tube, so the turns overlap however many there are.
+     L/R = 2 there (52px axis, 26px radius in a 129x86 box). Fixed, not
+     per-turn -- more turns tighten the spring rather than stretching it. */
+  const R = 1, L = 2;
+  const pr = (u, v, z) => {
+    const x = u * ca - v * sa, d = u * sa + v * ca;
+    return {x, y: -(z * ct - d * st), d};
+  };
+  const N = Math.max(240, Math.min(1600, freq * 90));
+  const pts = [];
+  for(let i = 0; i <= N; i++){
+    const f = i / N, ang = freq * f * TAU;
+    pts.push(pr(-L + 2 * L * f, Math.cos(ang) * R, Math.sin(ang) * R));
+  }
+  const axis = [pr(-L, 0, 0), pr(L, 0, 0)];
+  let lo = {x: 1e9, y: 1e9}, hi = {x: -1e9, y: -1e9}, dmax = 1e-9;
+  for(const q of pts.concat(axis)){
+    if(q.x < lo.x) lo.x = q.x; if(q.x > hi.x) hi.x = q.x;
+    if(q.y < lo.y) lo.y = q.y; if(q.y > hi.y) hi.y = q.y;
+    dmax = Math.max(dmax, Math.abs(q.d));
+  }
+  const pad = 7;
+  const sc = Math.min((W - 2 * pad) / (hi.x - lo.x || 1), (H - 2 * pad) / (hi.y - lo.y || 1));
+  const ox = (W - (hi.x - lo.x) * sc) / 2 - lo.x * sc;
+  const oy = (H - (hi.y - lo.y) * sc) / 2 - lo.y * sc;
+  const PX = q => q.x * sc + ox, PY = q => q.y * sc + oy;
+
+  g.beginPath(); g.moveTo(PX(axis[0]), PY(axis[0])); g.lineTo(PX(axis[1]), PY(axis[1]));
+  g.strokeStyle = col("--rule2"); g.lineWidth = 1;
+  g.setLineDash([3, 3]); g.stroke(); g.setLineDash([]);
+
+  g.strokeStyle = colour; g.lineWidth = 1.5;
+  for(let i = 1; i < pts.length; i++){
+    const a2 = pts[i - 1], b2 = pts[i];
+    g.globalAlpha = 0.25 + 0.75 * ((Math.max(a2.d, b2.d) / dmax) + 1) / 2;
+    g.beginPath(); g.moveTo(PX(a2), PY(a2)); g.lineTo(PX(b2), PY(b2)); g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+/* how many times the summed curve winds about the vertical in one period --
+   a real count, so the composite helix has a frequency to draw */
+function windingOf(){
+  let total = 0, prev = null;
+  for(const q of CURVE){
+    const a = Math.atan2(q.y, q.x);
+    if(prev !== null){
+      let d = a - prev;
+      while(d > Math.PI) d -= TAU;
+      while(d < -Math.PI) d += TAU;
+      total += d;
+    }
+    prev = a;
+  }
+  return Math.max(1, Math.round(Math.abs(total) / TAU));
+}
+
+/* ---- one card's own charts ---- */
+function card1D(cv, j, TRACES){
+  if(!cv || !TRACES[j]) return;
+  const {ctx, W, H} = fitCanvas(cv);
+  const pad = 6, w = W - pad*2, h = H - pad*2, cy = pad + h/2;
+  let peak = 1e-9;
+  for(const y of TRACES[j]) peak = Math.max(peak, Math.abs(y));
+  const sc = (h/2) / peak, X = i => pad + i / SAMPLES * w, Y = y => cy - y * sc;
+  ctx.strokeStyle = col("--rule2"); ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W-pad, cy); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = M.P[j].col; ctx.lineWidth = 1.4; ctx.beginPath();
+  TRACES[j].forEach((y, i) => i ? ctx.lineTo(X(i), Y(y)) : ctx.moveTo(X(i), Y(y)));
+  ctx.stroke();
+  const idx = Math.round(frac() * SAMPLES), px = pad + frac() * w;
+  ctx.strokeStyle = col("--ink3"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(px, pad); ctx.lineTo(px, H-pad); ctx.stroke();
+  ctx.beginPath(); ctx.arc(px, Y(TRACES[j][idx]), 3, 0, 7);
+  ctx.fillStyle = M.P[j].col; ctx.fill();
+}
+function card2D(cv, j, TA, TB){
+  if(!cv || !TA[j] || !TB[j]) return;
+  const {ctx, W, H} = fitCanvas(cv);
+  let m = 1e-9;
+  for(const v of TA[j]) m = Math.max(m, Math.abs(v));
+  for(const v of TB[j]) m = Math.max(m, Math.abs(v));
+  const S = (Math.min(W, H) * 0.42) / m, cx = W/2, cy = H/2;
+  ctx.strokeStyle = col("--rule2"); ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(pad0(W), cy); ctx.lineTo(W-pad0(W), cy);
+  ctx.moveTo(cx, pad0(H)); ctx.lineTo(cx, H-pad0(H)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = M.P[j].col; ctx.lineWidth = 1.4; ctx.beginPath();
+  for(let i = 0; i < TA[j].length; i++){
+    const x = cx + TA[j][i]*S, y = cy - TB[j][i]*S;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.stroke();
+  const idx = Math.round(frac() * SAMPLES);
+  ctx.beginPath(); ctx.arc(cx + TA[j][idx]*S, cy - TB[j][idx]*S, 3.2, 0, 7);
+  ctx.fillStyle = M.P[j].col; ctx.strokeStyle = col("--panel"); ctx.lineWidth = 1.4;
+  ctx.fill(); ctx.stroke();
+}
+const pad0 = d => Math.round(d * 0.05);
 
 function drawWave(id, TRACES, AVGS){
   const cv = $(id); if(!cv || !TRACES.length) return;
@@ -718,8 +763,7 @@ function draw(ts){
   const stale = !DRAWN || DRAWN.length !== M.P.length;
   const roll = () => M.P.map(p => still() || !p.greens
     ? {N: p.inner, S: p.outer, E: p.fold}
-    : {N: rolled(p.R.inner) * p.ring, S: rolled(p.R.outer) * p.ring,
-       E: rolled(p.R.fold) * p.ring});
+    : {N: rolled(p.R.inner), S: rolled(p.R.outer), E: rolled(p.R.fold)});
   if(still()){ DRAWN = M.P.map(p => ({N: p.inner, S: p.outer, E: p.fold})); PREV = DRAWN; }
   else if(!DIVS){ if(stale){ DRAWN = roll(); PREV = DRAWN; } }
   else if(slot !== LASTSLOT || stale){
@@ -758,14 +802,31 @@ function draw(ts){
     if(tr.length > TRAIL_MAX) tr.splice(0, tr.length - TRAIL_MAX);
   });
 
-  draw2D("wubxy", "x", "y", joints);      // down k
-  draw2D("wubyz", "y", "z", joints);      // down i
-  draw2D("wubzx", "z", "x", joints);      // down j
   const tip = joints.at(-1);
   drawSphere(tip, joints);
-  drawWave("wavex", WX, AVGX);
-  drawWave("wavey", WY, AVGY);
-  drawWave("wavez", WZ, AVGZ);
+
+  /* the pinned gallery: only the page that is showing */
+  if(TOPPAGE === 1){
+    drawWave("wavex", WX, AVGX);
+    drawWave("wavey", WY, AVGY);
+    drawWave("wavez", WZ, AVGZ);
+    draw2D("wubxy", "x", "y", joints);    // down k
+    draw2D("wubyz", "y", "z", joints);    // down i
+    draw2D("wubzx", "z", "x", joints);    // down j
+    const turns = windingOf();
+    helixOn($("chelix"), turns, col("--brass"), ts || 0);
+    const wf = $("windfoot");
+    if(wf) wf.textContent = `${turns} turn${turns === 1 ? "" : "s"} per period`;
+  }
+  /* and each card, only the page it is turned to */
+  KS.forEach((e, i) => {
+    const c = CV[i], p = M.P[i];
+    if(!c || !p) return;
+    const pg = e.pg || 0;
+    if(pg === 1){ card1D(c.x, i, WX); card1D(c.y, i, WY); card1D(c.z, i, WZ); }
+    else if(pg === 2){ card2D(c.xy, i, WX, WY); card2D(c.yz, i, WY, WZ); card2D(c.zx, i, WZ, WX); }
+    else if(pg === 3){ helixOn(c.helix, p.rateA, p.col, ts || 0); }
+  });
   if(typeof requestAnimationFrame === "function") requestAnimationFrame(draw);
 }
 
@@ -975,29 +1036,6 @@ function drawSphere(tip, joints){
   ctx.globalAlpha = .5; ctx.setLineDash([3,3]); ctx.stroke();
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 
-  /* ---- the remainder: how far up its own arm the step actually got ----
-     R = 0 puts the dot exactly on the arm's base, so widening the grid walks
-     every dot back to where its arm began. */
-  if(SHOWR && joints) M.P.forEach((p, j) => {
-    const a = joints[j], b = joints[j + 1];
-    if(!a || !b || p.opacity <= 0) return;
-    const f = p.rratio;
-    const q = proj({x: a.x + (b.x - a.x) * f,
-                    y: a.y + (b.y - a.y) * f,
-                    z: a.z + (b.z - a.z) * f}, unit);
-    const base = proj(a, unit);
-    ctx.globalAlpha = .5 * p.opacity;
-    ctx.strokeStyle = col("--green"); ctx.lineWidth = 1;
-    ctx.setLineDash([2, 3]);
-    ctx.beginPath(); ctx.moveTo(base.px, base.py); ctx.lineTo(q.px, q.py); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.globalAlpha = .85;
-    ctx.beginPath(); ctx.arc(q.px, q.py, 3, 0, 7);
-    ctx.fillStyle = col("--green"); ctx.strokeStyle = col("--panel"); ctx.lineWidth = 1.2;
-    ctx.fill(); ctx.stroke();
-    ctx.globalAlpha = 1;
-  });
-
   /* ---- the points, in whichever style is chosen ---- */
   for(const {pr, p, u} of lit){
     const near = 0.65 + 0.35 * (pr.d + 1) / 2;   // smaller when it is behind
@@ -1014,156 +1052,122 @@ function drawSphere(tip, joints){
   drawGizmo(ctx, W, H);
 }
 
-/* ---- the rack ---- */
-/* the rectangle, one character per cell. the fold is underlined, so you can
-   see it land on the last cell of the shorter operand. */
-/* one bordered, tinted box per digit -- the spectrometer's square, sized to
-   whatever room the card has. Below about 9px the glyph is unreadable, so the
-   colour carries it alone rather than printing a smudge. */
-function boxes(cells, cols, rows, foldAt){
-  /* width and height are budgeted separately -- sizing off max(rows, cols)
-     made a tall narrow tableau as tall as a wide one is wide */
-  const sz = Math.max(6, Math.min(34, Math.floor(150 / cols), Math.floor(118 / rows)));
-  const gl = sz >= 9;
-  const body = cells.map((v, i) => {
-    const r = Math.floor(i / cols), c = i % cols;
-    return `<div class="gsc ${cls(v)}${r + c === foldAt ? " fold" : ""}">${gl ? glyph(v) : ""}</div>`;
-  }).join("");
-  return `<div class="gsq" style="--sc:${sz}px;`
-    + ` grid-template-columns:repeat(${cols},var(--sc))">${body}</div>`;
-}
-const gridHTML = p => boxes(p.shown, p.cols, p.rows, p.foldAt);
-/* a plain stalk folded into its own square, the way the spectrometer shows one */
-function stalkSquareHTML(digits){
-  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
-  const cells = digits.slice();
-  while(cells.length < n * n) cells.push(0);
-  return boxes(cells, n, n, n - 1);
-}
-function paintRow(i, row){
-  const e = KS[i];
-  const d = operandDigits(e);
-  const bits = v => v.map(x => `<i class="${cls(x)}">${glyph(x)}</i>`).join("");
-  const p = M.P.find(q => q.row === i);
-  const text = [
-    `<div class="rval"><b>${i ? "\u00f7 " : ""}${e.k}</b> \u00b7 ${d.length} cells`
-    + ` \u00b7 ${fmt(hexValue(d))}</div>`,
-  ];
-  let square;
-  if(i && p){
-    square = `<div class="gcol">${gridHTML(p)}`
-      + `<div class="gcap">tableau ${p.rows}\u00d7${p.cols}</div></div>`;
-    text.push(`<div class="rval"><b>Q</b> ${bits(p.Q)} = ${fmt(p.value)}`
-      + ` \u00b7 ring 2<sup>${p.E}</sup>${p.e === p.E ? "" : ` (step 2<sup>${p.e}</sup>)`}</div>`);
-    text.push(`<div class="rval"><b>R</b> ${bits(fracDigits(p.rem))} = ${fmt(p.rem)}</div>`);
-    text.push(`<div class="rval dim">${p.exact ? "ran out exactly"
-      : `${(p.rratio * 100).toFixed(2)}% of the dividend left`}`
-      + ` \u00b7 ${Math.round(p.nm)} nm \u00b7 ${p.greens} green</div>`);
-    const K = knotOf(p);
-    text.push(`<div class="rval dim">${K.a}\u00d7${K.b} ${K.name}`
-      + `${K.knotted ? `, ${K.crossings} cr` : ""}</div>`);
-  } else if(i === 0){
-    square = `<div class="gcol">${stalkSquareHTML(d)}<div class="gcap">dividend</div></div>`;
-    text.push(`<div class="rval dim">nothing above it to divide by</div>`);
-  } else {
-    square = `<div class="gcol">${stalkSquareHTML(d)}<div class="gcap">zero</div></div>`;
-    text.push(`<div class="rval dim">this one is zero \u2014 nothing divides by green</div>`);
-  }
-  if(e.push) text.push(`<div class="ans">` + answerHTML(p ? p.Q : d) + `</div>`);
-  row.querySelector(".body").innerHTML = square + `<div class="tcol">${text.join("")}</div>`;
-  row.querySelector(".dot").style.background = p ? p.col : "transparent";
+/* ---- the cards ----
+   One numbered card per integer, the way a graphing calculator lists its
+   expressions, each paged by its own dots. Nothing off-page is drawn. */
+function factsHTML(p){
+  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
+  const bits = d => d.map(gl).join("");
+  const grouped = commas(p.shown, p.n).map(g => bits(g)).join(`<i class="cma">,</i>`);
+  const U = pushLeft(p.shown);
+  return `<dl class="facts">`
+    + `<dt>Inner</dt><dd>${p.inner.toFixed(6)}</dd>`
+    + `<dt>Fold</dt><dd>${p.fold.toFixed(6)}</dd>`
+    + `<dt>Outer</dt><dd>${p.outer.toFixed(6)}</dd>`
+    + `<dt>Value</dt><dd><b>${fmt(p.value)}</b> \u00b7 ${Math.round(p.nm)} nm`
+      + ` \u00b7 ${p.greens} green</dd>`
+    + `<dt>Cells</dt><dd class="bits">${bits(p.shown)}`
+      + ` \u00b7 ${p.shown.length} in ${p.n}\u00d7${p.n}</dd>`
+    + `<dt>Commas</dt><dd class="bits">${grouped}</dd>`
+    + `<dt>Push</dt><dd class="bits">${bits(U)} = ${fmt(hexValue(U))}</dd>`
+    + `</dl>`;
 }
 
-function rack(){
-  const el = $("rack");
-  const keep = el.scrollTop;            // a rebuild must not scroll you away
+function showPage(card, q){
+  card.querySelectorAll(".dpg").forEach(pg => { pg.hidden = +pg.dataset.p !== q; });
+  card.querySelectorAll(".dots .dt").forEach(d =>
+    d.classList[+d.dataset.p === q ? "add" : "remove"]("on"));
+}
+
+function cards(){
+  const el = $("cards");
+  const keep = el.scrollTop;
   el.innerHTML = KS.map((e, i) => `
-    <div class="row" data-i="${i}">
-      <div class="rhead">
-        <span class="dot"></span>
-        <span class="ord">${i + 1}</span>
-        <span class="knum">
-          <input type="text" class="kin" value="${e.k}" spellcheck="false" aria-label="Integer">
-          <span class="kspin">
-            <button class="kup" tabindex="-1" aria-label="Increase by one">&#9650;</button>
-            <button class="kdn" tabindex="-1" aria-label="Decrease by one">&#9660;</button>
+    <div class="dcard" data-i="${i}">
+      <div class="dgut"><span class="dnum">${i + 1}</span><span class="dot"></span></div>
+      <div class="dmain">
+        <div class="dhead">
+          <span class="knum">
+            <input type="text" class="kin" value="${e.k}" spellcheck="false" aria-label="Integer">
+            <span class="kspin">
+              <button class="kup" tabindex="-1" aria-label="Increase by one">&#9650;</button>
+              <button class="kdn" tabindex="-1" aria-label="Decrease by one">&#9660;</button>
+            </span>
           </span>
-        </span>
-        <label class="chip"><input type="checkbox" class="cu" ${e.push ? "checked" : ""}><span>pushed</span></label>
-        <span class="mv">
-          <button class="up" ${i === 0 ? "disabled" : ""} aria-label="Move earlier">&#9650;</button>
-          <button class="dn" ${i === KS.length - 1 ? "disabled" : ""} aria-label="Move later">&#9660;</button>
-        </span>
-        <button class="rm" aria-label="Remove">\u00d7</button>
+          <button class="rm" aria-label="Remove">\u00d7</button>
+        </div>
+        <div class="dpg" data-p="0"></div>
+        <div class="dpg" data-p="1" hidden><div class="dgrid">
+          <canvas data-k="x" role="img" aria-label="X over one period"></canvas>
+          <canvas data-k="y" role="img" aria-label="Y over one period"></canvas>
+          <canvas data-k="z" role="img" aria-label="Z over one period"></canvas></div></div>
+        <div class="dpg" data-p="2" hidden><div class="dgrid">
+          <canvas data-k="xy" role="img" aria-label="Seen down Z"></canvas>
+          <canvas data-k="yz" role="img" aria-label="Seen down X"></canvas>
+          <canvas data-k="zx" role="img" aria-label="Seen down Y"></canvas></div></div>
+        <div class="dpg" data-p="3" hidden>
+          <canvas class="solo" data-k="helix" role="img" aria-label="This integer as a helix"></canvas></div>
+        <div class="dots">
+          ${[0, 1, 2, 3].map(q =>
+            `<button class="dt${(e.pg || 0) === q ? " on" : ""}" data-p="${q}"`
+            + ` aria-label="${["facts", "1D", "2D", "helix"][q]}"></button>`).join("")}
+        </div>
       </div>
-      <div class="body"></div>
-      ${i ? `<div class="speedrow"><label style="min-width:38px">Path</label>
-        <input type="range" class="op" min="0" max="1" step="0.01"
-               value="${e.op === undefined ? 0.55 : e.op}" aria-label="Path opacity"></div>` : ``}
     </div>`).join("");
-  el.querySelectorAll(".row").forEach(row => {
-    const i = +row.dataset.i;
-    paintRow(i, row);
-    const kin = row.querySelector(".kin");
-    const setK = v => {
-      KS[i].k = v; kin.value = v;
-      recompute(); paintRow(i, row); stats();
-      TRAILS = [];                       // the old path belonged to a different number
-    };
+
+  CV = [];
+  el.querySelectorAll(".dcard").forEach(card => {
+    const i = +card.dataset.i, p = M.P[i];
+    card.querySelector(`.dpg[data-p="0"]`).innerHTML = p ? factsHTML(p) : "";
+    const dot = card.querySelector(".dgut .dot");
+    if(dot) dot.style.background = p ? p.col : "transparent";
+
+    const cv = {};
+    card.querySelectorAll("canvas").forEach(c => { cv[c.dataset.k] = c; });
+    CV[i] = cv;
+
+    const kin = card.querySelector(".kin");
+    const setK = v => { KS[i].k = v; kin.value = v; recompute();
+      const q = M.P[i];
+      card.querySelector(`.dpg[data-p="0"]`).innerHTML = q ? factsHTML(q) : "";
+      if(dot) dot.style.background = q ? q.col : "transparent";
+      TRAILS = []; };
     kin.addEventListener("input", ev => {
       const v = parseInt(ev.target.value, 10);
-      if(!isNaN(v)){ KS[i].k = v; recompute(); paintRow(i, row); stats(); TRAILS = []; }
+      if(!isNaN(v)){ KS[i].k = v; recompute();
+        const q = M.P[i];
+        card.querySelector(`.dpg[data-p="0"]`).innerHTML = q ? factsHTML(q) : "";
+        if(dot) dot.style.background = q ? q.col : "transparent";
+        TRAILS = []; }
     });
     kin.addEventListener("keydown", ev => {
       if(ev.key === "ArrowUp"){ setK((parseInt(kin.value, 10) || 0) + 1); ev.preventDefault(); }
       if(ev.key === "ArrowDown"){ setK((parseInt(kin.value, 10) || 0) - 1); ev.preventDefault(); }
     });
-    row.querySelector(".kup").addEventListener("click", () => setK((parseInt(kin.value, 10) || 0) + 1));
-    row.querySelector(".kdn").addEventListener("click", () => setK((parseInt(kin.value, 10) || 0) - 1));
-    row.querySelector(".cu").addEventListener("change", ev => {
-      KS[i].push = ev.target.checked; refresh();
+    card.querySelector(".kup").addEventListener("click", () => setK((parseInt(kin.value, 10) || 0) + 1));
+    card.querySelector(".kdn").addEventListener("click", () => setK((parseInt(kin.value, 10) || 0) - 1));
+    card.querySelector(".rm").addEventListener("click", () => {
+      if(KS.length > 1){ KS.splice(i, 1); refresh(); }
     });
-    const op = row.querySelector(".op");
-    if(op) op.addEventListener("input", ev => {
-      KS[i].op = parseFloat(ev.target.value);
-      const q = M.P.find(x => x.row === i); if(q) q.opacity = KS[i].op;
+    card.querySelectorAll(".dots .dt").forEach(d => {
+      d.addEventListener("click", () => { KS[i].pg = +d.dataset.p; showPage(card, KS[i].pg); });
     });
-    /* order is the whole point, so moving a row rewrites every grid below it */
-    const swap = j => { const t = KS[i]; KS[i] = KS[j]; KS[j] = t; refresh(); };
-    row.querySelector(".up").addEventListener("click", () => { if(i > 0) swap(i - 1); });
-    row.querySelector(".dn").addEventListener("click", () => { if(i < KS.length - 1) swap(i + 1); });
-    row.querySelector(".rm").addEventListener("click", () => {
-      if(KS.length > 2){ KS.splice(i, 1); refresh(); }   // two operands is the minimum
-    });
+    showPage(card, KS[i].pg || 0);
   });
   el.scrollTop = keep;
-  const sp = $("spacing");        // a page may not carry one; that is not fatal
-  if(sp) sp.textContent = M.N ? `${(360 / M.N).toFixed(0)}°` : "—";
 }
 
 function stats(){
+  const box = $("stats");
+  if(!box) return;                 // this page lists its facts on the cards instead
   const tot = M.P.reduce((s, p) => s + p.greens, 0);
-  $("stats").innerHTML = [
+  box.innerHTML = [
     ["Phasors", `${M.N}`, `spaced ${M.N ? (360/M.N).toFixed(0) : "—"}° apart`],
     ["Period", `${M.period.toFixed(3)} rad`, M.g ? `gcd of the rates is ${M.g}` : "no turning phasors"],
-    ["Reach", RMAX > 1e6 ? RMAX.toExponential(2) : RMAX.toFixed(4), (() => {
-      /* rings are true, but a wide spread makes one arm dwarf every other and
-         the picture collapses to a spike. say so rather than look broken. */
-      const Es = M.P.map(p => p.E);
-      const span = Es.length ? Math.max(...Es) - Math.min(...Es) : 0;
-      return span > 12
-        ? `rings span 2^${span} — one arm dwarfs the rest. Turn rings off to compare shapes`
-        : `mean ${RMEAN.toFixed(4)} — the sphere breathes between them`;
-    })()],
+    ["Reach", `${RMAX.toFixed(4)}`, `mean ${RMEAN.toFixed(4)} — the sphere breathes between them`],
     ["Greens", `${tot}`, tot
       ? `rerolled ${DIVS || "once"}${DIVS ? " /lap" : ""} · ${Math.round((BIAS + 1) / 2 * 100)}% blue`
       : "nothing undecided"],
-    ["Quotient", M.N ? `${sciText(M.P[M.N - 1].value)} \u00b7 2^${M.P[M.N - 1].E}` : "\u2014",
-      M.N ? `mantissa ${fmt(M.P[M.N - 1].value)} on ring ${M.P[M.N - 1].E}` : "one operand only"],
-    ["Remainder", M.N ? sciText(M.P[M.N - 1].rem) : "\u2014",
-      M.N ? (M.P.every(p => p.exact) ? "every step ran out exactly"
-        : `${M.P.filter(p => p.exact).length} of ${M.N} steps ran out exactly \u00b7 widen to shrink the rest`)
-        : "nothing divided"],
     ["Knots", `${M.P.filter(p => knotOf(p).knotted).length} / ${M.N}`,
       M.N ? M.P.map(p => knotOf(p).name).join(" · ") : "no phasors"],
     ["Crossings", BOUND === null ? "measuring\u2026" : `\u2264 ${BOUND}`,
@@ -1174,32 +1178,29 @@ function stats(){
     + `<span class="sval">${v}</span><span class="sfoot">${f}</span></div>`).join("");
 }
 
-function refresh(){ recompute(); rack(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = []; }
+function refresh(){ recompute(); cards(); stats(); DRAWN = null; PREV = null; LASTSLOT = null; TRAILS = []; }
 
 $("addbtn").addEventListener("click", () => {
-  KS.push({k: KS.length + 2, push: false, op: 0.55});
+  KS.push({k: KS.length + 2, pg: 0});
   refresh();
-  const el = $("rack");
+  const el = $("cards");
   el.scrollTop = el.scrollHeight;       // bring the one just added into view
 });
 $("randbtn").addEventListener("click", () => {
-  KS = KS.map(e => ({...e, k: Math.floor(Math.random()*511) - 255 || 1})); refresh();
+  KS = KS.map(e => ({...e, k: Math.floor(Math.random()*127) - 63 || 1})); refresh();
 });
 $("resetbtn").addEventListener("click", () => {
-  KS = [{k:3, push:false}, {k:10, push:false}, {k:200, push:false}];
-  WIDTH = 8; $("wid").value = 8; $("widval").textContent = "8 cells";
+  KS = [{k:3, pg:0}, {k:5, pg:0}, {k:7, pg:0}];
   refresh();
 });
 /* the sampled curve as plain xyz, for feeding to something that can actually
    classify it — SnapPy, KnotPlot, or anything that takes a polygonal knot. */
 $("expbtn").addEventListener("click", () => {
   const head = [
-    `# chronochromatic wub \u00f7 curve`,
-    `# sequence: ${KS.map(e => `${e.k}${e.push ? "(pushed)" : ""}`).join(" \u00f7 ")}`,
-    `# quotient: ${M.N ? `${fmt(M.P[M.N - 1].value)} x 2^${M.P[M.N - 1].E}` : "\u2014"}`,
-    `# remainder: ${M.N ? fmt(M.P[M.N - 1].rem) : "\u2014"} at ${WIDTH} cells`,
+    `# chronochromatic wub curve`,
+    `# integers: ${KS.map(e => e.k).join(", ")}`,
     `# phasors: ${M.N}, period ${M.period} rad, samples ${CURVE.length}`,
-    `# grids: ${M.P.map(p => `${p.label}:${p.rows}x${p.cols},A=${p.rateA},B=${p.rateB}`).join(" ")}`,
+    `# rates: ${M.P.map(p => `${p.k}:A=${p.rateA},B=${p.rateB}`).join(" ")}`,
     `# crossing bound found here: ${BOUND === null ? "not measured" : `<= ${BOUND} (best of ${CROSS_DIRS} projections)`}`,
     `# closed curve: the last point joins back to the first`,
     `# x y z`,
@@ -1208,7 +1209,7 @@ $("expbtn").addEventListener("click", () => {
   const blob = new Blob([head + "\n" + body + "\n"], {type: "text/plain"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `wubdiv-${KS.map(e => e.k).join("_")}.xyz`;
+  a.download = `wubbadub-${KS.map(e => e.k).join("_")}.xyz`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 });
@@ -1223,19 +1224,20 @@ function setZoom(z, moveSlider){
   if(moveSlider) $("zoom").value = sliderFromZ(ZOOM);
   $("zoomval").textContent = (ZOOM < 10 ? ZOOM.toFixed(2) : ZOOM.toFixed(1)) + "×";
 }
+$("topdots").addEventListener("click", e => {
+  const b = e.target.closest ? e.target.closest(".dt") : null;
+  if(!b) return;
+  TOPPAGE = +b.dataset.p;
+  document.querySelectorAll(".gal .galpg").forEach(pg => { pg.hidden = +pg.dataset.p !== TOPPAGE; });
+  $("topdots").querySelectorAll(".dt").forEach(d =>
+    d.classList[+d.dataset.p === TOPPAGE ? "add" : "remove"]("on"));
+});
 $("bias").addEventListener("input", e => {
   BIAS = parseFloat(e.target.value);
   const blue = Math.round((BIAS + 1) / 2 * 100);
   $("biasval").textContent = blue === 50 ? "50 / 50"
     : blue > 50 ? `${blue}% blue` : `${100 - blue}% red`;
 });
-$("wid").addEventListener("input", e => {
-  WIDTH = parseInt(e.target.value, 10);
-  $("widval").textContent = `${WIDTH} cell${WIDTH === 1 ? "" : "s"}`;
-  refresh();
-});
-$("rings").addEventListener("change", e => { RINGS = e.target.checked; refresh(); });
-$("showr").addEventListener("change", e => { SHOWR = e.target.checked; });
 $("shell").addEventListener("input", e => {
   SHELL = parseFloat(e.target.value);
   $("shellval").textContent = Math.round(SHELL * 100) + "%";

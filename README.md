@@ -20,6 +20,7 @@ always a dyadic rational strictly inside (−1, 1).
 | **Wub** | integers as phasors summed tip to tail, each riding an ellipsoid, tracing one closed curve. Torus knots, crossing counts, and a curve you can export |
 | **Wub ×** | multiplication as a rectangle; an ordered sequence of operands |
 | **Wub ÷** | division kept exact: quotient, a multiplier on the boundary, and the remainder drawn |
+| **Wubba Dub** | the wub as a graphing calculator: a pinned gallery, then one paged card per integer |
 | **Spec** | the convention, editable in the page |
 | **Inspirations** | who found each piece of this first |
 
@@ -43,6 +44,7 @@ node tools/gizmo.test.js        # the corner gizmo points where it says
 node tools/divide.test.js       # A = 2^e x Q x B + R, at every width
 node tools/wubdiv.test.js       # Wub div, including the parts run.js cannot reach
 node tools/load.test.js         # all three Wub pages under a full rack
+node tools/wubbadub.test.js     # the paged cards, and the helix fitting its box
 node tools/bulk.test.js         # 10,000 integers through both grids (~20s)
 ```
 
