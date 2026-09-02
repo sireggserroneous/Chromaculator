@@ -139,3 +139,18 @@ full accounting, with links.
 What I have not been able to place is the fold itself: laying a digit string along the
 anti-diagonals of a square and cutting it into three regions that sum back to the
 number. Held loosely.
+
+There is now some evidence for that, of an odd kind. A separate series of experiments
+read the site's pages as coding theory and built whatever each reading implied. Thirteen
+rounds, and **every one landed on something already in the literature** — the square on
+product codes, place value on residue arithmetic codes, the Atlas ordering on
+interleavers, the Wub on Reed–Solomon, the file-scale work on the PAQ/lpaq family. All
+of it is attributed in that series' own source, and none of it is claimed here.
+
+The negative result is the interesting half. Across all thirteen, the fold's own
+partition was **never the mechanism** — Inner and Outer appear nowhere in that work as
+regions, and neither does the anti-transpose that swaps them. Every derivation walked
+past the one construction the project cannot find a name for.
+
+That is not proof the fold is new. It is a record that thirteen honest attempts to reach
+prior art from inside this geometry all reached it by some other road.
