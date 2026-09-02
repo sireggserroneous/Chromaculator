@@ -1,0 +1,34 @@
+{
+ "one prime": {
+  "flaggedRow": {
+   "corrected": 292,
+   "ambiguous": 508,
+   "of": 800
+  },
+  "straddle": {
+   "corrected": 400,
+   "of": 400
+  },
+  "foldFilled": {
+   "corrected": 0,
+   "detected": 237,
+   "wrong": 63
+  }
+ },
+ "+ confirm": {
+  "flaggedRow": {
+   "corrected": 800,
+   "ambiguous": 0,
+   "of": 800
+  },
+  "straddle": {
+   "corrected": 400,
+   "of": 400
+  },
+  "foldFilled": {
+   "corrected": 0,
+   "detected": 300,
+   "wrong": 0
+  }
+ }
+}

@@ -154,3 +154,13 @@ past the one construction the project cannot find a name for.
 
 That is not proof the fold is new. It is a record that thirteen honest attempts to reach
 prior art from inside this geometry all reached it by some other road.
+
+A fourteenth, `eggSo-v0/`, then made the partition the mechanism for the first time — one
+residue check per region, Inner, Fold and Outer, with the fold's own identity
+`I + F + O = V` doing the accounting. It works, it met the bars it filed for itself, and
+it has a name: an **interleaved AN code**, with the fold as the interleaving pattern. The
+sharper finding is that as a pattern the fold is legitimate and sub-optimal — its
+496 / 32 / 496 split separates two random errors 53% of the time where a plain three-way
+split manages 67%. The thin seam that makes it the fold is what makes it worse.
+
+So: what one *does* with the fold has now been placed. What the fold *is* has not.

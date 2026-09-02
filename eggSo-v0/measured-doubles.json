@@ -1,0 +1,26 @@
+{
+ "one prime": {
+  "T": 2000,
+  "cross": 1048,
+  "crossShare": 0.524,
+  "crossFixed": 1048,
+  "crossDirect": 1048,
+  "sameR": 952,
+  "sameFixed": 0,
+  "detected": 736,
+  "wrong": 216,
+  "directShare": 0.524
+ },
+ "+ confirm": {
+  "T": 2000,
+  "cross": 1079,
+  "crossShare": 0.5395,
+  "crossFixed": 1079,
+  "crossDirect": 1079,
+  "sameR": 921,
+  "sameFixed": 2,
+  "detected": 919,
+  "wrong": 0,
+  "directShare": 0.5395
+ }
+}

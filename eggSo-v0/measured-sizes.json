@@ -1,0 +1,31 @@
+{
+ "onePrime": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 36,
+  "checkBytes": 5,
+  "totalBytes": 133,
+  "ratio": 1.0390625,
+  "overhead": 0.03515625,
+  "residuesPerSquare": 3
+ },
+ "confirm": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 48,
+  "checkBytes": 6,
+  "totalBytes": 134,
+  "ratio": 1.046875,
+  "overhead": 0.046875,
+  "residuesPerSquare": 4
+ },
+ "v1": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 24,
+  "checkBytes": 3,
+  "totalBytes": 131,
+  "ratio": 1.0234375,
+  "overhead": 0.0234375
+ }
+}
