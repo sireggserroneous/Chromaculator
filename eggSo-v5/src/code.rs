@@ -277,8 +277,30 @@ impl Opts {
     }
 }
 
-const PC_CANDIDATE_CAP: usize = 4096;
-const PC_COMBO_CAP: usize = 20000;
+/// The per-candidate search's caps, v0's constants.
+///
+/// **These do not scale with `L`, and that is a real size limit rather than a
+/// tuning knob.** The number of in-class cell PAIRS whose weights sum to a
+/// given syndrome grows about linearly with the square: roughly
+/// `(|class| choose 2) / p` which is about `L/36`. So the pair enumeration
+/// runs into `PC_CANDIDATE_CAP` at `L` about `36 * 4096 = 147,456`, i.e. at a
+/// width of about `n = 384`, and past that point `class_pairs` truncates
+/// before it reaches the true pair.
+///
+/// Measured, on same-class doubles: 96.7% at `n = 256`, 97.5% at `n = 384`,
+/// **60.8% at `n = 448` and 58.3% at `n = 512`** -- and `wrong` stays 0 the
+/// whole way, so the failure is a REFUSAL and not a lie. See
+/// `the_pair_cap_is_a_size_limit_and_it_fails_safe`.
+pub const PC_CANDIDATE_CAP: usize = 4096;
+pub const PC_COMBO_CAP: usize = 20000;
+
+/// The width at which the pair enumeration starts truncating, from the
+/// estimate `L/36` against `PC_CANDIDATE_CAP`. Approximate by construction --
+/// it is a mean pair count, not a bound.
+pub fn pair_cap_crossover_width() -> usize {
+    let l = 36 * PC_CANDIDATE_CAP;
+    (l as f64).sqrt() as usize
+}
 
 /// Repair one square in place. eggSo-v0's `repairSquare`, ported, including
 /// the erasure caps at their v0 values (16 flagged per class, 64 hits, 8192
@@ -827,6 +849,64 @@ mod tests {
             amended > shipped * 2,
             "per-candidate {amended} should dwarf after-plan {shipped}"
         );
+    }
+
+    /// The pair cap is a SIZE LIMIT, and the round now says so rather than
+    /// discovering it at some future width.
+    ///
+    /// `PC_CANDIDATE_CAP` is a fixed 4096 while the number of in-class pairs
+    /// hitting a syndrome grows as about `L/36`, so past `n` about 384 the
+    /// enumeration truncates before reaching the true pair. The thing that
+    /// makes this tolerable rather than dangerous is the second assert: the
+    /// lost corrections become REFUSALS, never miscorrections.
+    #[test]
+    fn the_pair_cap_is_a_size_limit_and_it_fails_safe() {
+        assert!(
+            (350..=400).contains(&pair_cap_crossover_width()),
+            "the crossover estimate moved to {}",
+            pair_cap_crossover_width()
+        );
+
+        let run = |n: usize, trials: usize| {
+            let c = Code::new(n, true, "diag3", |r, c, _j, _n| ((r + c) % 3) as u8);
+            let mut g = Mul32::new(7);
+            let (mut ok, mut wrong) = (0usize, 0usize);
+            for _ in 0..trials {
+                let clean = g.cells(c.l);
+                let check = c.checks_for(&clean);
+                let mut h = clean.clone();
+                let k = g.pick(3);
+                let m = &c.members[k];
+                let a = m[g.pick(m.len())];
+                let mut b = m[g.pick(m.len())];
+                while b == a {
+                    b = m[g.pick(m.len())];
+                }
+                h[a] ^= 1;
+                h[b] ^= 1;
+                let r = repair(&mut h, &check, &c, &Opts::new());
+                if r.status == Status::Corrected {
+                    if h == clean {
+                        ok += 1;
+                    } else {
+                        wrong += 1;
+                    }
+                }
+            }
+            (ok, wrong)
+        };
+
+        // under the cap: the channel works, as it does at n = 32
+        let (under, w_under) = run(128, 40);
+        assert_eq!(under, 40, "n=128 should still clear same-class doubles");
+        assert_eq!(w_under, 0);
+
+        // over the cap: corrections are lost
+        let (over, w_over) = run(512, 40);
+        assert!(over < 36, "n=512 corrected {over}/40 -- the cap is not biting");
+
+        // AND THE POINT: what is lost is refused, not miscorrected
+        assert_eq!(w_over, 0, "n=512 miscorrected {w_over} -- the cap does NOT fail safe");
     }
 
     /// A flagged erasure per class is recovered, which is the channel a blind

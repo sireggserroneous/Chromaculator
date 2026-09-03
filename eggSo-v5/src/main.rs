@@ -1477,24 +1477,37 @@ fn cmd_sizes(full: bool) -> usize {
     println!("  So the burst is swept twice: a fixed 12 cells, and 3n/8, which IS 12 at n = 32 and");
     println!("  therefore agrees with the round exactly there and diverges on either side.\n");
 
-    let widths: Vec<usize> =
-        if full { vec![8, 16, 24, 32, 48, 64, 96] } else { vec![8, 16, 32, 64, 96] };
-    let trials = if full { 400 } else { 200 };
+    let widths: Vec<usize> = if full {
+        vec![8, 16, 24, 32, 48, 64, 96, 128, 256, 384, 512]
+    } else {
+        vec![8, 16, 32, 64, 128, 256, 384, 512]
+    };
+    let trials = if full { 400 } else { 120 };
 
-    println!("  the price, which the round quoted as one number:");
-    println!("  {:<6}{:>9}{:>8}{:>8}{:>12}{:>14}", "n", "L", "p", "bits", "overhead", "|class|/p");
+    println!("  the price, the alias density, and the ONE thing that breaks at scale:");
+    println!(
+        "  {:<6}{:>9}{:>9}{:>6}{:>10}{:>11}{:>9}{:>17}",
+        "n", "L", "p", "bits", "overhead", "|class|/p", "pairs", "2 same class"
+    );
     let mut price = Vec::new();
     for &n in &widths {
         let c = Code::new(n, true, "diag3", seam::a_diag3);
         let cls = c.sizes()[0] as f64 / c.p as f64;
+        // the expected in-class pairs hitting one syndrome, about L/36, against
+        // the fixed PC_CANDIDATE_CAP
+        let pairs = c.l / 36;
+        let d = seam::run_channel(&c, Channel::TwoSameClass, trials, 7).unwrap();
         println!(
-            "  {:<6}{:>9}{:>8}{:>8}{:>11.2}%{:>14.4}",
+            "  {:<6}{:>9}{:>9}{:>6}{:>9.3}%{:>11.4}{:>9}{:>13} {}",
             n,
             c.l,
             c.p,
             c.check_bits(),
             100.0 * c.overhead(),
-            cls
+            cls,
+            pairs,
+            format!("{}/{}", d.corrected, trials),
+            if pairs > code::PC_CANDIDATE_CAP { "<- past the cap" } else { "" }
         );
         price.push(obj(&[
             ("n", J::U(n)),
@@ -1503,12 +1516,25 @@ fn cmd_sizes(full: bool) -> usize {
             ("checkBits", J::U(c.check_bits())),
             ("overhead", J::N(c.overhead())),
             ("classOverP", J::N(cls)),
+            ("expectedPairsPerSyndrome", J::U(pairs)),
+            ("pairCap", J::U(code::PC_CANDIDATE_CAP)),
+            ("sameClassDoubleCorrected", J::U(d.corrected)),
+            ("sameClassDoubleWrong", J::U(d.wrong)),
+            ("of", J::U(trials)),
         ]));
     }
-    println!("    4.69% is the cost AT n = 32. It is 50% at n = 8 and 0.65% at n = 96, so the");
+    println!("    4.69% is the cost AT n = 32. It is 50% at n = 8 and 0.03% at n = 512, so the");
     println!("    round's overhead figure is a point and not a property -- as eggSo-v3 already");
-    println!("    found at file scale. |class|/p is v4's alias density, and it is nearly");
-    println!("    size-invariant at about 1/6, which is why the pair rates below barely move.");
+    println!("    found at file scale. |class|/p is v4's alias density and it is nearly");
+    println!("    size-invariant at about 1/6, which is why the pair rate holds up... until it");
+    println!("    does not. `pairs` is the expected in-class pairs hitting one syndrome, about");
+    println!("    L/36, against v0's FIXED PC_CANDIDATE_CAP of {}. Past a width of about {},",
+        code::PC_CANDIDATE_CAP, code::pair_cap_crossover_width());
+    println!("    class_pairs truncates before it reaches the true pair and the channel collapses.");
+    println!("    This is the same caps-do-not-scale mechanism as the burst ceiling, and it is a");
+    println!("    REAL SIZE LIMIT of the construction rather than a tuning knob. What makes it");
+    println!("    tolerable: the lost corrections become REFUSALS. `wrong` stays 0 at every width,");
+    println!("    so the code fails safe at scale rather than lying at scale.");
 
     // the class-assignment signature `seam.rs` fixes: (r, c, j, n) -> class
     type Assign = fn(usize, usize, usize, usize) -> u8;
@@ -1580,8 +1606,15 @@ fn cmd_sizes(full: bool) -> usize {
     println!("    other: under a FIXED burst every arm improves with width, because 12 cells of a");
     println!("    96-wide row is a smaller wound than 12 cells of a 32-wide one. Under a SCALED");
     println!("    burst the arms that concentrate run into v0's 16-per-class ceiling and stop");
-    println!("    dead, while the arms at the burst floor keep working -- which is Part 2's");
-    println!("    optimum showing up as a survival difference rather than as a count.");
+    println!("    dead, while the arms at the burst floor keep going -- which is Part 2's optimum");
+    println!("    showing up as a survival difference rather than as a count.");
+    println!("    AND THEN THE OPTIMAL ARMS DIE TOO, which is the part worth having. At a fixed");
+    println!("    fraction the floor itself grows: diag3 holds w at ceil(n/8) and crosses 16 at");
+    println!("    n = 128, while fold and blocks carry w = 3n/8 and cross it at n = 43. The ratio");
+    println!("    of those two widths is 128/43 = 3.0 -- EXACTLY the factor the burst optimum can");
+    println!("    buy, because there are three classes and it spreads a burst over all of them.");
+    println!("    So the optimum is worth a 3x wider wound and not one cell more, and against a");
+    println!("    ceiling that does not scale it postpones the failure rather than removing it.");
 
     println!("\n  the channels that do NOT depend on the burst geometry, corrected of {trials}:");
     print!("  {:<7}", "n");
@@ -1623,8 +1656,51 @@ fn cmd_sizes(full: bool) -> usize {
         flat.push(obj(&[("n", J::U(n)), ("channels", J::A(cells))]));
     }
     println!("    these are the rates v4 explained by |class|/p, and they are flat because that");
-    println!("    ratio is. So the round's PAIR figures do generalise across width, and its BURST");
-    println!("    figures and its OVERHEAD figure do not.");
+    println!("    ratio is -- up to the pair cap above. So the round's PAIR figures generalise");
+    println!("    across width until n is about {}, and its BURST and OVERHEAD figures do not",
+        code::pair_cap_crossover_width());
+    println!("    generalise at all.");
+
+    // ---- and the arithmetic of the width itself, which costs nothing -----
+    println!("\n  THE ARITHMETIC OF THE WIDTH. Part 2's theorem depends on n only through");
+    println!("  n mod 3 and the gcds, so 'would a different width change it?' is answerable");
+    println!("  without measuring a single square. 2 = -1 (mod 3), so 2^k mod 3 alternates:");
+    println!("  {:<6}{:>10}{:>7}{:>9}   {:<12}{:>7}{:>9}", "k", "2^k-1", "mod 3", "linear?", "2^k", "mod 3", "linear?");
+    let mut width_rows = Vec::new();
+    for k in 2..=13u32 {
+        let m = (1usize << k) - 1;
+        let t = 1usize << k;
+        println!(
+            "  {:<6}{:>10}{:>7}{:>9}   {:<12}{:>7}{:>9}",
+            k,
+            m,
+            m % 3,
+            if optimum::admits_linear_optimum(m) { "YES" } else { "no" },
+            t,
+            t % 3,
+            if optimum::admits_linear_optimum(t) { "YES" } else { "no" }
+        );
+        width_rows.push(obj(&[
+            ("k", J::U(k as usize)),
+            ("mersenne", J::U(m)),
+            ("mersenneAdmitsLinear", J::B(optimum::admits_linear_optimum(m))),
+            ("powerOfTwo", J::U(t)),
+            ("powerOfTwoAdmitsLinear", J::B(optimum::admits_linear_optimum(t))),
+        ]));
+    }
+    let any_mersenne = (2..=40u32).any(|k| optimum::admits_linear_optimum((1usize << k) - 1));
+    println!("    A POWER OF TWO ALTERNATES: 2^k is 2 (mod 3) exactly when k is ODD, so 8, 32,");
+    println!("    128, 512 admit a linear burst optimum and 4, 16, 64, 256 do not. eggSo-v4's");
+    println!("    idx3 swept clean at n = 32 = 2^5 and would have FAILED at 64 and at 256.");
+    println!("    A MERSENNE NUMBER NEVER DOES: M_k = 2^k - 1 is 1 (mod 3) for odd k and 0 for");
+    println!("    even k, so it is never 2. Checked k = 2..40: {} qualify.", if any_mersenne { "some" } else { "NONE" });
+    println!("    And PRIMALITY IS IRRELEVANT -- the Mersenne primes 31 and 127 behave exactly");
+    println!("    like the composites 511 = 7*73 and 2047 = 23*89, because only the residue and");
+    println!("    the gcds enter. At L = 12 the lemma kills every Mersenne width by BOTH parities");
+    println!("    through two different conditions: k even puts 3 into gcd(n,12) and the COLUMN");
+    println!("    fails; k odd puts 6 into gcd(n-1,12) and the ANTI-DIAGONAL fails instead.");
+    println!("    So 'try a Mersenne width' is a clean question with a flat no for an answer, and");
+    println!("    the reason is the 2-adic structure and not the factorisation.");
 
     let _ = record(
         "sizes",
@@ -1636,8 +1712,15 @@ fn cmd_sizes(full: bool) -> usize {
             ("widths", J::A(widths.iter().map(|&w| J::U(w)).collect())),
             ("trials", J::U(trials)),
             ("price", J::A(price)),
+            ("pairCap", J::U(code::PC_CANDIDATE_CAP)),
+            ("pairCapCrossoverWidth", J::U(code::pair_cap_crossover_width())),
             ("burstRegimes", J::A(rows)),
             ("geometryIndependentChannels", J::A(flat)),
+            ("widthArithmetic", J::A(width_rows)),
+            (
+                "widthFindings",
+                J::s("2^k admits a linear burst optimum exactly when k is odd; no Mersenne number ever does, prime or composite, because 2^k-1 is never 2 mod 3"),
+            ),
         ]),
     );
     widths.len()

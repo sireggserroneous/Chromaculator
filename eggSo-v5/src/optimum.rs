@@ -252,6 +252,26 @@ pub fn linear_solutions(n: usize) -> Vec<(usize, usize)> {
     out
 }
 
+/// Which widths admit a linear partition that is burst-optimal on all four
+/// geometries, as a closed form rather than as a search: exactly
+/// `n = 2 (mod 3)`, by `linear_solutions`'s theorem.
+///
+/// Two corollaries worth having, because they answer "would a different width
+/// change this?" without measuring anything. `2^k mod 3` alternates `2, 1`
+/// with the parity of `k`, since `2 = -1 (mod 3)`. So:
+///
+///   * **a power of two alternates.** `n = 2^k` admits a linear optimum
+///     exactly when `k` is ODD -- 8, 32, 128, 512, 2048 yes; 4, 16, 64, 256,
+///     1024 no. eggSo-v4's `idx3` swept clean at `n = 32 = 2^5`, and it would
+///     have failed at 64 and at 256.
+///   * **a Mersenne number NEVER does.** `M_k = 2^k - 1 = 1 (mod 3)` for odd
+///     `k` and `0 (mod 3)` for even `k`, so it is never `2 (mod 3)`. That
+///     holds whether `M_k` is prime or composite: primality is irrelevant
+///     here, because only the residue and the gcds matter.
+pub fn admits_linear_optimum(n: usize) -> bool {
+    n % 3 == 2
+}
+
 /// The lowest-energy linear arm at `(n, L)`, which is what the annealer is
 /// seeded from. Ties break toward the lower `(a, b)`, deterministically.
 pub fn best_linear(n: usize, l: usize) -> (usize, usize, usize) {
@@ -877,6 +897,83 @@ mod tests {
         }
         assert!(linear_solutions(32).contains(&(2, 1)));
         assert_eq!(32 % 3, 2);
+    }
+
+    /// The closed form against the search it replaces, and then the two
+    /// width corollaries. This answers "would bigger squares change the
+    /// results?" for Part 2 without measuring a single square.
+    #[test]
+    fn a_power_of_two_alternates_and_a_mersenne_never_qualifies() {
+        for n in 2..=512usize {
+            assert_eq!(
+                admits_linear_optimum(n),
+                !linear_solutions(n).is_empty(),
+                "the closed form disagrees with the theorem at n={n}"
+            );
+        }
+
+        // a power of two admits one exactly when the exponent is odd
+        for k in 2..=20u32 {
+            let n = 1usize << k;
+            assert_eq!(
+                admits_linear_optimum(n),
+                k % 2 == 1,
+                "2^{k} = {n}"
+            );
+        }
+        // v4's clean sweep was at 2^5, and 2^6 and 2^8 would have failed
+        assert!(admits_linear_optimum(32));
+        assert!(!admits_linear_optimum(64));
+        assert!(!admits_linear_optimum(256));
+        assert!(admits_linear_optimum(512));
+
+        // and no Mersenne number qualifies, prime or composite
+        for k in 2..=40u32 {
+            let m = (1usize << k) - 1;
+            assert!(!admits_linear_optimum(m), "M_{k} = {m} qualified");
+            assert_ne!(m % 3, 2);
+        }
+        // the Mersenne PRIMES in range and the composites behave identically,
+        // which is the point: primality is not what decides this
+        for m in [3usize, 7, 31, 127, 8191] {
+            assert!(!admits_linear_optimum(m), "Mersenne prime {m}");
+        }
+        for m in [15usize, 63, 255, 511, 2047] {
+            assert!(!admits_linear_optimum(m), "Mersenne composite {m}");
+        }
+    }
+
+    /// And the lemma kills Mersenne widths at `L = 12` by BOTH parities, via
+    /// two different conditions -- which is why "try a Mersenne width" does
+    /// not rescue the burst optimum.
+    #[test]
+    fn the_lemma_rules_out_mersenne_widths_two_different_ways() {
+        // M_3 = 7 is the VACUOUS case and is excluded on purpose: a 12-cell
+        // run does not fit across a 7-wide grid, so the column and
+        // anti-diagonal geometries have no windows at all and the lemma is
+        // trivially satisfied. That is the same vacuity the reporting prints
+        // as `--` rather than as a pass, and it is not a counterexample.
+        assert!(periodicity_lemma(7, 12).possible);
+        assert!(periodicity_lemma(7, 12).col_quotient.is_none());
+
+        for k in 4..=12u32 {
+            let n = (1usize << k) - 1;
+            assert!(12 <= n, "M_{k} is too narrow for this claim");
+            let lem = periodicity_lemma(n, 12);
+            assert!(lem.applies);
+            assert!(!lem.possible, "M_{k} = {n} was possible at L=12");
+            if k % 2 == 0 {
+                // n = 0 mod 3, so 3 divides gcd(n, 12) and the COLUMN fails
+                assert_eq!(n % 3, 0);
+                assert!(gcd(n, 12).is_multiple_of(3), "M_{k}");
+            } else {
+                // n - 1 = 2(2^(k-1) - 1) with k-1 even, so 3 | n-1 and
+                // 6 | gcd(n-1, 12): the ANTI-DIAGONAL fails instead
+                assert_eq!(n % 3, 1);
+                assert!((n - 1).is_multiple_of(6), "M_{k}");
+                assert!(gcd(n - 1, 12).is_multiple_of(6), "M_{k}");
+            }
+        }
     }
 
     /// The periodicity lemma's own arithmetic, and the cases the round calls

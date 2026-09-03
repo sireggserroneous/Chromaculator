@@ -591,3 +591,79 @@ into a capability rather than a survival margin.
 **Bars unchanged again** — none of them was stated as size-independent — but two of the
 round's headline numbers, the 4.69% and the burst table, are now correctly labelled as
 measurements at n = 32 rather than properties of the arms.
+
+## Third addendum, 2026-09-03 — bigger squares, and the Mersenne question
+
+Asked whether bigger squares would change anything, and whether a Mersenne width — prime or
+composite — would. Both were filed as predictions before measuring, per this file's own rule.
+
+**Filed:** the price and the pair rates hold no surprises, because overhead goes as
+`log L / L` and `|class|/p → 1/6`; but the caps-do-not-scale mechanism should bite a second
+time, since the in-class pairs hitting one syndrome grow as about `L/36` against a **fixed**
+`PC_CANDIDATE_CAP` of 4096 — crossover at `L ≈ 147,456`, i.e. **n ≈ 384**. And on Mersenne:
+`2 ≡ −1 (mod 3)` so `2^k mod 3` alternates, which makes `M_k = 2^k − 1` congruent to 1 (k odd)
+or 0 (k even) and **never 2** — so no Mersenne width admits a linear burst optimum, while
+powers of two **alternate**.
+
+### The cap prediction landed, including the crossover
+
+| n | L | overhead | `\|class\|/p` | expected pairs | 2 same class, of 120 |
+| --- | --- | --- | --- | --- | --- |
+| 32 | 1,024 | 4.688% | 0.1661 | 28 | 118 |
+| 128 | 16,384 | 0.391% | 0.1666 | 455 | 116 |
+| 256 | 65,536 | 0.110% | 0.1666 | 1,820 | 116 |
+| **384** | 147,456 | 0.052% | 0.1667 | **4,096** | **117** |
+| **512** | 262,144 | **0.031%** | 0.1667 | **7,281** | **70** |
+
+The channel collapses between 384 and 512, exactly where the expected pair count crosses the
+cap. **And `wrong` stays 0 at every width**: the lost corrections become *refusals*, so the
+construction **fails safe at scale rather than lying at scale**. My finer estimate of the
+degraded rate — about 80% — was wrong; measured 58–61%, so the truncation is harsher than the
+rank argument suggested. `PC_CANDIDATE_CAP` is now documented in `code.rs` as a real size
+limit rather than a tuning constant, with a test pinning both the crossover and the
+fail-safe.
+
+### The Mersenne question: a clean no, and not for the reason it looks like
+
+| k | `M_k = 2^k − 1` | mod 3 | linear optimum? | `2^k` | mod 3 | linear optimum? |
+| --- | --- | --- | --- | --- | --- | --- |
+| 3 | 7 | 1 | no | 8 | 2 | **YES** |
+| 5 | 31 | 1 | no | **32** | 2 | **YES** |
+| 6 | 63 | 0 | no | 64 | 1 | no |
+| 8 | 255 | 0 | no | 256 | 1 | no |
+| 9 | 511 | 1 | no | **512** | 2 | **YES** |
+
+- **No Mersenne width ever admits a linear burst optimum.** Checked `k = 2..40`: none.
+- **A power of two alternates**, admitting one exactly when `k` is odd. So v4's `idx3` swept
+  clean at `n = 32 = 2^5` and **would have failed at 64 and at 256** — which is a sharper
+  statement of v4's own "accident of `32 ≡ 2 (mod 3)`" than v4 could make.
+- **Primality is irrelevant.** The Mersenne primes 31 and 127 behave identically to the
+  composites 511 = 7·73 and 2047 = 23·89, because only the residue and the gcds enter. At
+  `L = 12` the lemma kills every Mersenne width by *both* parities through *two different*
+  conditions: `k` even puts 3 into `gcd(n, 12)` and the **column** fails; `k` odd puts 6 into
+  `gcd(n−1, 12)` and the **anti-diagonal** fails instead.
+
+So the box-opening question has a flat answer, and the reason is the **2-adic structure of the
+width**, not its factorisation. One honest exclusion: `M_3 = 7` with `L = 12` is the *vacuous*
+case — a 12-cell run does not fit across a 7-wide grid, so the column and anti-diagonal
+geometries have no windows and the lemma is trivially satisfied. That is not a counterexample
+and the test excludes it explicitly.
+
+### An unpredicted third finding: the optimum is worth exactly 3×, and no more
+
+Extending the scaled-burst sweep past n = 96 showed something I had not called. Under a burst
+held at `3n/8`, the burst-**optimal** arms die too — just later:
+
+| n | burst | `fold` | `diag3` | `idx3` | `blocks` |
+| --- | --- | --- | --- | --- | --- |
+| 64 | 24 | 20 (w24) | 120 (w8) | 120 (w8) | 1 (w24) |
+| 128 | 48 | 0 (w48) | **116 (w16)** | **116 (w16)** | 0 (w48) |
+| 256 | 96 | 0 (w96) | **0 (w32)** | **0 (w32)** | 0 (w96) |
+
+`diag3` holds `w` at `⌈n/8⌉` and crosses v0's 16-per-class ceiling at **n = 128**; `fold` and
+`blocks` carry `w = 3n/8` and cross it at **n = 43**. The ratio of those widths is **3.0** —
+exactly the factor the burst optimum can buy, because there are three classes and it spreads a
+burst across all of them. **So the optimum is worth a 3× wider wound and not one cell more,
+and against a ceiling that does not scale it postpones the failure rather than removing it.**
+Part 2's characterisation is unaffected — it is about `worst(C, L)`, which is what it says —
+but this is the honest limit of what reaching that floor is *worth* to a decoder.

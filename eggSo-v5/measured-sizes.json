@@ -9,9 +9,12 @@
   16,
   32,
   64,
-  96
+  128,
+  256,
+  384,
+  512
  ],
- "trials": 200,
+ "trials": 120,
  "price": [
   {
    "n": 8,
@@ -19,7 +22,12 @@
    "p": 131,
    "checkBits": 32,
    "overhead": 0.5,
-   "classOverP": 0.16030534351145037
+   "classOverP": 0.16030534351145037,
+   "expectedPairsPerSyndrome": 1,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 113,
+   "sameClassDoubleWrong": 0,
+   "of": 120
   },
   {
    "n": 16,
@@ -27,7 +35,12 @@
    "p": 523,
    "checkBits": 40,
    "overhead": 0.15625,
-   "classOverP": 0.16443594646271512
+   "classOverP": 0.16443594646271512,
+   "expectedPairsPerSyndrome": 7,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 118,
+   "sameClassDoubleWrong": 0,
+   "of": 120
   },
   {
    "n": 32,
@@ -35,7 +48,12 @@
    "p": 2053,
    "checkBits": 48,
    "overhead": 0.046875,
-   "classOverP": 0.16609839259620068
+   "classOverP": 0.16609839259620068,
+   "expectedPairsPerSyndrome": 28,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 118,
+   "sameClassDoubleWrong": 0,
+   "of": 120
   },
   {
    "n": 64,
@@ -43,23 +61,74 @@
    "p": 8219,
    "checkBits": 56,
    "overhead": 0.013671875,
-   "classOverP": 0.16620026767246623
+   "classOverP": 0.16620026767246623,
+   "expectedPairsPerSyndrome": 113,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 118,
+   "sameClassDoubleWrong": 0,
+   "of": 120
   },
   {
-   "n": 96,
-   "L": 9216,
-   "p": 18443,
-   "checkBits": 60,
-   "overhead": 0.006510416666666667,
-   "classOverP": 0.16656726129154692
+   "n": 128,
+   "L": 16384,
+   "p": 32771,
+   "checkBits": 64,
+   "overhead": 0.00390625,
+   "classOverP": 0.1666412376796558,
+   "expectedPairsPerSyndrome": 455,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 116,
+   "sameClassDoubleWrong": 0,
+   "of": 120
+  },
+  {
+   "n": 256,
+   "L": 65536,
+   "p": 131111,
+   "checkBits": 72,
+   "overhead": 0.0010986328125,
+   "classOverP": 0.16662217510353822,
+   "expectedPairsPerSyndrome": 1820,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 116,
+   "sameClassDoubleWrong": 0,
+   "of": 120
+  },
+  {
+   "n": 384,
+   "L": 147456,
+   "p": 294919,
+   "checkBits": 76,
+   "overhead": 0.0005154079861111111,
+   "classOverP": 0.16666271077821368,
+   "expectedPairsPerSyndrome": 4096,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 117,
+   "sameClassDoubleWrong": 0,
+   "of": 120
+  },
+  {
+   "n": 512,
+   "L": 262144,
+   "p": 524309,
+   "checkBits": 80,
+   "overhead": 0.00030517578125,
+   "classOverP": 0.16665935545641977,
+   "expectedPairsPerSyndrome": 7281,
+   "pairCap": 4096,
+   "sameClassDoubleCorrected": 70,
+   "sameClassDoubleWrong": 0,
+   "of": 120
   }
  ],
+ "pairCap": 4096,
+ "pairCapCrossoverWidth": 384,
  "burstRegimes": [
   {
    "regime": "fixed 12",
    "n": 8,
    "burst": 12,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
@@ -83,32 +152,32 @@
    "regime": "fixed 12",
    "n": 16,
    "burst": 12,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 3,
      "classMaxWorst": 12
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 2,
      "classMaxWorst": 12
@@ -119,32 +188,32 @@
    "regime": "fixed 12",
    "n": 32,
    "burst": 12,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
-     "wrong": 8,
+     "wrong": 6,
      "classMaxWorst": 12
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 3,
      "classMaxWorst": 12
@@ -155,32 +224,32 @@
    "regime": "fixed 12",
    "n": 64,
    "burst": 12,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
-     "wrong": 6,
+     "wrong": 4,
      "classMaxWorst": 12
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 1,
      "classMaxWorst": 4
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 1,
      "classMaxWorst": 4
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 2,
      "classMaxWorst": 12
@@ -189,36 +258,144 @@
   },
   {
    "regime": "fixed 12",
-   "n": 96,
+   "n": 128,
    "burst": 12,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
-     "wrong": 5,
+     "wrong": 1,
      "classMaxWorst": 12
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
-     "wrong": 0,
+     "wrong": 1,
      "classMaxWorst": 4
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 256,
+   "burst": 12,
+   "trials": 120,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 2,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 384,
+   "burst": 12,
+   "trials": 120,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 2,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 512,
+   "burst": 12,
+   "trials": 120,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 120,
+     "blindCorrected": 0,
+     "wrong": 3,
      "classMaxWorst": 12
     }
    ]
@@ -227,33 +404,33 @@
    "regime": "scaled 3n/8",
    "n": 8,
    "burst": 3,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
-     "blindCorrected": 76,
-     "wrong": 2,
+     "flaggedCorrected": 120,
+     "blindCorrected": 53,
+     "wrong": 1,
      "classMaxWorst": 3
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
-     "blindCorrected": 200,
+     "flaggedCorrected": 120,
+     "blindCorrected": 120,
      "wrong": 0,
      "classMaxWorst": 1
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
-     "blindCorrected": 200,
+     "flaggedCorrected": 120,
+     "blindCorrected": 120,
      "wrong": 0,
      "classMaxWorst": 1
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
-     "blindCorrected": 18,
+     "flaggedCorrected": 120,
+     "blindCorrected": 14,
      "wrong": 0,
      "classMaxWorst": 3
     }
@@ -263,32 +440,32 @@
    "regime": "scaled 3n/8",
    "n": 16,
    "burst": 6,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
-     "wrong": 4,
+     "wrong": 1,
      "classMaxWorst": 6
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 1,
      "classMaxWorst": 2
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 1,
      "classMaxWorst": 2
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 2,
      "classMaxWorst": 6
@@ -299,32 +476,32 @@
    "regime": "scaled 3n/8",
    "n": 32,
    "burst": 12,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
-     "wrong": 8,
+     "wrong": 6,
      "classMaxWorst": 12
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 4
     },
     {
      "arm": "blocks",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 3,
      "classMaxWorst": 12
@@ -335,25 +512,25 @@
    "regime": "scaled 3n/8",
    "n": 64,
    "burst": 24,
-   "trials": 200,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
-     "flaggedCorrected": 28,
+     "flaggedCorrected": 20,
      "blindCorrected": 0,
-     "wrong": 5,
+     "wrong": 4,
      "classMaxWorst": 24
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 8
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 120,
      "blindCorrected": 0,
      "wrong": 0,
      "classMaxWorst": 8
@@ -369,37 +546,145 @@
   },
   {
    "regime": "scaled 3n/8",
-   "n": 96,
-   "burst": 36,
-   "trials": 200,
+   "n": 128,
+   "burst": 48,
+   "trials": 120,
    "arms": [
     {
      "arm": "fold",
      "flaggedCorrected": 0,
      "blindCorrected": 0,
-     "wrong": 6,
-     "classMaxWorst": 36
+     "wrong": 2,
+     "classMaxWorst": 48
     },
     {
      "arm": "diag3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 116,
      "blindCorrected": 0,
      "wrong": 0,
-     "classMaxWorst": 12
+     "classMaxWorst": 16
     },
     {
      "arm": "idx3",
-     "flaggedCorrected": 200,
+     "flaggedCorrected": 116,
      "blindCorrected": 0,
      "wrong": 0,
-     "classMaxWorst": 12
+     "classMaxWorst": 16
     },
     {
      "arm": "blocks",
      "flaggedCorrected": 0,
      "blindCorrected": 0,
-     "wrong": 2,
-     "classMaxWorst": 36
+     "wrong": 1,
+     "classMaxWorst": 48
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 256,
+   "burst": 96,
+   "trials": 120,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 5,
+     "classMaxWorst": 96
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 96
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 384,
+   "burst": 144,
+   "trials": 120,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 144
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 48
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 48
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 3,
+     "classMaxWorst": 144
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 512,
+   "burst": 192,
+   "trials": 120,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 192
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 64
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 64
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 192
     }
    ]
   }
@@ -410,23 +695,23 @@
    "channels": [
     {
      "channel": "1 cell",
-     "corrected": 200,
+     "corrected": 120,
      "wrong": 0
     },
     {
      "channel": "2 same class",
-     "corrected": 195,
+     "corrected": 117,
      "wrong": 0
     },
     {
      "channel": "2 anywhere",
-     "corrected": 197,
+     "corrected": 118,
      "wrong": 0
     },
     {
      "channel": "the thinnest class filled",
      "corrected": 0,
-     "wrong": 2
+     "wrong": 1
     }
    ]
   },
@@ -435,17 +720,117 @@
    "channels": [
     {
      "channel": "1 cell",
-     "corrected": 200,
+     "corrected": 120,
      "wrong": 0
     },
     {
      "channel": "2 same class",
-     "corrected": 197,
+     "corrected": 118,
      "wrong": 0
     },
     {
      "channel": "2 anywhere",
-     "corrected": 198,
+     "corrected": 118,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 1
+    }
+   ]
+  },
+  {
+   "n": 32,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 119,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 0
+    }
+   ]
+  },
+  {
+   "n": 64,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 119,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 1
+    }
+   ]
+  },
+  {
+   "n": 128,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 116,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 0
+    }
+   ]
+  },
+  {
+   "n": 256,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 118,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 118,
      "wrong": 0
     },
     {
@@ -456,71 +841,21 @@
    ]
   },
   {
-   "n": 32,
+   "n": 384,
    "channels": [
     {
      "channel": "1 cell",
-     "corrected": 200,
+     "corrected": 120,
      "wrong": 0
     },
     {
      "channel": "2 same class",
-     "corrected": 199,
+     "corrected": 118,
      "wrong": 0
     },
     {
      "channel": "2 anywhere",
-     "corrected": 199,
-     "wrong": 0
-    },
-    {
-     "channel": "the thinnest class filled",
-     "corrected": 0,
-     "wrong": 1
-    }
-   ]
-  },
-  {
-   "n": 64,
-   "channels": [
-    {
-     "channel": "1 cell",
-     "corrected": 200,
-     "wrong": 0
-    },
-    {
-     "channel": "2 same class",
-     "corrected": 196,
-     "wrong": 0
-    },
-    {
-     "channel": "2 anywhere",
-     "corrected": 200,
-     "wrong": 0
-    },
-    {
-     "channel": "the thinnest class filled",
-     "corrected": 0,
-     "wrong": 1
-    }
-   ]
-  },
-  {
-   "n": 96,
-   "channels": [
-    {
-     "channel": "1 cell",
-     "corrected": 200,
-     "wrong": 0
-    },
-    {
-     "channel": "2 same class",
-     "corrected": 195,
-     "wrong": 0
-    },
-    {
-     "channel": "2 anywhere",
-     "corrected": 199,
+     "corrected": 119,
      "wrong": 0
     },
     {
@@ -529,6 +864,118 @@
      "wrong": 2
     }
    ]
+  },
+  {
+   "n": 512,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 120,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 66,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 102,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 1
+    }
+   ]
   }
- ]
+ ],
+ "widthArithmetic": [
+  {
+   "k": 2,
+   "mersenne": 3,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 4,
+   "powerOfTwoAdmitsLinear": false
+  },
+  {
+   "k": 3,
+   "mersenne": 7,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 8,
+   "powerOfTwoAdmitsLinear": true
+  },
+  {
+   "k": 4,
+   "mersenne": 15,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 16,
+   "powerOfTwoAdmitsLinear": false
+  },
+  {
+   "k": 5,
+   "mersenne": 31,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 32,
+   "powerOfTwoAdmitsLinear": true
+  },
+  {
+   "k": 6,
+   "mersenne": 63,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 64,
+   "powerOfTwoAdmitsLinear": false
+  },
+  {
+   "k": 7,
+   "mersenne": 127,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 128,
+   "powerOfTwoAdmitsLinear": true
+  },
+  {
+   "k": 8,
+   "mersenne": 255,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 256,
+   "powerOfTwoAdmitsLinear": false
+  },
+  {
+   "k": 9,
+   "mersenne": 511,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 512,
+   "powerOfTwoAdmitsLinear": true
+  },
+  {
+   "k": 10,
+   "mersenne": 1023,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 1024,
+   "powerOfTwoAdmitsLinear": false
+  },
+  {
+   "k": 11,
+   "mersenne": 2047,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 2048,
+   "powerOfTwoAdmitsLinear": true
+  },
+  {
+   "k": 12,
+   "mersenne": 4095,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 4096,
+   "powerOfTwoAdmitsLinear": false
+  },
+  {
+   "k": 13,
+   "mersenne": 8191,
+   "mersenneAdmitsLinear": false,
+   "powerOfTwo": 8192,
+   "powerOfTwoAdmitsLinear": true
+  }
+ ],
+ "widthFindings": "2^k admits a linear burst optimum exactly when k is odd; no Mersenne number ever does, prime or composite, because 2^k-1 is never 2 mod 3"
 }

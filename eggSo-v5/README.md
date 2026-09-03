@@ -529,11 +529,72 @@ one error per class is a single, and singles are direct. So at the floor the opt
 correction outright — the only place in this round where it converts into a capability rather
 than a survival margin.
 
+### Bigger squares break something, and it fails safe
+
+Swept to n = 512 (`L = 262,144`, 32 KB per square). The price keeps falling — 0.031% at n = 512
+— and `|class|/p` stays pinned at 1/6, so the pair rates hold. Until they don't:
+
+| n | L | overhead | expected pairs / syndrome | 2 same class, of 120 |
+| --- | --- | --- | --- | --- |
+| 32 | 1,024 | 4.688% | 28 | 118 |
+| 256 | 65,536 | 0.110% | 1,820 | 116 |
+| **384** | 147,456 | 0.052% | **4,096** | **117** |
+| **512** | 262,144 | **0.031%** | **7,281** | **70** |
+
+The in-class pairs hitting one syndrome grow as about `L/36`, while `PC_CANDIDATE_CAP` is a
+**fixed 4096** — so past a width of about 384 `class_pairs` truncates before it reaches the true
+pair, and the channel collapses. This was predicted, crossover included. Same
+caps-don't-scale mechanism as the burst ceiling, and it is a **real size limit of the
+construction rather than a tuning knob** — now documented as such in `code.rs`.
+
+**What makes it tolerable: `wrong` stays 0 at every width.** The lost corrections become
+*refusals*, so the code **fails safe at scale rather than lying at scale.**
+
+### The optimum is worth exactly 3×, and no more
+
+Past n = 96 the scaled-burst sweep shows the burst-**optimal** arms dying too:
+
+| n | burst | `fold` | `diag3` | `idx3` | `blocks` |
+| --- | --- | --- | --- | --- | --- |
+| 64 | 24 | 20 (w24) | 120 (w8) | 120 (w8) | 1 (w24) |
+| 128 | 48 | 0 (w48) | **116 (w16)** | **116 (w16)** | 0 (w48) |
+| 256 | 96 | 0 (w96) | **0 (w32)** | **0 (w32)** | 0 (w96) |
+
+`diag3` holds `w` at `⌈n/8⌉` and crosses the 16-per-class ceiling at **n = 128**; `fold` and
+`blocks` carry `w = 3n/8` and cross it at **n = 43**. The ratio is **3.0** — exactly what the
+burst optimum can buy, since there are three classes to spread a burst across. **The optimum is
+worth a 3× wider wound and not one cell more**, and against a ceiling that does not scale it
+postpones the failure rather than removing it. Part 2's characterisation is untouched — it is
+about `worst(C, L)` and that is what it says — but this is the honest limit of what reaching
+the floor is *worth* to a decoder.
+
+### The arithmetic of the width — and the Mersenne question
+
+Part 2's theorem depends on `n` only through `n mod 3` and the gcds, so "would a different
+width change it?" is answerable without measuring a square. Since `2 ≡ −1 (mod 3)`, `2^k mod 3`
+alternates:
+
+- **A power of two alternates.** `n = 2^k` admits a linear burst optimum exactly when `k` is
+  **odd** — 8, 32, 128, 512 yes; 4, 16, 64, 256 no. So v4's `idx3` swept clean at `n = 32 = 2^5`
+  and **would have failed at 64 and at 256**, which sharpens v4's own "accident of
+  `32 ≡ 2 (mod 3)`".
+- **A Mersenne number never does.** `M_k = 2^k − 1` is `1 (mod 3)` for odd `k` and `0` for even
+  `k`, so it is never `2`. Checked `k = 2..40`: none qualify.
+- **Primality is irrelevant.** The Mersenne primes 31 and 127 behave exactly like the composites
+  511 = 7·73 and 2047 = 23·89 — only the residue and the gcds enter. At `L = 12` the lemma kills
+  every Mersenne width by *both* parities through *two different* conditions: `k` even puts 3
+  into `gcd(n, 12)` so the **column** fails, `k` odd puts 6 into `gcd(n−1, 12)` so the
+  **anti-diagonal** fails instead.
+
+So the Mersenne question has a clean answer, and the reason is the **2-adic structure of the
+width** rather than its factorisation. (`M_3 = 7` at `L = 12` is excluded as the *vacuous* case:
+a 12-cell run does not fit across a 7-wide grid, so those geometries have no windows at all.)
+
 ## Running it
 
 ```
 cargo build --release
-cargo test                                    # 62 tests
+cargo test                                    # 65 tests
 cargo clippy --all-targets -- -D warnings     # clean, no suppressions
 
 cargo run --release -- pin        # the six pins; SKIPPED loudly if node is absent
@@ -541,8 +602,8 @@ cargo run --release -- cubic      # Part 1: the picture, the classes, the channe
 cargo run --release -- optimum    # Part 2: the floor, the theorem, the lemma, both searches
 cargo run --release -- arms       # Part 3: every arm on every channel
 cargo run --release -- real       # the codec channels on real repo bytes, vs the coin
-cargo run --release -- sizes      # the same channels swept across square size
-cargo run --release -- audit      # all of it, ~31s, writes every measured-*.json
+cargo run --release -- sizes      # swept n = 8..512, and the width arithmetic
+cargo run --release -- audit      # all of it, ~80s, writes every measured-*.json
 ```
 
 `--full` widens the linear sweep and the pictures. It deliberately does **not** widen the
