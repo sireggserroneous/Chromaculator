@@ -1,0 +1,2189 @@
+{
+ "n": 32,
+ "trials": 400,
+ "corpus": [
+  {
+   "file": "stalk.js",
+   "bytes": 19567,
+   "squares": 153,
+   "zeroBitFraction": 0.5784569035947713,
+   "roundTripExact": true
+  },
+  {
+   "file": "index.html",
+   "bytes": 43280,
+   "squares": 339,
+   "zeroBitFraction": 0.5646374907817109,
+   "roundTripExact": true
+  },
+  {
+   "file": "spec.md",
+   "bytes": 15190,
+   "squares": 119,
+   "zeroBitFraction": 0.5770335477941176,
+   "roundTripExact": true
+  },
+  {
+   "file": "base.css",
+   "bytes": 12820,
+   "squares": 101,
+   "zeroBitFraction": 0.5365195699257426,
+   "roundTripExact": true
+  },
+  {
+   "file": "og.png",
+   "bytes": 33742,
+   "squares": 264,
+   "zeroBitFraction": 0.5148888790246212,
+   "roundTripExact": true
+  },
+  {
+   "file": "favicon.svg",
+   "bytes": 1101,
+   "squares": 9,
+   "zeroBitFraction": 0.6059027777777778,
+   "roundTripExact": true
+  }
+ ],
+ "roundTripFailures": 0,
+ "channels": [
+  {
+   "channel": "1 cell",
+   "source": "random (the coin)",
+   "trials": 400,
+   "distinctSquares": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "1 cell",
+   "source": "stalk.js",
+   "trials": 400,
+   "distinctSquares": 153,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "1 cell",
+   "source": "index.html",
+   "trials": 400,
+   "distinctSquares": 339,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "1 cell",
+   "source": "spec.md",
+   "trials": 400,
+   "distinctSquares": 119,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "1 cell",
+   "source": "base.css",
+   "trials": 400,
+   "distinctSquares": 101,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "1 cell",
+   "source": "og.png",
+   "trials": 400,
+   "distinctSquares": 264,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "1 cell",
+   "source": "favicon.svg",
+   "trials": 400,
+   "distinctSquares": 9,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "random (the coin)",
+   "trials": 400,
+   "distinctSquares": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 387,
+     "detected": 13,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 398,
+     "detected": 2,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "stalk.js",
+   "trials": 400,
+   "distinctSquares": 153,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 391,
+     "detected": 9,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 398,
+     "detected": 2,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 387,
+     "detected": 13,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 397,
+     "detected": 3,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "index.html",
+   "trials": 400,
+   "distinctSquares": 339,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 388,
+     "detected": 12,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 395,
+     "detected": 5,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 391,
+     "detected": 9,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 396,
+     "detected": 4,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "spec.md",
+   "trials": 400,
+   "distinctSquares": 119,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 391,
+     "detected": 9,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 395,
+     "detected": 5,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 396,
+     "detected": 4,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 385,
+     "detected": 15,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 390,
+     "detected": 10,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "base.css",
+   "trials": 400,
+   "distinctSquares": 101,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 383,
+     "detected": 17,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 397,
+     "detected": 3,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 395,
+     "detected": 5,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 391,
+     "detected": 9,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 396,
+     "detected": 4,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "og.png",
+   "trials": 400,
+   "distinctSquares": 264,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 399,
+     "detected": 1,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 388,
+     "detected": 12,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 388,
+     "detected": 12,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 397,
+     "detected": 3,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 390,
+     "detected": 10,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "source": "favicon.svg",
+   "trials": 400,
+   "distinctSquares": 9,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 396,
+     "detected": 4,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 398,
+     "detected": 2,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 385,
+     "detected": 15,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 388,
+     "detected": 12,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "random (the coin)",
+   "trials": 400,
+   "distinctSquares": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "stalk.js",
+   "trials": 400,
+   "distinctSquares": 153,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "index.html",
+   "trials": 400,
+   "distinctSquares": 339,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "spec.md",
+   "trials": 400,
+   "distinctSquares": 119,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "base.css",
+   "trials": 400,
+   "distinctSquares": 101,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "og.png",
+   "trials": 400,
+   "distinctSquares": 264,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "source": "favicon.svg",
+   "trials": 400,
+   "distinctSquares": 9,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "random (the coin)",
+   "trials": 400,
+   "distinctSquares": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 390,
+     "wrong": 10,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "stalk.js",
+   "trials": 400,
+   "distinctSquares": 153,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 386,
+     "wrong": 14,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "index.html",
+   "trials": 400,
+   "distinctSquares": 339,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "spec.md",
+   "trials": 400,
+   "distinctSquares": 119,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 393,
+     "wrong": 7,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "base.css",
+   "trials": 400,
+   "distinctSquares": 101,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 392,
+     "wrong": 8,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "og.png",
+   "trials": 400,
+   "distinctSquares": 264,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 389,
+     "wrong": 11,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "source": "favicon.svg",
+   "trials": 400,
+   "distinctSquares": 9,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 389,
+     "wrong": 11,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "random (the coin)",
+   "trials": 400,
+   "distinctSquares": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 390,
+     "wrong": 10,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "stalk.js",
+   "trials": 400,
+   "distinctSquares": 153,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 388,
+     "wrong": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "index.html",
+   "trials": 400,
+   "distinctSquares": 339,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 393,
+     "wrong": 7,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "spec.md",
+   "trials": 400,
+   "distinctSquares": 119,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "base.css",
+   "trials": 400,
+   "distinctSquares": 101,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 389,
+     "wrong": 11,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 392,
+     "wrong": 8,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "og.png",
+   "trials": 400,
+   "distinctSquares": 264,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 389,
+     "wrong": 11,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 393,
+     "wrong": 7,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "source": "favicon.svg",
+   "trials": 400,
+   "distinctSquares": 9,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 389,
+     "wrong": 11,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "random (the coin)",
+   "trials": 400,
+   "distinctSquares": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "stalk.js",
+   "trials": 400,
+   "distinctSquares": 153,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "index.html",
+   "trials": 400,
+   "distinctSquares": 339,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "spec.md",
+   "trials": 400,
+   "distinctSquares": 119,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 387,
+     "wrong": 13,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "base.css",
+   "trials": 400,
+   "distinctSquares": 101,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "og.png",
+   "trials": 400,
+   "distinctSquares": 264,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 391,
+     "wrong": 9,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "source": "favicon.svg",
+   "trials": 400,
+   "distinctSquares": 9,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 355,
+     "wrong": 45,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  }
+ ],
+ "shiftsAgainstTheCoin": [
+  "2 same class                 idx3     coin 387/0W of 400  ->  spec.md 396/0W of 400 (119 distinct squares)",
+  "2 same class                 fold     coin 393/0W of 400  ->  base.css 383/0W of 400 (101 distinct squares)",
+  "12 row burst, blind          idx3     coin 0/0W of 400  ->  stalk.js 0/1W of 400 (153 distinct squares)",
+  "12 row burst, blind          tape12   coin 0/0W of 400  ->  index.html 0/1W of 400 (339 distinct squares)",
+  "12 row burst, blind          diag3    coin 0/0W of 400  ->  spec.md 0/2W of 400 (119 distinct squares)",
+  "12 row burst, blind          diag3    coin 0/0W of 400  ->  base.css 0/3W of 400 (101 distinct squares)",
+  "12 row burst, blind          idx3     coin 0/0W of 400  ->  base.css 0/1W of 400 (101 distinct squares)",
+  "12 row burst, blind          diag3    coin 0/0W of 400  ->  og.png 0/1W of 400 (264 distinct squares)",
+  "12 row burst, blind          idx3     coin 0/0W of 400  ->  og.png 0/1W of 400 (264 distinct squares)",
+  "12 row burst, blind          tape12   coin 0/0W of 400  ->  og.png 0/1W of 400 (264 distinct squares)",
+  "12 row burst, blind          tape12   coin 0/0W of 400  ->  favicon.svg 0/1W of 400 (9 distinct squares)",
+  "12 in-region burst, blind    idx3     coin 0/0W of 400  ->  stalk.js 0/1W of 400 (153 distinct squares)",
+  "12 in-region burst, blind    tape12   coin 0/2W of 400  ->  stalk.js 0/0W of 400 (153 distinct squares)",
+  "12 in-region burst, blind    idx3     coin 0/0W of 400  ->  index.html 0/2W of 400 (339 distinct squares)",
+  "12 in-region burst, blind    tape12   coin 0/2W of 400  ->  index.html 0/0W of 400 (339 distinct squares)",
+  "12 in-region burst, blind    tape12   coin 0/2W of 400  ->  spec.md 0/0W of 400 (119 distinct squares)",
+  "12 in-region burst, blind    tape12   coin 0/2W of 400  ->  base.css 0/0W of 400 (101 distinct squares)",
+  "12 in-region burst, blind    tape12   coin 0/2W of 400  ->  og.png 0/0W of 400 (264 distinct squares)",
+  "12 in-region burst, blind    diag3    coin 0/1W of 400  ->  favicon.svg 0/0W of 400 (9 distinct squares)",
+  "12 in-region burst, blind    tape12   coin 0/2W of 400  ->  favicon.svg 0/0W of 400 (9 distinct squares)",
+  "one full anti-diagonal       idx3     coin 0/3W of 400  ->  stalk.js 0/0W of 400 (153 distinct squares)",
+  "one full anti-diagonal       blocks   coin 0/1W of 400  ->  stalk.js 0/0W of 400 (153 distinct squares)",
+  "one full anti-diagonal       idx3     coin 0/3W of 400  ->  index.html 0/0W of 400 (339 distinct squares)",
+  "one full anti-diagonal       blocks   coin 0/1W of 400  ->  index.html 0/0W of 400 (339 distinct squares)",
+  "one full anti-diagonal       cubic    coin 0/0W of 400  ->  index.html 0/1W of 400 (339 distinct squares)",
+  "one full anti-diagonal       idx3     coin 0/3W of 400  ->  spec.md 0/0W of 400 (119 distinct squares)",
+  "one full anti-diagonal       blocks   coin 0/1W of 400  ->  spec.md 0/0W of 400 (119 distinct squares)",
+  "one full anti-diagonal       diag3    coin 0/6W of 400  ->  base.css 0/0W of 400 (101 distinct squares)",
+  "one full anti-diagonal       idx3     coin 0/3W of 400  ->  base.css 0/0W of 400 (101 distinct squares)",
+  "one full anti-diagonal       blocks   coin 0/1W of 400  ->  base.css 0/0W of 400 (101 distinct squares)",
+  "one full anti-diagonal       idx3     coin 0/3W of 400  ->  og.png 0/0W of 400 (264 distinct squares)",
+  "one full anti-diagonal       cubic    coin 0/0W of 400  ->  og.png 0/1W of 400 (264 distinct squares)",
+  "one full anti-diagonal       tape12   coin 0/0W of 400  ->  og.png 0/2W of 400 (264 distinct squares)",
+  "one full anti-diagonal       idx3     coin 0/3W of 400  ->  favicon.svg 0/0W of 400 (9 distinct squares)",
+  "one full anti-diagonal       blocks   coin 0/1W of 400  ->  favicon.svg 0/0W of 400 (9 distinct squares)"
+ ],
+ "payloadIndependent": "Part 1's partition and Part 2's optimum are counts over cells and not over values, so real bytes cannot move them"
+}

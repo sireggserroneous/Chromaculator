@@ -189,7 +189,9 @@ cells over 3 classes is at least 11 per class and this decoder searches to depth
 cubic arm's win is on the **spread** and not on the channel, and the round says so rather
 than banking a correction it did not make. The one thing it does buy: on that channel
 `diag3` miscorrects 6 of 400 and the cubic arm **0**. Where it wins the spread, it also
-stops lying.
+stops lying — **on uniform random bits. That claim is coin-specific and is withdrawn: see
+"Real data" below, where the cubic arm miscorrects 1 of 400 on that channel on two of six
+real corpora.**
 
 ### The name
 
@@ -384,18 +386,92 @@ corrects most trials and loses the rest: **a fractal has no periodic bad case, o
 one.** That difference is exactly what `worst(C, L)` optimises, and it is why the objective is
 stated as a maximum and not an average.
 
+## Real data — because everything above ran on a coin
+
+Every codec figure in this round came from `Mul32`: uniform random bits, the maximum-entropy
+case, which is not what a file looks like. Asked afterwards whether the round had been tested
+on real data, the answer was no, and `eggso5 real` is the fix.
+
+**Two thirds of the round cannot care, and that is a property of the constructions rather than
+an excuse.** Part 1's partition, picture, class sizes and every `worst(C, L)` figure, and the
+whole of Part 2 — the floor, the linear family, the theorem, the periodicity lemma, the
+construction, both searches — are counts over **cells**, not over **values**. No payload moves
+them. The correction rates are the part that depends on the data.
+
+The corpus is six repo files spanning 4.86 to 7.79 bits of byte entropy:
+
+| file | bytes | squares | zero bits | round trip |
+| --- | --- | --- | --- | --- |
+| `stalk.js` | 19,567 | 153 | 57.8% | exact |
+| `index.html` | 43,280 | 339 | 56.5% | exact |
+| `spec.md` | 15,190 | 119 | 57.7% | exact |
+| `base.css` | 12,820 | 101 | 53.7% | exact |
+| `og.png` | 33,742 | 264 | 51.5% | exact |
+| `favicon.svg` | 1,101 | 9 | 60.6% | exact |
+
+A coin sits at 50.0% zero bits; this corpus reaches 60.6%. The **real-bytes round trip** —
+`to_cells` then `to_bytes` — is exact on all six, including the compressed PNG. Until now that
+was only ever checked on random bytes.
+
+### What did not move
+
+| | |
+| --- | --- |
+| singles, and every **flagged** burst channel | **400/400 on all six corpora** |
+| every **blind** burst channel, corrected | **0 for every arm on every corpus** |
+
+So **M1's pigeonhole holds on real bytes**, as it must — it is a counting argument, not a
+measurement.
+
+### What did move: the miscorrection counts, on 35 cells
+
+The round's **M2 disclosure is a coin-specific number, not a property of the arms.** Lies
+vanish on real data in some places — `idx3` on the full anti-diagonal drops from 3 of 400 to
+**0 on all six corpora**, `tape12` on the in-region burst from 2 to 0 on five of six — and
+appear in others where the coin reported none.
+
+The worst case found, with its caveat in the same breath. `diag3` on the full anti-diagonal:
+
+| source | miscorrections | distinct squares |
+| --- | --- | --- |
+| random (the coin) | 6 of 400 | 400 |
+| `stalk.js` | 6 of 400 | 153 |
+| `index.html` | 5 of 400 | 339 |
+| `spec.md` | **13 of 400** | 119 |
+| `base.css` | 0 of 400 | 101 |
+| `og.png` | 9 of 400 | 264 |
+| `favicon.svg` | **45 of 400** | **9** |
+
+That channel's damage is **deterministic** — always the same 32 cells — so on a pool the
+effective sample is the distinct square count, not the trial count. `favicon.svg` holds 9
+squares cycled 400 times, so 45/400 is **1 of 9 squares**, against the coin's 1.5%; `spec.md`'s
+13 of 400 is roughly **4 of 119**. The direction is consistent across corpora and the sample is
+small. The honest claim is that **low-entropy payloads make this arm lie more often, and six
+files do not settle the size of the effect.** `eggso5 real` prints the distinct-square count
+beside every row so that 45/400 cannot be read as a rate.
+
+### One filed mechanism was wrong, and the test caught it
+
+I expected a biased payload to **shrink** the decoder's candidate space, since every candidate
+passes `in_bit(cells[i] − d)` and an all-zero square admits no `+1`. It does not shrink it: for
+a binary cell exactly one of the two directions is representable **either way**, so the
+representable count is `L` for every payload, biased or uniform. The payload changes *which*
+cells are flippable in which direction — hence which aliases a syndrome has — not how many.
+`seam.rs` pins the true invariant and records the correction.
+
 ## Running it
 
 ```
 cargo build --release
-cargo test                                    # 54 tests
+cargo test                                    # 62 tests
 cargo clippy --all-targets -- -D warnings     # clean, no suppressions
 
 cargo run --release -- pin        # the six pins; SKIPPED loudly if node is absent
 cargo run --release -- cubic      # Part 1: the picture, the classes, the channels
 cargo run --release -- optimum    # Part 2: the floor, the theorem, the lemma, both searches
 cargo run --release -- arms       # Part 3: every arm on every channel
-cargo run --release -- audit      # all of it, ~24s, writes every measured-*.json
+cargo run --release -- real       # the codec channels on real repo bytes, vs the coin
+cargo run --release -- audit      # all of it, ~30s, writes every measured-*.json
 ```
 
 `--full` widens the linear sweep and the pictures. It deliberately does **not** widen the
@@ -408,13 +484,14 @@ cannot be quietly retried until it wins.
 Cargo.toml        name = "eggso5", edition 2021, NO dependencies
 PREDICTIONS.md    filed first, with the measured column filled in afterwards
 src/lib.rs        pub mod declarations
-src/main.rs       pin | cubic | optimum | arms | audit
+src/main.rs       pin | cubic | optimum | arms | real | audit
 src/fold.rs       carried from v4 unchanged
 src/code.rs       carried from v4; `in_bit` made pub
 src/json.rs       carried from v4 unchanged
 src/dynamics.rs   carried from v4, plus the cell -> complex coordinate
 src/seam.rs       carried from v4, plus three burst geometries, a worst-case field,
-                  an Arm that can be a table, and the silent-drop trap fixed
+                  an Arm that can be a table, a Source so a channel can run on real
+                  bytes, and the silent-drop trap fixed
 src/pin.rs        carried from v4, plus the cellOrder pin and the v4-figures pin
 src/cubic.rs      NEW: the degree-3 partition and its picture
 src/optimum.rs    NEW: the bound, the linear family, the lemma, the construction, the search

@@ -453,15 +453,55 @@ pub fn class_spread(clean: &[i8], hurt: &[i8], code: &Code) -> usize {
     *per.iter().max().unwrap()
 }
 
+/// Where a channel's clean squares come from.
+///
+/// Everything this round measured before this type existed used `Random`:
+/// uniform bits from `Mul32`. That is the MAXIMUM-ENTROPY case and it is not
+/// what a file looks like. It matters here and only here, because the decoder
+/// gates every candidate through `code::in_bit(cells[i] - d)` -- a cell
+/// holding 0 cannot have been hit by a `+1`, and a cell holding 1 cannot have
+/// been hit by a `-1`. So WHICH candidate directions survive depends on the
+/// actual bit values, and a biased payload leaves the search a different
+/// alias space than a coin does.
+///
+/// Nothing in Part 1's partition or Part 2's optimum depends on the payload:
+/// those are counts over cells, not over values. The correction and
+/// miscorrection rates do.
+pub enum Source<'a> {
+    Random,
+    /// squares taken in order, cycling, so a measurement covers the whole
+    /// pool rather than sampling a corner of it
+    Pool(&'a [Vec<i8>]),
+}
+
 /// `None` when the channel does not exist on this grid -- never a silent zero.
 pub fn run_channel(code: &Code, ch: Channel, trials: usize, seed: u32) -> Option<Tally> {
+    run_channel_over(code, ch, &Source::Random, trials, seed)
+}
+
+/// The same, over an arbitrary source of clean squares.
+pub fn run_channel_over(
+    code: &Code,
+    ch: Channel,
+    src: &Source<'_>,
+    trials: usize,
+    seed: u32,
+) -> Option<Tally> {
     if !ch.exists_at(code.n) {
         return None;
     }
+    if let Source::Pool(p) = src {
+        if p.is_empty() {
+            return None;
+        }
+    }
     let mut g = Mul32::new(seed);
     let mut t = Tally { trials, ..Default::default() };
-    for _ in 0..trials {
-        let clean = g.cells(code.l);
+    for trial in 0..trials {
+        let clean = match src {
+            Source::Random => g.cells(code.l),
+            Source::Pool(p) => p[trial % p.len()].clone(),
+        };
         let check = code.checks_for(&clean);
         let mut hurt = clean.clone();
         let erased = damage(&mut hurt, code, ch, &mut g)?;
@@ -672,6 +712,67 @@ mod tests {
             }
             assert!(diag_run(n, n + 1, &mut g).is_none(), "no band is that long at n={n}");
         }
+    }
+
+    /// v5's second, and it corrects a claim of mine rather than confirming
+    /// one. I expected a biased payload to SHRINK the candidate space,
+    /// because the decoder gates every candidate through
+    /// `in_bit(cells[i] - d)` and an all-zero square admits no `+1`. It does
+    /// not shrink it, and the reason is exact: for a binary cell exactly ONE
+    /// of the two directions is representable either way -- a 0 can only have
+    /// been hit by `-1`, a 1 only by `+1` -- so the representable count is
+    /// `L` for EVERY payload, biased or uniform. The gate removes half the
+    /// directions always, and it removes the same half-per-cell regardless of
+    /// what the cell holds.
+    ///
+    /// So the payload cannot change the SIZE of the search space. What it
+    /// changes is WHICH cells are flippable in which direction, hence which
+    /// aliases exist for a given syndrome -- and that is why the correction
+    /// and miscorrection rates still have to be measured on real bytes rather
+    /// than reasoned about. See the `real` subcommand.
+    #[test]
+    fn the_candidate_space_is_the_same_size_on_any_payload() {
+        let c = Code::new(32, true, "diag3", a_diag3);
+        let count = |cells: &[i8]| {
+            let mut n = 0usize;
+            for k in 0..3 {
+                for &i in &c.members[k].clone() {
+                    for d in [1i8, -1] {
+                        let s = crate::code::smod(d as i64 * c.w[i] as i64, c.p);
+                        n += crate::code::class_singles(cells, &c, k, s).len();
+                    }
+                }
+            }
+            n
+        };
+        let mut g = Mul32::new(4);
+        let uniform = count(&g.cells(c.l));
+        assert_eq!(uniform, c.l, "one representable direction per cell");
+        for (name, fill) in [("all zero", 0i8), ("all one", 1i8)] {
+            assert_eq!(count(&vec![fill; c.l]), uniform, "{name} moved the candidate count");
+        }
+        // and per cell it really is exactly one, not one on average
+        for fill in [0i8, 1] {
+            let cells = vec![fill; c.l];
+            for (i, &v) in cells.iter().enumerate() {
+                let ok = [1i8, -1].iter().filter(|&&d| crate::code::in_bit(v - d)).count();
+                assert_eq!(ok, 1, "cell {i} holding {fill}");
+            }
+        }
+    }
+
+    /// A pool source really does use the pool, and cycles it, so a
+    /// real-data measurement covers the file rather than one square of it.
+    #[test]
+    fn a_pool_source_uses_the_pool() {
+        let c = Code::new(32, true, "diag3", a_diag3);
+        let pool = vec![vec![0i8; c.l], vec![1i8; c.l]];
+        let t = run_channel_over(&c, Channel::One, &Source::Pool(&pool), 40, 5).unwrap();
+        // a single error is correctable on any payload, biased or not
+        assert_eq!(t.corrected, 40, "single errors on a biased pool");
+        assert_eq!(t.wrong, 0);
+        // an empty pool is an absent channel, not a silent zero
+        assert!(run_channel_over(&c, Channel::One, &Source::Pool(&[]), 4, 5).is_none());
     }
 
     /// The tape burst is the only geometry that WRAPS, which is the whole

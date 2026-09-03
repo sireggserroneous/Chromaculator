@@ -478,3 +478,52 @@ optimises, and it is why the objective is stated as a maximum and not an average
 separation, `diag3`'s miscorrection count on the in-region burst, the annealer's gap at
 `(15,12)`, and the annealer reaching the floor at all.** The plan's own prediction missed on
 one half and held on the other. The separation miss is the most useful thing in the round.
+
+## Addendum, 2026-09-03 — everything above ran on a coin
+
+Asked afterwards whether the round was tested **on real data**. It was not. Every codec
+figure in this file came from `Mul32` — uniform random bits, the maximum-entropy case, which
+is not what a file looks like. The only file v5 read was v4's JSON record, for the pin.
+
+**Two thirds of the round cannot care, and that is a statement about the constructions and
+not an excuse.** Part 1's partition, picture, class sizes and every `worst(C, L)` figure, and
+the whole of Part 2 — the floor, the linear family, the theorem, the periodicity lemma, the
+construction and both searches — are counts over **cells**, not over **values**. No payload
+can move them. The correction and miscorrection rates are the part that depends on the data,
+and they now have real bytes under them: `eggso5 real`, over six repo files spanning 4.86 to
+7.79 bits of byte entropy (markup, code, prose, CSS, an SVG, and a compressed PNG).
+
+**One filed mechanism was wrong and the test that went looking for it said so.** I expected a
+biased payload to *shrink* the decoder's candidate space, since every candidate passes
+`in_bit(cells[i] − d)` and an all-zero square admits no `+1`. It does not shrink it: for a
+binary cell exactly one of the two directions is representable **either way**, so the
+representable count is `L` for every payload. The payload changes *which* cells are flippable
+in which direction — hence which aliases a syndrome has — not how many.
+
+| what real bytes did | result |
+| --- | --- |
+| the real-bytes round trip, `to_cells` → `to_bytes` | **6 of 6 exact**, including `og.png`. Until now this was only ever checked on random bytes |
+| singles, and every **flagged** burst channel | **400/400 on all six corpora**, unmoved |
+| every **blind** burst channel, corrected | **0 for every arm on every corpus** — so M1's pigeonhole holds on real bytes, as it must, being a counting argument |
+| **the miscorrection counts** | **moved, in both directions, on 35 arm/channel/corpus cells** |
+
+So the round's **M2 disclosure is a coin-specific number, not a property of the arms.** Some
+lies vanish on real data — `idx3` on the full anti-diagonal drops from 3 of 400 to 0 on all
+six corpora, `tape12` on the in-region burst from 2 to 0 on five of six — and some appear
+where the coin reported none, including `cubic` on the anti-diagonal, the one channel where
+Part 1 claimed the cubic arm "stops lying". **That claim is coin-specific and is withdrawn:**
+on `index.html` and `og.png` the cubic arm miscorrects 1 of 400 on that channel.
+
+**The worst case found, and its caveat, stated together.** `diag3` on the full anti-diagonal:
+**6 of 400 on the coin against 45 of 400 on `favicon.svg`**, and 13 on `spec.md`. But that
+channel's damage is *deterministic* — always the same 32 cells — so on a pool the effective
+sample is the distinct square count, and `favicon.svg` holds **9** squares. Read it as **1 of
+9 squares against the coin's 1.5%**, and `spec.md`'s 13 of 400 as roughly **4 of 119**. The
+direction is consistent across corpora and the sample is small. The honest claim is that
+**low-entropy payloads make this arm lie more often, and six files do not settle the size of
+the effect.** `eggso5 real` prints the distinct-square count beside every row so no reader
+takes 45/400 for a rate.
+
+**Bar status is unchanged** — M2 asked that miscorrections be reported per arm and they were,
+and B1–B5 and N1–N4 are payload-independent — but the round is more honest with this addendum
+than without it, and the cubic arm's "stops lying" line is now a withdrawn claim.
