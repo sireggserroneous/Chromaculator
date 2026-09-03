@@ -65,25 +65,42 @@ fold, so nobody else had reason to check. That is the claim on the site, and it 
 
 ## The model
 
+**The first version of this was a viewer, not a model.** It rendered the partition and printed
+the aggregate `worst()` figures `optimum.rs` had already computed — the conclusion, `tape 5`,
+with no burst anywhere on the screen. But the finding is about what happens to a burst when it
+**crosses a row boundary**, and a display that never draws one cannot show that.
+
 `eggso8 model` — a zero-dependency terminal explorer. Rendering is **pure**,
 `render(&View) -> String`, so the whole display is tested with no terminal attached; only
 `run` touches stdin. On one screen: the grid coloured by class, the four geometries against
 the floor, the closed form's verdict, and the spatial-only verdict beside the full one.
 
-At `n = 30`, `L = 12`, arm `(1,2)` it prints the entire finding in four rows:
+So it **draws the burst**. Pick a geometry, slide the burst one placement at a time with
+`+`/`-` or a bare Enter, and watch its three class counts change. `w` jumps to the worst
+placement. At `n = 30`, `L = 12`, arm `(1,2)`:
 
 ```
+  BURST  tape geometry, placement 20 of 889
+    classes 3 / 5 / 4   worst 5   floor 4   OVER THE FLOOR
+    starts at cell (0, 19), crosses 1 row boundary   <- THE PHASE SLIP
+
   geometry      worst   floor   at floor?
   row               4       4   yes
   col               4       4   yes
   diag              4       4   yes
-  tape              5       4   NO
-
-  spatial only (row/col/diag, no tape): at the floor
-  so THIS width fails on the tape alone: the phase slip at the row boundary.
+  tape              5       4   NO  <
 ```
 
-Commands: `n <N>`, `l <L>`, `arm <a> <b>`, `arm lit`, `plain`, `colour`, `q`.
+Step that burst one place back and it sits inside a single row at 4/4/4 — at the floor. One
+keystroke forward and it straddles the row end and goes to 5. That is the phase slip,
+modelled rather than reported, and it is the entire difference between our problem and the
+lattice literature's.
+
+Commands: `n <N>`, `l <L>`, `draw <k>`, `arm <a> <b>`, `arm lit`,
+`g row|col|diag|tape`, `+`, `-`, `w`, `plain`, `colour`, `q`.
+
+If part of the burst falls outside the drawn corner the screen **says so** rather than
+showing a grid with no burst on it, which would read as "there is no burst here".
 
 **It is a terminal interface and not a window, and that was a choice.** A windowed GUI needs
 crates — `egui`, `minifb`, `winit` — and `[dependencies]` has been empty for every Rust round
@@ -96,7 +113,7 @@ lineage.
 
 ```
 cargo build --release
-cargo test                                    # 79 tests
+cargo test                                    # 81 tests
 cargo clippy --all-targets -- -D warnings     # clean, no suppressions
 
 cargo run --release -- pin      # the copy against v7's committed record; no node needed
