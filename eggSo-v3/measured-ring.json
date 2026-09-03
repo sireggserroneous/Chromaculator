@@ -55,8 +55,8 @@
    "bytes": 15190,
    "table": {
     "bit/128B": {
-     "size": 15914,
-     "ratio": 1.0476629361421987,
+     "size": 15916,
+     "ratio": 1.0477946017116524,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -67,8 +67,8 @@
      "lied": false
     },
     "bit/128B+o": {
-     "size": 15914,
-     "ratio": 1.0476629361421987,
+     "size": 15916,
+     "ratio": 1.0477946017116524,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -79,8 +79,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 15470,
-     "ratio": 1.0184331797235022,
+     "size": 15472,
+     "ratio": 1.0185648452929559,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -91,8 +91,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 15470,
-     "ratio": 1.0184331797235022,
+     "size": 15472,
+     "ratio": 1.0185648452929559,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -103,8 +103,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 15860,
-     "ratio": 1.0441079657669519,
+     "size": 15862,
+     "ratio": 1.0442396313364055,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -115,8 +115,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 15380,
-     "ratio": 1.012508229098091,
+     "size": 15382,
+     "ratio": 1.0126398946675443,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -127,8 +127,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 15380,
-     "ratio": 1.012508229098091,
+     "size": 15382,
+     "ratio": 1.0126398946675443,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -145,8 +145,8 @@
    "bytes": 19567,
    "table": {
     "bit/128B": {
-     "size": 20495,
-     "ratio": 1.0474267900035774,
+     "size": 20497,
+     "ratio": 1.047529002913068,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -157,8 +157,8 @@
      "lied": false
     },
     "bit/128B+o": {
-     "size": 20495,
-     "ratio": 1.0474267900035774,
+     "size": 20497,
+     "ratio": 1.047529002913068,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -169,8 +169,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 19928,
-     "ratio": 1.0184494301630296,
+     "size": 19930,
+     "ratio": 1.01855164307252,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -181,8 +181,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 19928,
-     "ratio": 1.0184494301630296,
+     "size": 19930,
+     "ratio": 1.01855164307252,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -193,8 +193,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 20424,
-     "ratio": 1.0437982317166659,
+     "size": 20426,
+     "ratio": 1.0439004446261564,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -205,8 +205,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 19817,
-     "ratio": 1.0127766136863086,
+     "size": 19819,
+     "ratio": 1.012878826595799,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -217,8 +217,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 19817,
-     "ratio": 1.0127766136863086,
+     "size": 19819,
+     "ratio": 1.012878826595799,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -235,8 +235,8 @@
    "bytes": 33742,
    "table": {
     "bit/128B": {
-     "size": 35336,
-     "ratio": 1.0472408274553968,
+     "size": 35338,
+     "ratio": 1.0473001007646257,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -247,8 +247,8 @@
      "lied": false
     },
     "bit/128B+o": {
-     "size": 35336,
-     "ratio": 1.0472408274553968,
+     "size": 35338,
+     "ratio": 1.0473001007646257,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -259,8 +259,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 34346,
-     "ratio": 1.017900539387114,
+     "size": 34348,
+     "ratio": 1.017959812696343,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -271,8 +271,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 34346,
-     "ratio": 1.017900539387114,
+     "size": 34348,
+     "ratio": 1.017959812696343,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -283,8 +283,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 35204,
-     "ratio": 1.0433287890462926,
+     "size": 35206,
+     "ratio": 1.0433880623555214,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -295,8 +295,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 34148,
-     "ratio": 1.0120324817734574,
+     "size": 34150,
+     "ratio": 1.0120917550826862,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -307,8 +307,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 34148,
-     "ratio": 1.0120324817734574,
+     "size": 34150,
+     "ratio": 1.0120917550826862,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -325,8 +325,8 @@
    "bytes": 92408,
    "table": {
     "bit/128B": {
-     "size": 96750,
-     "ratio": 1.0469872738291057,
+     "size": 96752,
+     "ratio": 1.047008916976885,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -337,8 +337,8 @@
      "lied": false
     },
     "bit/128B+o": {
-     "size": 96750,
-     "ratio": 1.0469872738291057,
+     "size": 96752,
+     "ratio": 1.047008916976885,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -349,8 +349,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 94047,
-     "ratio": 1.017736559605229,
+     "size": 94049,
+     "ratio": 1.0177582027530083,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -361,8 +361,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 94047,
-     "ratio": 1.017736559605229,
+     "size": 94049,
+     "ratio": 1.0177582027530083,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -373,8 +373,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 96389,
-     "ratio": 1.0430806856549217,
+     "size": 96391,
+     "ratio": 1.043102328802701,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -385,8 +385,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 93510,
-     "ratio": 1.0119253744264567,
+     "size": 93512,
+     "ratio": 1.011947017574236,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -397,8 +397,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 93510,
-     "ratio": 1.0119253744264567,
+     "size": 93512,
+     "ratio": 1.011947017574236,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -415,8 +415,8 @@
    "bytes": 265216,
    "table": {
     "bit/128B": {
-     "size": 277658,
-     "ratio": 1.04691270511583,
+     "size": 277660,
+     "ratio": 1.0469202461389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -427,8 +427,8 @@
      "lied": false
     },
     "bit/128B+o": {
-     "size": 277658,
-     "ratio": 1.04691270511583,
+     "size": 277660,
+     "ratio": 1.0469202461389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -439,8 +439,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 269888,
-     "ratio": 1.01761583011583,
+     "size": 269890,
+     "ratio": 1.0176233711389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -451,8 +451,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 269888,
-     "ratio": 1.01761583011583,
+     "size": 269890,
+     "ratio": 1.0176233711389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -463,8 +463,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 276622,
-     "ratio": 1.04300645511583,
+     "size": 276624,
+     "ratio": 1.0430139961389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -475,8 +475,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 268334,
-     "ratio": 1.01175645511583,
+     "size": 268336,
+     "ratio": 1.0117639961389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -487,8 +487,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 268334,
-     "ratio": 1.01175645511583,
+     "size": 268336,
+     "ratio": 1.0117639961389961,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -505,8 +505,8 @@
    "bytes": 360448,
    "table": {
     "bit/128B": {
-     "size": 377354,
-     "ratio": 1.0469027432528408,
+     "size": 377356,
+     "ratio": 1.0469082919034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "WRONG",
@@ -517,8 +517,8 @@
      "lied": true
     },
     "bit/128B+o": {
-     "size": 377354,
-     "ratio": 1.0469027432528408,
+     "size": 377356,
+     "ratio": 1.0469082919034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -529,8 +529,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 366794,
-     "ratio": 1.0176058682528408,
+     "size": 366796,
+     "ratio": 1.0176114169034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -541,8 +541,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 366794,
-     "ratio": 1.0176058682528408,
+     "size": 366796,
+     "ratio": 1.0176114169034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -553,8 +553,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 375946,
-     "ratio": 1.0429964932528408,
+     "size": 375948,
+     "ratio": 1.0430020419034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -565,8 +565,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 364682,
-     "ratio": 1.0117464932528408,
+     "size": 364684,
+     "ratio": 1.0117520419034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -577,8 +577,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 364682,
-     "ratio": 1.0117464932528408,
+     "size": 364684,
+     "ratio": 1.0117520419034092,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -595,8 +595,8 @@
    "bytes": 946623,
    "table": {
     "bit/128B": {
-     "size": 991009,
-     "ratio": 1.0468887825459554,
+     "size": 991011,
+     "ratio": 1.046890895319467,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -607,8 +607,8 @@
      "lied": false
     },
     "bit/128B+o": {
-     "size": 991009,
-     "ratio": 1.0468887825459554,
+     "size": 991011,
+     "ratio": 1.046890895319467,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "detected",
@@ -619,8 +619,8 @@
      "lied": false
     },
     "nib/512B": {
-     "size": 963274,
-     "ratio": 1.0175898958719576,
+     "size": 963276,
+     "ratio": 1.0175920086454693,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -631,8 +631,8 @@
      "lied": false
     },
     "nib/512B+o": {
-     "size": 963274,
-     "ratio": 1.0175898958719576,
+     "size": 963276,
+     "ratio": 1.0175920086454693,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -643,8 +643,8 @@
      "lied": false
     },
     "byte/256B": {
-     "size": 987311,
-     "ratio": 1.0429822643227558,
+     "size": 987313,
+     "ratio": 1.0429843770962675,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -655,8 +655,8 @@
      "lied": false
     },
     "byte/1KB": {
-     "size": 957733,
-     "ratio": 1.011736456857693,
+     "size": 957735,
+     "ratio": 1.011738569631205,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -667,8 +667,8 @@
      "lied": false
     },
     "byte/1KB+o": {
-     "size": 957733,
-     "ratio": 1.011736456857693,
+     "size": 957735,
+     "ratio": 1.011738569631205,
      "cells": {
       "bitflip": "EXACT",
       "byteflip": "EXACT",
@@ -686,20 +686,20 @@
   "none": 7
  },
  "capacity": {
-  "bit/128B|spec.md": 2,
-  "bit/128B|stalk.js": 1,
-  "bit/128B|og.png": 1,
-  "bit/128B|wubbadub.html": 1,
-  "bit/128B|program.exe": 2,
-  "bit/128B|notepad.exe": 2,
-  "bit/128B|archive.zst": 1,
-  "bit/128B+o|spec.md": 61,
-  "bit/128B+o|stalk.js": 141,
-  "bit/128B+o|og.png": 185,
-  "bit/128B+o|wubbadub.html": 306,
-  "bit/128B+o|program.exe": 515,
-  "bit/128B+o|notepad.exe": 602,
-  "bit/128B+o|archive.zst": 974,
+  "bit/128B|spec.md": 3,
+  "bit/128B|stalk.js": 4,
+  "bit/128B|og.png": 2,
+  "bit/128B|wubbadub.html": 2,
+  "bit/128B|program.exe": 4,
+  "bit/128B|notepad.exe": 4,
+  "bit/128B|archive.zst": 3,
+  "bit/128B+o|spec.md": 248,
+  "bit/128B+o|stalk.js": 280,
+  "bit/128B+o|og.png": 300,
+  "bit/128B+o|wubbadub.html": 610,
+  "bit/128B+o|program.exe": 1030,
+  "bit/128B+o|notepad.exe": 1203,
+  "bit/128B+o|archive.zst": 1946,
   "nib/512B|spec.md": 2,
   "nib/512B|stalk.js": 2,
   "nib/512B|og.png": 2,
@@ -709,11 +709,11 @@
   "nib/512B|archive.zst": 3,
   "nib/512B+o|spec.md": 3,
   "nib/512B+o|stalk.js": 2,
-  "nib/512B+o|og.png": 4,
-  "nib/512B+o|wubbadub.html": 306,
-  "nib/512B+o|program.exe": 517,
-  "nib/512B+o|notepad.exe": 601,
-  "nib/512B+o|archive.zst": 975,
+  "nib/512B+o|og.png": 185,
+  "nib/512B+o|wubbadub.html": 608,
+  "nib/512B+o|program.exe": 1030,
+  "nib/512B+o|notepad.exe": 1203,
+  "nib/512B+o|archive.zst": 1946,
   "byte/256B|spec.md": 2,
   "byte/256B|stalk.js": 2,
   "byte/256B|og.png": 2,

@@ -206,33 +206,46 @@ function repairSquare(cells, check, code, opts){
     const need = [0, 1, 2].map(k => mod(check[k] - baseR[k], p));
     const byRegion = [[], [], []];
     for(const i of F) byRegion[region[i]].push(i);
-    const plan = [];
+    /* One candidate list per region, then the lists are combined and q picks
+       among them -- eggSo-v0's shape (eggso.js:158-188). An earlier version
+       returned `ambiguous` the moment a single region had two readings, which
+       is safe but throws away the whole point of carrying q: a region's
+       equation is ~one cell wide and q is the tie-break. */
+    const HITS_PER_REGION = 64, COMBO_CAP = 20000;
+    const lists = [];
     for(let k = 0; k < 3; k++){
       const Fk = byRegion[k];
-      if(!Fk.length){ if(need[k] !== 0) return {status: "detected", fixed: 0, note: "erasures+error"}; continue; }
+      if(!Fk.length){ if(need[k] !== 0) return {status: "detected", fixed: 0, note: "erasures+error"}; lists.push([[]]); continue; }
       if(Fk.length === 1){
         const v = mod(need[k] * winv[Fk[0]], p);
         if(!inAlpha(v)) return {status: "detected", fixed: 0, note: "erasure out of alphabet"};
-        plan.push({i: Fk[0], v}); continue;
+        lists.push([[{i: Fk[0], v}]]); continue;      // one unknown, one equation: solved
       }
       const space = Math.pow(A, Fk.length);
       if(space > 262144) return {status: "detected", fixed: 0, note: "too many erasures"};
       const dig = new Int32Array(Fk.length), hits = [];
-      for(let n = 0; n < space && hits.length < 2; n++){
+      for(let n = 0; n < space && hits.length < HITS_PER_REGION; n++){
         let r = 0;
         for(let j = 0; j < Fk.length; j++) if(dig[j]) r = (r + dig[j] * w[Fk[j]]) % p;
-        if(r === need[k]) hits.push(Int32Array.from(dig));
+        if(r === need[k]) hits.push(Array.from(dig, (v, j) => ({i: Fk[j], v})));
         for(let j = 0; j < Fk.length; j++){ if(++dig[j] < A) break; dig[j] = 0; }
       }
       if(!hits.length) return {status: "detected", fixed: 0, note: "erasures"};
-      if(hits.length > 1) return {status: "ambiguous", fixed: 0, note: "erasures"};
-      for(let j = 0; j < Fk.length; j++) plan.push({i: Fk[j], v: hits[0][j]});
+      lists.push(hits);
     }
-    let rq = baseQ;
-    for(const e of plan) rq = (rq + e.v * wq[e.i]) % q;
-    if(rq !== check[3]) return {status: "detected", fixed: 0, note: "erasures failed confirm"};
+    let combos = 1; for(const l of lists) combos *= l.length;
+    if(combos > COMBO_CAP) return {status: "detected", fixed: 0, note: "erasures: too many readings"};
+    const idx = [0, 0, 0];
+    let survivor = null, count = 0;
+    for(let n = 0; n < combos; n++){
+      let rq = baseQ;
+      for(let k = 0; k < 3; k++) for(const e of lists[k][idx[k]]) rq = (rq + e.v * wq[e.i]) % q;
+      if(rq === check[3]){ count++; survivor = [lists[0][idx[0]], lists[1][idx[1]], lists[2][idx[2]]]; if(count > 1) break; }
+      for(let k = 0; k < 3; k++){ if(++idx[k] < lists[k].length) break; idx[k] = 0; }
+    }
+    if(count !== 1) return {status: count ? "ambiguous" : "detected", fixed: 0, note: "erasures"};
     for(const i of F) cells[i] = 0;
-    for(const e of plan) cells[e.i] = e.v;
+    for(const part of survivor) for(const e of part) cells[e.i] = e.v;
     return {status: "corrected", fixed: F.length, direct: F.length, searched: 0, note: "erasures solved"};
   }
 
@@ -310,10 +323,24 @@ function scatter(bytes, sig){
 }
 
 /* ---- the artifact --------------------------------------------------------
-   header (10 B) | checks | payload.  Checks come FIRST so a truncation takes
+   header (12 B) | checks | payload.  Checks come FIRST so a truncation takes
    payload and leaves the checks that repair it -- the same reasoning the
-   codegg line puts its ribs at the front for. */
-const MAGIC = 0xE993;
+   codegg line puts its ribs at the front for.
+
+   The header carries its own Fletcher-16 and the decoder refuses a header
+   that does not match. The first version of this file left the header's ten
+   bytes naked, and an audit found what that costs: flipping the low bit of
+   the declared LENGTH returned a file one byte short that passed every
+   residue check SILENTLY, and flipping a high bit of the length threw
+   "Invalid array length" out of the decoder instead of refusing. Twelve bytes
+   of header, two of them a checksum, is the whole fix; a decoder that hands
+   back a wrong length is worse than one that says no. */
+const MAGIC = 0xE993, HEAD = 12;
+function fletcher16(b, n){
+  let a = 0, c = 0;
+  for(let i = 0; i < n; i++){ a = (a + b[i]) % 255; c = (c + a) % 255; }
+  return (c << 8) | a;
+}
 function encode(bytes, opts){
   const N = (opts && opts.N) || 32, A = (opts && opts.A) || 2;
   const code = (opts && opts.code) || makeCode(N, A, opts);
@@ -321,11 +348,13 @@ function encode(bytes, opts){
   const squares = toCells(bytes, code);
   const checks = squares.map(c => checksFor(c, code));
   const cb = Math.ceil((3 * bitsOf(code.p) + bitsOf(code.q)) / 8);
-  const head = new Uint8Array(10);
+  const head = new Uint8Array(HEAD);
   head[0] = MAGIC >> 8; head[1] = MAGIC & 0xff; head[2] = N; head[3] = Math.log2(A);
   head[4] = useSigma ? 1 : 0;
   head[5] = (bytes.length >>> 24) & 0xff; head[6] = (bytes.length >>> 16) & 0xff;
   head[7] = (bytes.length >>> 8) & 0xff; head[8] = bytes.length & 0xff; head[9] = cb;
+  const fl = fletcher16(head, 10);
+  head[10] = fl >> 8; head[11] = fl & 0xff;
   const checkBytes = new Uint8Array(checks.length * cb);
   checks.forEach((c, s) => {
     let acc = 0n, bits = 0n;
@@ -355,12 +384,20 @@ function readChecks(checkBytes, s, cb, code){
    source addresses -- which is the whole of arm (b). */
 function decode(art, opts){
   const o = opts || {};
-  if(art.length < 10 || art[0] !== (MAGIC >> 8) || art[1] !== (MAGIC & 0xff)) return {ok: false, note: "no header"};
+  if(art.length < HEAD || art[0] !== (MAGIC >> 8) || art[1] !== (MAGIC & 0xff)) return {ok: false, note: "no header"};
+  if(((art[10] << 8) | art[11]) !== fletcher16(art, 10)) return {ok: false, note: "header checksum failed"};
   const N = art[2], A = Math.pow(2, art[3]), useSigma = !!art[4];
-  const byteLen = (art[5] << 24 >>> 0) + (art[6] << 16) + (art[7] << 8) + art[8], cb = art[9];
+  const byteLen = (art[5] * 16777216) + (art[6] << 16) + (art[7] << 8) + art[8], cb = art[9];
+  /* every field bounds-checked before it is used to size an array: a decoder
+     that throws is a decoder that lost the file without saying so */
+  if(N < 2 || N > 64 || ![1, 4, 8].includes(art[3]) || cb < 1 || cb > 64)
+    return {ok: false, note: "header out of range"};
+  if(byteLen < 0 || byteLen > 0x7ffffff0) return {ok: false, note: "declared length out of range"};
   const code = o.code || makeCode(N, A, o);
+  if(code.N !== N || code.A !== A) return {ok: false, note: "code does not match header"};
   const nsq = Math.ceil(byteLen / code.blockBytes) || 1;
-  const checkStart = 10, payStart = checkStart + nsq * cb;
+  const checkStart = HEAD, payStart = checkStart + nsq * cb;
+  if(art.length < payStart) return {ok: false, note: "checks truncated"};
   const checkBytes = art.subarray(checkStart, payStart);
   const payload = new Uint8Array(byteLen);
   const have = Math.max(0, art.length - payStart);
@@ -397,13 +434,13 @@ function sizes(meta, code){
   const checkBits = meta.squares * meta.cb * 8, dataBits = meta.bytes * 8;
   return {squares: meta.squares, blockBytes: code.blockBytes, bitsPerSquare: per, checkBits,
           checkBytes: meta.squares * meta.cb, headerBytes: meta.headerBytes || 10,
-          totalBytes: meta.bytes + meta.squares * meta.cb + (meta.headerBytes || 10),
+          totalBytes: meta.bytes + meta.squares * meta.cb + (meta.headerBytes || HEAD),
           overheadIdeal: per / (code.blockBytes * 8),
-          overhead: dataBits ? (checkBits + 8 * (meta.headerBytes || 10)) / dataBits : 0};
+          overhead: dataBits ? (checkBits + 8 * (meta.headerBytes || HEAD)) / dataBits : 0};
 }
 
 if(typeof module !== "undefined" && module.exports)
-  module.exports = {injectiveFor, injectiveByEnumeration, pickModulus, inv, makeCode, lookup, PRIMES,
+  module.exports = {injectiveFor, injectiveByEnumeration, pickModulus, inv, makeCode, lookup, PRIMES, HEAD, fletcher16,
                     residue, regionResidues, checksFor, toCells, toBytes, cellsOfByte,
                     repairSquare, fileSigma, scatter, encode, decode, readChecks, sizes,
                     INNER, FOLD, OUTER, NAMES: E.NAMES};

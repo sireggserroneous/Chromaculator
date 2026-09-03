@@ -36,7 +36,7 @@
   "bitsP": 16,
   "per": 65,
   "overhead": 0.015869140625,
-  "searchMs": 43
+  "searchMs": 26
  },
  {
   "name": "byte",
@@ -49,7 +49,7 @@
   "bitsP": 22,
   "per": 88,
   "overhead": 0.04296875,
-  "searchMs": 3416
+  "searchMs": 1915
  },
  {
   "name": "byte",
@@ -62,6 +62,6 @@
   "bitsP": 23,
   "per": 92,
   "overhead": 0.01123046875,
-  "searchMs": 25908
+  "searchMs": 18717
  }
 ]

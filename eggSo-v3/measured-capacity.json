@@ -1,10 +1,10 @@
 {
  "spec.md": {
   "bit/128B": {
-   "scratchBare": 2,
-   "scratchSigma": 61,
-   "truncSigma": 61,
-   "gain": 30.5
+   "scratchBare": 3,
+   "scratchSigma": 248,
+   "truncSigma": 184,
+   "gain": 82.66666666666667
   },
   "byte/1024B": {
    "scratchBare": 2,
@@ -15,10 +15,10 @@
  },
  "wubbadub.html": {
   "bit/128B": {
-   "scratchBare": 1,
-   "scratchSigma": 306,
-   "truncSigma": 304,
-   "gain": 306
+   "scratchBare": 2,
+   "scratchSigma": 610,
+   "truncSigma": 608,
+   "gain": 305
   },
   "byte/1024B": {
    "scratchBare": 5,

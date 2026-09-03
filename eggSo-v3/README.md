@@ -24,10 +24,16 @@ codegg-v1's first line and was inherited three times.
 | one corrupted **digit** | 3000/3000 | 3000/3000 |
 | one corrupted **byte** | 604/3000, **43 MISCORRECTED** | **3000/3000, 0 wrong** |
 | artifact in the ring | 104.69% | **101.17%** |
-| largest scratch survived, with σ | 974 B | **1946 B** |
+| recipe on a 946 KB file | +44,388 B | **+11,112 B** |
+| largest scratch survived, with σ | 1946 B | 1946 B |
 
 And the second finding, free: **the fold's own involution applied to the file instead of
-the square multiplies the survivable wound by 31× to 974× and costs zero bytes.**
+the square multiplies the survivable wound by 62× to 649× and costs zero bytes.**
+
+The third thing to know before the tables: **every recipe here is bigger than the file it
+protects.** eggSo has no compression stage. It is armor, and the cheapest armor in the
+family by a factor of six to thirty-one, which is the only reason it matters to the
+transmuter line at all. See *Original against recipe* below.
 
 ## What failed, first
 
@@ -49,6 +55,9 @@ the square multiplies the survivable wound by 31× to 974× and costs zero bytes
   files, wrong on the smallest, and kept.
 - **Two erasures in one region were called "refused" and were recovered 1000/1000.** At
   A = 256, `A²` is 65,536 — cheaper to enumerate than to refuse, and `q` settles it.
+- **The audit of 2026-09-03 found three defects in this round's own artifact**, one of them
+  a silent data loss. They are fixed and written up under *The implementation audit* below,
+  with the numbers they moved.
 
 ## Why this round exists
 
@@ -135,20 +144,20 @@ before it was run. Bisection, per row, per file.
 
 | row | spec.md | stalk.js | og.png | wubbadub | program.exe | notepad.exe | archive.zst |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| bit/128B | 2 | 1 | 1 | 1 | 2 | 2 | 1 |
-| **bit/128B + σ** | **61** | **141** | **185** | **306** | **515** | **602** | **974** |
+| bit/128B | 3 | 4 | 2 | 2 | 4 | 4 | 3 |
+| **bit/128B + σ** | **248** | **280** | **300** | **610** | **1030** | **1203** | **1946** |
 | nib/512B | 2 | 2 | 2 | 4 | 4 | 4 | 3 |
-| nib/512B + σ | 3 | 2 | 4 | 306 | 517 | 601 | 975 |
+| nib/512B + σ | 3 | 2 | 185 | 608 | 1030 | 1203 | 1946 |
 | byte/256B | 2 | 2 | 2 | 2 | 4 | 4 | 3 |
 | byte/1KB | 2 | 2 | 2 | 5 | 4 | 4 | 3 |
 | **byte/1KB + σ** | 2 | 2 | 5 | 306 | 520 | 604 | **1946** |
 
-Bare capacity is 1–5 bytes at every block size and every file size, exactly as called: a
+Bare capacity is 2–5 bytes at every block size and every file size, exactly as called: a
 contiguous wound lives inside one or two blocks and one equation per region solves one byte
 per region. σ makes the same three-per-block available in every block the scatter reaches,
-so its gain scales with the *number* of blocks — which is why `bit/128B + σ` beats
-`byte/1KB + σ` on the small files (119 blocks against 15) and loses on the big ones. A
-truncation gives the same number, file for file.
+so its gain scales with the *number* of blocks — which is why `bit/128B + σ`, the most
+expensive square and the one with the most blocks, beats `byte/1KB + σ` everywhere except
+a tie on the largest file. A truncation gives the same number, file for file.
 
 ### What the suite pins down (`tools/eggso3.test.js`)
 
@@ -165,6 +174,54 @@ truncation gives the same number, file for file.
 | `σ∘σ = id`; σ's cost | 7/7 file lengths; **0 bytes** |
 | σ's worst 128-B block: spec / stalk / og / wubbadub | 39 / 30 / 23 / 14 (ground said 37 for the first) |
 | cost per block | 4.69 / 5.86 / 1.59 / 4.30 / **1.12** % |
+
+### The implementation audit — 2026-09-03
+
+The round was reviewed against its own artifact instead of against synthetic squares.
+Three defects, one of them the kind that matters.
+
+| audited | found | fixed |
+| --- | --- | --- |
+| **the header** | its ten bytes were naked. Flipping the low bit of the declared **length** returned a file one byte short that passed every residue check **silently**. Flipping a high bit threw `Invalid array length` out of the decoder instead of refusing | 12-byte header with a Fletcher-16 over the other ten, and every field bounds-checked before it sizes an array. **All 96 single-bit flips of the header now refuse cleanly: 0 silent, 0 throws** |
+| **the check area** | already safe, and worth recording: flipping **every one of the 180 check bytes** one at a time leaves the data exact 180 times, 0 silently wrong. A corrupted check cannot manufacture a repair that also satisfies `q` | nothing to fix |
+| **a wound straddling checks and payload** | detected, not silently wrong | nothing to fix |
+| **erasure ambiguity** | a region with two readings returned `ambiguous` at once, throwing away the point of carrying `q`. Safe, but it cost capacity | candidate lists per region are combined and `q` picks among them, which is eggSo-v0's own shape (`eggso.js:158-188`) |
+
+The erasure fix roughly **doubled the capacity curve** and changed its ordering: the bit
+square, which has the most blocks to scatter into, now ties the byte square on the largest
+file instead of losing to it. The capacity table above is the post-fix run. Everything else
+re-ran unchanged. The header is two bytes larger, so every artifact is two bytes larger.
+
+### Original against recipe — what this is worth to the transmuter line
+
+**Every eggSo artifact is larger than its source.** There is no compression stage anywhere
+in this lineage; it is armor, and armor costs. So eggSo cannot enter the codegg tournament,
+whose rule is *smallest lossless survivor* and whose contenders compress.
+
+| file | original | recipe, byte/1KB | added | recipe, bit/128B — v0's square |
+| --- | --- | --- | --- | --- |
+| spec.md | 15,190 | 15,382 | **+192 B, 1.26%** | 15,916, +4.78% |
+| stalk.js | 19,567 | 19,819 | +252 B, 1.29% | 20,497, +4.75% |
+| og.png | 33,742 | 34,150 | +408 B, 1.21% | 35,338, +4.73% |
+| wubbadub.html | 92,408 | 93,512 | +1,104 B, 1.19% | 96,752, +4.70% |
+| program.exe | 265,216 | 268,336 | +3,120 B, 1.18% | 277,660, +4.69% |
+| notepad.exe | 360,448 | 364,684 | +4,236 B, 1.18% | 377,356, +4.69% |
+| archive.zst | 946,623 | 957,735 | **+11,112 B, 1.17%** | 991,011, +4.69% |
+
+Where it *can* matter is as the armor layer in the hybrid posture — compress, then armor.
+Against codegg-v6's ribs on the same files:
+
+| file | eggSo-v3 byte/1KB | codegg-v6 ribs | eggSo saves |
+| --- | --- | --- | --- |
+| spec.md | +192 B, 1.26% | +5,958 B, **39.22%** | 5,766 B |
+| notepad.exe | +4,236 B, 1.18% | +26,840 B, 7.45% | 22,604 B |
+| archive.zst | +11,112 B, 1.17% | +69,009 B, 7.29% | **57,897 B** |
+
+**Six to thirty-one times cheaper, and correspondingly weaker.** codegg-v6's ribs restore a
+4 KB scratch and a 4 KB truncation. eggSo-v3 restores a corrupted byte anywhere, and with σ
+a wound up to 1,946 bytes on a megabyte file. It is the right armor for bit rot and the
+wrong armor for a lost sector, and the two are not interchangeable at any price. Choosing
+between them is a threat-model decision, not a size decision.
 
 ### The honest section
 
@@ -183,6 +240,9 @@ truncation gives the same number, file for file.
   is not resolved here.
 - **Two erasures per region are enumerated, not solved.** `A²` = 65,536 at A = 256 is
   affordable; `A³` is not, and the decoder refuses rather than guessing.
+- **The recipe is never smaller than the file.** Worth saying twice, because every other
+  series in this repo is measured on getting smaller. This one is measured on getting the
+  file back.
 - **The cached primes.** `PRIMES` in the source holds the five pairs so the ring does not
   spend nineteen seconds a file rediscovering them. The suite re-derives every one **by
   search** and re-verifies it **by enumeration** on every run, so a cache that drifts is a

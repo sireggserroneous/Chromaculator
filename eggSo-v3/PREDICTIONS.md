@@ -318,6 +318,67 @@ the 4 KB injuries — **not** called; σ was predicted to carry the two big file
 codegg-v1 was predicted to forfeit the byte flip too; it is not in the ring, and the
 README says why rather than counting a row that was never run.
 
+### S7 — the implementation audit, 2026-09-03, after the round was committed
+
+Not a bar. The round was reviewed against its own artifact rather than against
+synthetic squares, and three defects came out. All three are fixed, and the numbers
+above that moved are restated here rather than edited in place.
+
+| what was audited | found | fixed |
+| --- | --- | --- |
+| **damage to the header** | the ten header bytes were naked. Flipping the low bit of the declared **length** returned a file one byte short that passed every residue check **silently**; flipping a high bit of the length threw `Invalid array length` out of the decoder instead of refusing | header is now 12 bytes with a Fletcher-16 over the other ten, and every field is bounds-checked before it sizes an array. **All 96 single-bit flips of the header now refuse cleanly: 0 silent, 0 throws** |
+| **damage to the check area** | already safe, and worth recording: flipping **every one of the 180 check bytes**, one at a time, leaves the data exact 180 times, 0 silently wrong. A corrupted check cannot manufacture a repair that also satisfies `q` | nothing to fix |
+| **a wound straddling checks and payload** | detected, not silently wrong | nothing to fix |
+| **erasure ambiguity** | a region with two readings returned `ambiguous` immediately, which threw away the whole point of carrying `q`. Safe, but it cost capacity | candidate lists per region are now combined and `q` picks among them, which is eggSo-v0's own shape (`eggso.js:158-188`) |
+
+**What the erasure fix moved.** The capacity curve roughly doubled, and the ordering
+changed: the bit square, which has the most blocks to scatter into, now ties the byte
+square on the largest file instead of losing to it.
+
+| row | spec.md | stalk.js | og.png | wubbadub | program.exe | notepad.exe | archive.zst |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| bit/128B | 3 | 4 | 2 | 2 | 4 | 4 | 3 |
+| **bit/128B + σ** | **248** | **280** | **300** | **610** | **1030** | **1203** | **1946** |
+| nib/512B + σ | 3 | 2 | 185 | 608 | 1030 | 1203 | 1946 |
+| byte/1KB | 2 | 2 | 2 | 5 | 4 | 4 | 3 |
+| byte/1KB + σ | 2 | 2 | 5 | 306 | 520 | 604 | **1946** |
+
+Everything else re-ran unchanged: the moduli, the 70 round-trip shapes, singles
+3000/3000 at every radix, the corrupted byte 3000/3000 for the byte square and 604 with
+43 miscorrections for the bit square, and the ring's verdicts including `bit/128B`
+returning WRONG data on `notepad.exe`. The header is two bytes larger, so every artifact
+in the ring is two bytes larger; the overhead column moves by 0.01 point at most.
+
+### S8 — original against recipe, and what it means for the transmuter line
+
+Asked after the round: **how big is the recipe next to the file?** Every eggSo artifact is
+*larger* than its source, because eggSo has no compression stage at all. It is armor.
+
+| file | original | recipe, byte/1KB | added | recipe, bit/128B — v0's square |
+| --- | --- | --- | --- | --- |
+| spec.md | 15,190 | 15,382 | **+192 B, 1.26%** | 15,916, +4.78% |
+| stalk.js | 19,567 | 19,819 | +252 B, 1.29% | 20,497, +4.75% |
+| og.png | 33,742 | 34,150 | +408 B, 1.21% | 35,338, +4.73% |
+| wubbadub.html | 92,408 | 93,512 | +1,104 B, 1.19% | 96,752, +4.70% |
+| program.exe | 265,216 | 268,336 | +3,120 B, 1.18% | 277,660, +4.69% |
+| notepad.exe | 360,448 | 364,684 | +4,236 B, 1.18% | 377,356, +4.69% |
+| archive.zst | 946,623 | 957,735 | **+11,112 B, 1.17%** | 991,011, +4.69% |
+
+So eggSo can never win the codegg tournament, whose rule is *smallest lossless survivor*
+and whose contenders compress. What it can do is be the **armor layer** in the hybrid
+posture, and there the comparison is against codegg-v6's ribs on the same file:
+
+| file | eggSo-v3 byte/1KB | codegg-v6 ribs | eggSo saves |
+| --- | --- | --- | --- |
+| spec.md | +192 B, 1.26% | +5,958 B, **39.22%** | 5,766 B |
+| notepad.exe | +4,236 B, 1.18% | +26,840 B, 7.45% | 22,604 B |
+| archive.zst | +11,112 B, 1.17% | +69,009 B, 7.29% | **57,897 B** |
+
+**Six to thirty-one times cheaper, and correspondingly weaker.** codegg-v6's ribs restore
+a 4 KB scratch and a 4 KB truncation; eggSo-v3 restores a corrupted byte anywhere, and
+with σ a wound of up to 1,946 bytes on a megabyte file. It is the right armor for bit rot
+and the wrong armor for a lost sector, and the two are not interchangeable at any price.
+
 ## THE CLOSING AUDIT — every bar, called vs landed
 
 | bar | called | landed | verdict |

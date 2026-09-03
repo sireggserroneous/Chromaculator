@@ -188,7 +188,7 @@ const codes = CFGS.map(([, A, N]) => X.makeCode(N, A));
   const survives = (src, cfg, sigma, len, kind) => {
     const [, A, N] = cfg, code = codes[CFGS.indexOf(cfg)];
     const enc = X.encode(src, {N, A, code, sigma});
-    const payStart = 10 + enc.meta.squares * enc.meta.cb;
+    const payStart = X.HEAD + enc.meta.squares * enc.meta.cb;
     const b = Buffer.from(enc.artifact);
     if(kind === "trunc"){
       const art = new Uint8Array(b.subarray(0, Math.max(payStart, b.length - len)));
@@ -231,7 +231,7 @@ const codes = CFGS.map(([, A, N]) => X.makeCode(N, A));
   const out = {};
   CFGS.forEach(([name, A, N], k) => {
     const code = codes[k], cb = Math.ceil((3 * Math.ceil(Math.log2(code.p)) + Math.ceil(Math.log2(code.q))) / 8);
-    const s = X.sizes({squares: 1, bytes: code.blockBytes, cb, headerBytes: 10}, code);
+    const s = X.sizes({squares: 1, bytes: code.blockBytes, cb, headerBytes: 12}, code);
     out[`${name}/${code.blockBytes}B`] = {blockBytes: code.blockBytes, bitsPerSquare: s.bitsPerSquare, idealOverhead: s.overheadIdeal};
   });
   console.log("  A6: " + Object.entries(out).map(([n, v]) => `${n} ${(100 * v.idealOverhead).toFixed(2)}%`).join(" · ") + "   (bit/128B is eggSo-v0 exactly)");

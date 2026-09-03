@@ -81,7 +81,7 @@ for(const file of FILES){
   for(const r of ROWS){
     const code = codeFor(r);
     const enc = X.encode(src, {N: r.N, A: r.A, code, sigma: r.sigma});
-    const payStart = 10 + enc.meta.squares * enc.meta.cb;
+    const payStart = X.HEAD + enc.meta.squares * enc.meta.cb;
     const cells = [];
     let survived = true, lied = false;
     for(const kind of INJURIES){
@@ -121,7 +121,7 @@ console.log("podium: " + Object.entries(podium).sort((a, b) => b[1] - a[1]).map(
    and land in the hundreds or low thousands. */
 function survives(src, r, code, len){
   const enc = X.encode(src, {N: r.N, A: r.A, code, sigma: r.sigma});
-  const payStart = 10 + enc.meta.squares * enc.meta.cb;
+  const payStart = X.HEAD + enc.meta.squares * enc.meta.cb;
   const b = Buffer.from(enc.artifact), g = mul32(0xACE);
   const at = Math.max(payStart, payStart + Math.floor((b.length - payStart) / 2) - Math.floor(len / 2));
   const n = Math.min(len, b.length - at);
