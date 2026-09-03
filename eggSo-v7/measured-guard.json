@@ -1,0 +1,91 @@
+{
+ "rule": "truncate-then-filter converts detection into miscorrection; make truncation visible rather than raising the budget",
+ "worstWrongAcrossGuardedRows": 0,
+ "ladder": [
+  {
+   "caps": "v0, untouched (guard off)",
+   "refuseOnTruncation": false,
+   "erasuresPerClass": 16,
+   "erasureHits": 64,
+   "corrected": 0,
+   "ambiguous": 0,
+   "refused": 100,
+   "wrong": 0,
+   "of": 100
+  },
+  {
+   "caps": "v0 + guard",
+   "refuseOnTruncation": true,
+   "erasuresPerClass": 16,
+   "erasureHits": 64,
+   "corrected": 0,
+   "ambiguous": 0,
+   "refused": 100,
+   "wrong": 0,
+   "of": 100
+  },
+  {
+   "caps": "LOPSIDED per-class 20, hits 64 -- v6",
+   "refuseOnTruncation": false,
+   "erasuresPerClass": 20,
+   "erasureHits": 64,
+   "corrected": 46,
+   "ambiguous": 3,
+   "refused": 49,
+   "wrong": 2,
+   "of": 100
+  },
+  {
+   "caps": "the same, + guard",
+   "refuseOnTruncation": true,
+   "erasuresPerClass": 20,
+   "erasureHits": 64,
+   "corrected": 0,
+   "ambiguous": 51,
+   "refused": 49,
+   "wrong": 0,
+   "of": 100
+  },
+  {
+   "caps": "Caps::raised(20) -- coupled, guard on",
+   "refuseOnTruncation": true,
+   "erasuresPerClass": 20,
+   "erasureHits": 1022,
+   "corrected": 95,
+   "ambiguous": 5,
+   "refused": 0,
+   "wrong": 0,
+   "of": 100
+  }
+ ],
+ "v0TruncationRate": [
+  {
+   "f": 8,
+   "guardOffCorrected": 100,
+   "guardOnCorrected": 100,
+   "of": 100,
+   "truncationRate": 0
+  },
+  {
+   "f": 12,
+   "guardOffCorrected": 100,
+   "guardOnCorrected": 100,
+   "of": 100,
+   "truncationRate": 0
+  },
+  {
+   "f": 14,
+   "guardOffCorrected": 100,
+   "guardOnCorrected": 100,
+   "of": 100,
+   "truncationRate": 0
+  },
+  {
+   "f": 16,
+   "guardOffCorrected": 100,
+   "guardOnCorrected": 100,
+   "of": 100,
+   "truncationRate": 0
+  }
+ ]
+}

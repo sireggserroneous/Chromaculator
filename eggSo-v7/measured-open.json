@@ -1,0 +1,71 @@
+{
+ "restarts": 8,
+ "nodesPerRestart": 120000000,
+ "seed": 20260903,
+ "method": "randomised-restart DFS; can only settle YES",
+ "cases": [
+  {
+   "n": 15,
+   "L": 8,
+   "floor": 3,
+   "verdict": "REACHED",
+   "restarts": 0,
+   "nodes": 0,
+   "structure": "nonlinear, tape-periodic period 9 (periodic family)",
+   "verifiedAtFloor": true
+  },
+  {
+   "n": 15,
+   "L": 11,
+   "floor": 4,
+   "verdict": "REACHED",
+   "restarts": 0,
+   "nodes": 0,
+   "structure": "nonlinear, tape-periodic period 11 (periodic family)",
+   "verifiedAtFloor": true
+  },
+  {
+   "n": 30,
+   "L": 11,
+   "floor": 4,
+   "verdict": "REACHED",
+   "restarts": 0,
+   "nodes": 0,
+   "structure": "nonlinear, tape-periodic period 11 (periodic family)",
+   "verifiedAtFloor": true
+  },
+  {
+   "n": 30,
+   "L": 8,
+   "floor": 3,
+   "verdict": "REACHED",
+   "restarts": 0,
+   "nodes": 0,
+   "structure": "nonlinear, tape-periodic period 9 (periodic family)",
+   "verifiedAtFloor": true
+  },
+  {
+   "n": 33,
+   "L": 8,
+   "floor": 3,
+   "verdict": "REACHED",
+   "restarts": 0,
+   "nodes": 0,
+   "structure": "nonlinear, tape-periodic period 9 (periodic family)",
+   "verifiedAtFloor": true
+  },
+  {
+   "n": 33,
+   "L": 11,
+   "floor": 4,
+   "verdict": "INCONCLUSIVE",
+   "restarts": 8,
+   "nodes": 960000008,
+   "structure": "--",
+   "verifiedAtFloor": false
+  }
+ ],
+ "wereOpen": 3,
+ "openCasesSettled": 2,
+ "totalReached": 5
+}
