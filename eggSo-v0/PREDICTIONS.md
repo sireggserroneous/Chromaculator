@@ -234,3 +234,33 @@ Five bars, five met, two of them only after a miss was measured and answered. Th
 was the mechanism for the first time, and it turned out to be a known kind of thing, done
 in a slightly worse shape than the obvious way. The fold itself remains unplaced — this
 round placed what one *does* with it, not what it *is*.
+
+## AMENDMENT — 2026-09-02, after eggSo-v2
+
+Nothing above is edited; a prediction corrected to match its result is worth less than
+none, and so is a measurement. This is what the round got wrong **about itself**.
+
+S3 filed "same-region pairs, one prime, ~87% by search" and recorded **0 by search, 216
+miscorrected**; with confirm, **2 of 921 corrected, 919 detected**. Both numbers are real
+and both were read as the partition's cost. They are not. They are the cost of asking the
+confirming residue **after** a plan is assembled instead of **inside** the search, which
+is what codegg-v1 does (`codegg.js:204-206`, `223-231`) and what this round borrowed
+everything else from.
+
+| claim | as this round read it | measured 2026-09-02, same code, same channel, same 4.69% |
+| --- | --- | --- |
+| same-region pairs, 1000 random squares | the partition cannot correct them: 2/921 | `q` after the plan **281**; `q` per candidate **972**, 0 wrong |
+| same-region pairs, `spec.md`, 400 | 130 | `q` per candidate **391**, 0 wrong |
+| singles · cross-region pairs · 3 one-per-region, per candidate | — | **1000/1000 each, 0 wrong** — the amendment costs no channel |
+
+The mechanism, stated plainly: v0's search stops at the second in-region candidate
+(`sols.length > 1` → ambiguous) before `q` is asked, and a pair whose syndrome also reads
+as an alphabet-valid *single* is spent on that single and then refused by the final
+confirm. Both are placements, not properties of Inner/Fold/Outer.
+
+**What this costs the lineage:** eggSo-v1 was planned against a gap of 2 vs 400 on this
+channel. The honest gap is **391 vs 400**. v1(a)'s claim survives in a narrower form — it
+*names* the pair by table lookup (254 direct of 400) where v0 must search, and it takes
+the last nine — but "v0 cannot correct a same-region pair" was never true of the fold.
+Filed here, in the round that said it, with the option that reproduces it:
+`{perCandidate: true}`, default off, `tools/eggso.test.js` block 10.

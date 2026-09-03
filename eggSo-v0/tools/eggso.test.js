@@ -225,4 +225,51 @@ const CFGS = [["one prime", bare], ["+ confirm", code]];
   record("floor", {onePrime: one, confirm: two});
 }
 
+/* 10. THE AMENDMENT, added 2026-09-02 after eggSo-v2 measured it.
+      Everything above is the round as it was filed and stays that way. This
+      block measures the one thing the round got wrong ABOUT ITSELF: it read
+      "2 of 921 same-region pairs" as the partition's cost, and it is the
+      confirm's placement. Same code, same channel, same squares, same
+      4.69% -- q asked inside the search instead of after the plan. */
+{
+  const trial = (T, perCandidate) => {
+    let corrected = 0, detected = 0, ambiguous = 0, wrong = 0, direct = 0;
+    for(let t = 0; t < T; t++){
+      const cells = randCells(L), chk = E.checksFor(cells, code), hurt = cells.slice();
+      const k = pick(3), m = code.members[k];
+      let a = m[pick(m.length)], b = m[pick(m.length)]; while(b === a) b = m[pick(m.length)];
+      hurt[a] ^= 1; hurt[b] ^= 1;
+      const r = E.repairSquare(hurt, chk, code, perCandidate ? {perCandidate: true} : undefined);
+      if(r.status === "corrected"){ if(same(hurt, cells)){ corrected++; direct += r.direct || 0; } else wrong++; }
+      else if(r.status === "ambiguous") ambiguous++; else detected++;
+    }
+    return {T, corrected, detected, ambiguous, wrong, direct};
+  };
+  const shipped = trial(1000, false), amended = trial(1000, true);
+  /* and the channels the round is proudest of, to show the amendment costs
+     none of them: singles, cross-region pairs, three one-per-region */
+  const others = {};
+  for(const [name, dmg] of [["single", h => { h[pick(L)] ^= 1; }],
+                            ["cross-region pair", h => { let a = pick(L), b = pick(L); while(code.region[b] === code.region[a]) b = pick(L); h[a] ^= 1; h[b] ^= 1; }],
+                            ["3 one-per-region", h => { for(let k = 0; k < 3; k++){ const m = code.members[k]; h[m[pick(m.length)]] ^= 1; } }]]){
+    let corrected = 0, wrong = 0, direct = 0;
+    for(let t = 0; t < 1000; t++){
+      const cells = randCells(L), chk = E.checksFor(cells, code), hurt = cells.slice();
+      dmg(hurt);
+      const r = E.repairSquare(hurt, chk, code, {perCandidate: true});
+      if(r.status === "corrected"){ if(same(hurt, cells)){ corrected++; direct += r.direct || 0; } else wrong++; }
+    }
+    others[name] = {corrected, wrong, direct, of: 1000};
+  }
+  ok(amended.wrong === 0, `the amendment miscorrected ${amended.wrong} same-region pairs -- it must not`);
+  ok(amended.corrected >= 950, `the amendment should recover the channel: shipped ${shipped.corrected}, amended ${amended.corrected}/1000`);
+  for(const [name, r] of Object.entries(others)) ok(r.corrected === 1000 && r.wrong === 0, `the amendment broke ${name}: ${r.corrected}/1000, ${r.wrong} wrong`);
+  console.log(`  AMENDMENT (2026-09-02): same-region pairs, 1000, same squares and the same 4.69%`);
+  console.log(`     q after the plan  (v0 as shipped): ${shipped.corrected} corrected, ${shipped.detected + shipped.ambiguous} detected, ${shipped.wrong} wrong`);
+  console.log(`     q per candidate   (codegg-v1's rule): ${amended.corrected} corrected, ${amended.detected + amended.ambiguous} detected, ${amended.wrong} wrong`);
+  console.log(`     and it costs nothing elsewhere: ` + Object.entries(others).map(([n, r]) => `${n} ${r.corrected}/1000`).join(", "));
+  console.log(`     the gap this folder called the partition's was the confirm's placement.`);
+  record("amendment", {shipped, amended, others});
+}
+
 console.log("eggso ok");

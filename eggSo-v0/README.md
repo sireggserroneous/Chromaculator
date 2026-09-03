@@ -7,6 +7,42 @@ Not part of the site. The fourteenth codec experiment, sibling to `codec-v1/` an
 Built 2026-09-02 against [PREDICTIONS.md](PREDICTIONS.md), filed before a line of the
 codec was written. Guesses and misses are kept side by side there.
 
+## Amendment — 2026-09-02, after eggSo-v2
+
+**This round misread its own worst number.** Everything below is the round as it was
+built and measured, and it stays that way. But the headline failure — *"eggSo cannot
+correct a same-region pair: 2 of 921"* — is not a property of the partition. It is a
+property of **where this code puts its confirming residue.**
+
+v0 assembles a whole repair plan and only then asks `q`. Its in-region search refuses at
+the *second* candidate, before `q` is ever consulted, and a pair whose syndrome also reads
+as a valid single is spent on that single and refused by the final confirm. codegg-v1 asks
+`q` **inside** the search (`codegg.js:204-206`, `223-231`), so a second candidate that `q`
+rejects costs it nothing. Same partition, same four residues, same 4.69%:
+
+| same-region pairs | corrected | detected | miscorrected |
+| --- | --- | --- | --- |
+| `q` after the plan — v0 as shipped, 1000 random squares | **281** | 719 | 0 |
+| `q` per candidate — codegg-v1's rule, same squares | **972** | 28 | 0 |
+| on `spec.md`, 400 trials: shipped / amended | **130 / 391** | 270 / 9 | 0 / 0 |
+
+It costs nothing on any channel this round won: singles, cross-region pairs and
+three-one-per-region stay 1000/1000 with 0 miscorrected.
+
+The amendment is an **option, default off**, so every number in this file and in
+`PREDICTIONS.md` stays reproducible from the code that produced it:
+
+```
+node eggSo-v0/tools/eggso.test.js                            # block 10 measures it
+node eggSo-v0/tools/versus.js spec.md --per-candidate        # the column, corrected
+```
+
+What this does to the lineage's record: eggSo-v1 was planned against a gap of **2 vs 400**
+and the honest gap is **391 vs 400**. v1(a) still buys something v0 cannot have — the pair
+is *named* by a table lookup, 254 direct of 400, with no search at all — but it buys nine
+corrections, not 398. The 130/400 in the head-to-head table below is the shipped form's
+number and is left standing; read it with this section.
+
 ## The verdict, first
 
 **Five bars, five met — two of them only after a miss was measured and answered.**

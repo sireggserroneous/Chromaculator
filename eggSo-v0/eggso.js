@@ -119,6 +119,60 @@ function sizes(meta){
   };
 }
 
+/* ---- THE AMENDMENT, filed 2026-09-02, after eggSo-v2 ----------------------
+   v0 as shipped assembles a whole plan and only then asks the confirming
+   residue (see the `if(code.confirm)` block at the end of repairSquare). Its
+   in-region search refuses at the SECOND candidate -- `sols.length > 1` --
+   before q is ever consulted. codegg-v1 asks q INSIDE the search
+   (codegg.js:204-206 and 223-231), so a second candidate that q rejects
+   costs it nothing.
+
+   eggSo-v2's suite measured what that difference costs v0, on v0's own bit
+   squares, at v0's own 4.69%: the same-region pair channel goes from
+   2 of 921 corrected to 978 of 1000. The gap this folder's README reports
+   as the partition's cost is not the partition. It is where the confirm sits.
+
+   Kept as an OPTION, default OFF, so every number in README.md and
+   PREDICTIONS.md stays reproducible from the code that produced it:
+
+     E.repairSquare(cells, check, code, {perCandidate: true})
+     node tools/versus.js ../spec.md --per-candidate
+
+   Requires `confirm` (there is nothing to confirm against without q).
+
+   Two stages, in codegg-v1's order: every region's alphabet-valid SINGLES
+   first, combined and put to q; and only if no combination survives q, the
+   in-region pair search for one region at a time. The stage-2 fall-through
+   is the part v0 never had -- shipped, a same-region pair whose syndrome
+   also reads as a valid single is spent on that single and refused by the
+   final confirm. Measured: without the fall-through the amendment recovers
+   817 of 1000; with it, 975.                                               */
+const PC_CANDIDATE_CAP = 4096, PC_COMBO_CAP = 20000;
+function regionSingles(cells, code, k, s){
+  const inAlpha = v => v === 0 || v === 1;
+  return (code.tables[k].get(s) || []).filter(c => inAlpha(cells[c.i] - c.d)).map(c => [c]);
+}
+function regionPairs(cells, code, k, s){
+  const inAlpha = v => v === 0 || v === 1;
+  const p = code.p;
+  const seen = new Set(), out = [];
+  for(const i1 of code.members[k]){
+    for(const d1 of [1, -1]){
+      if(!inAlpha(cells[i1] - d1)) continue;
+      const rest = ((s - d1 * code.w[i1]) % p + 2 * p) % p;
+      if(rest === 0) continue;
+      for(const c of code.tables[k].get(rest) || []){
+        if(c.i === i1 || !inAlpha(cells[c.i] - c.d)) continue;
+        const key = c.i < i1 ? `${c.i},${c.d},${i1},${d1}` : `${i1},${d1},${c.i},${c.d}`;
+        if(seen.has(key)) continue;
+        seen.add(key); out.push([{i: i1, d: d1}, c]);
+        if(out.length >= PC_CANDIDATE_CAP) return out;
+      }
+    }
+  }
+  return out;
+}
+
 /* ---- decoding one square ------------------------------------------------
    Returns {status, fixed, note, direct, searched, regions} with status one of
      clean | corrected | detected | ambiguous
@@ -194,6 +248,50 @@ function repairSquare(cells, check, code, opts){
   if(!hurt.length){
     if(code.confirm && sqDelta !== 0) return {status: "detected", fixed: 0, note: "confirm only"};
     return {status: "clean", fixed: 0, direct: 0, searched: 0};
+  }
+
+  /* the amendment's path: every candidate each hurt region admits, combined,
+     and q asked of each combination rather than of one assembled plan. A
+     second in-region candidate is now refused by q instead of refusing the
+     repair. Default off; see the note above regionCandidates(). */
+  if(opts && opts.perCandidate && code.confirm){
+    const names = hurt.map(h => NAMES[h]);
+    const rq0 = G.residue(cells, code.q);
+    const survivors = [];                       // every combination q accepts
+    const sweep = lists => {
+      if(lists.some(l => !l.length)) return true;
+      let combos = 1; for(const l of lists) combos *= l.length;
+      if(combos > PC_COMBO_CAP) return false;
+      const idx = new Array(lists.length).fill(0);
+      for(let n = 0; n < combos && survivors.length < 2; n++){
+        let rq = rq0;
+        for(let j = 0; j < lists.length; j++)
+          for(const e of lists[j][idx[j]]) rq = ((rq - e.d * code.Q.w[e.i]) % code.q + 2 * code.q) % code.q;
+        if(rq === check[3]) survivors.push(lists.map((l, j) => l[idx[j]]));
+        for(let j = 0; j < lists.length; j++){ if(++idx[j] < lists[j].length) break; idx[j] = 0; }
+      }
+      return true;
+    };
+    const singles = hurt.map(k => regionSingles(cells, code, k, delta[k]));
+    let room = sweep(singles);
+    /* stage 2: one region holds a pair, the others singles. Reached only when
+       no all-singles reading satisfies q -- which is every same-region pair. */
+    if(!survivors.length && room && !(opts.doubles === false))
+      for(let x = 0; x < hurt.length && survivors.length < 2; x++){
+        const lists = singles.slice();
+        lists[x] = regionPairs(cells, code, hurt[x], delta[hurt[x]]);
+        if(!sweep(lists)){ room = false; break; }
+      }
+    if(!room) return {status: "detected", fixed: 0, note: "too many readings", regions: names};
+    if(survivors.length !== 1)
+      return {status: survivors.length ? "ambiguous" : "detected", fixed: 0,
+              note: survivors.length ? "per-candidate" : "unrepaired", regions: names};
+    const chosen = survivors[0];
+    let direct = 0, searched = 0;
+    for(const c of chosen){ if(c.length === 1) direct++; else searched += c.length; }
+    for(const c of chosen) for(const e of c) cells[e.i] -= e.d;
+    return {status: "corrected", fixed: chosen.reduce((n, c) => n + c.length, 0), direct, searched,
+            note: searched ? (direct ? "mixed" : "double") : "single", regions: names};
   }
 
   /* each damaged region is repaired on its own. The regions are disjoint, so

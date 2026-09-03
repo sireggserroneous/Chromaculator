@@ -4,6 +4,12 @@
  *            PREDICTIONS.md first filed it, three residues, 3.52%. Kept so
  *            the alias floor that forced confirm on can be reproduced.
  *
+ *   --per-candidate   ask the confirming residue INSIDE the in-region search
+ *            rather than after the plan (codegg-v1's rule, codegg.js:204-206).
+ *            THE AMENDMENT of 2026-09-02: the same-region pair column below
+ *            is the one this round misread as the partition's cost. See the
+ *            note in eggso.js and the Amendment section of README.md.
+ *
  * Head to head: codegg-v1 (one residue of the whole square) against eggSo v0
  * (one residue per fold region). Same file, same squares, same damage, cell
  * for cell -- both codecs lay bytes into the square with v1's own toCells, so
@@ -53,7 +59,10 @@ function channel(label, damage, note){
       else a.detected++; }
     /* eggSo */
     { const h = dmg.hurt.slice(), chk = E.checksFor(cells, so);
-      const r = E.repairSquare(h, chk, so, dmg.erased ? {erased: dmg.erased} : undefined);
+      const o = {};
+      if(dmg.erased) o.erased = dmg.erased;
+      if(has("per-candidate")) o.perCandidate = true;          // the amendment; see eggso.js
+      const r = E.repairSquare(h, chk, so, Object.keys(o).length ? o : undefined);
       if(r.status === "corrected"){ if(same(h, cells)){ b.corrected++; if((r.searched || 0) === 0) b.direct++; } else b.wrong++; }
       else b.detected++; }
   }
