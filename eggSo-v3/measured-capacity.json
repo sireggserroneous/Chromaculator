@@ -1,0 +1,30 @@
+{
+ "spec.md": {
+  "bit/128B": {
+   "scratchBare": 2,
+   "scratchSigma": 61,
+   "truncSigma": 61,
+   "gain": 30.5
+  },
+  "byte/1024B": {
+   "scratchBare": 2,
+   "scratchSigma": 2,
+   "truncSigma": 2,
+   "gain": 1
+  }
+ },
+ "wubbadub.html": {
+  "bit/128B": {
+   "scratchBare": 1,
+   "scratchSigma": 306,
+   "truncSigma": 304,
+   "gain": 306
+  },
+  "byte/1024B": {
+   "scratchBare": 5,
+   "scratchSigma": 306,
+   "truncSigma": 8,
+   "gain": 61.2
+  }
+ }
+}

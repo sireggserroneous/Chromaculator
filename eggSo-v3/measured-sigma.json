@@ -1,0 +1,28 @@
+{
+ "involution": {
+  "held": 7,
+  "of": 7
+ },
+ "density": {
+  "spec.md": {
+   "worstBlock128": 39,
+   "ground": 37,
+   "blocksTouched": 119
+  },
+  "stalk.js": {
+   "worstBlock128": 30,
+   "ground": 30,
+   "blocksTouched": 153
+  },
+  "og.png": {
+   "worstBlock128": 23,
+   "ground": 23,
+   "blocksTouched": 213
+  },
+  "wubbadub.html": {
+   "worstBlock128": 14,
+   "ground": 14,
+   "blocksTouched": 304
+  }
+ }
+}

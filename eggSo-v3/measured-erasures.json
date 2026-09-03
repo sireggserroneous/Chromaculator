@@ -1,0 +1,32 @@
+{
+ "bit/128B": {
+  "onePerRegion": 1000,
+  "twoInOneRegion": 1000,
+  "twoWrong": 0,
+  "of": 1000
+ },
+ "nibble/128B": {
+  "onePerRegion": 1000,
+  "twoInOneRegion": 1000,
+  "twoWrong": 0,
+  "of": 1000
+ },
+ "nibble/512B": {
+  "onePerRegion": 1000,
+  "twoInOneRegion": 1000,
+  "twoWrong": 0,
+  "of": 1000
+ },
+ "byte/256B": {
+  "onePerRegion": 1000,
+  "twoInOneRegion": 1000,
+  "twoWrong": 0,
+  "of": 1000
+ },
+ "byte/1024B": {
+  "onePerRegion": 1000,
+  "twoInOneRegion": 1000,
+  "twoWrong": 0,
+  "of": 1000
+ }
+}

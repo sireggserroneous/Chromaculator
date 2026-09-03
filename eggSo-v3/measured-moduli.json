@@ -1,0 +1,67 @@
+[
+ {
+  "name": "bit",
+  "A": 2,
+  "N": 32,
+  "L": 1024,
+  "blockBytes": 128,
+  "p": 2053,
+  "q": 2063,
+  "bitsP": 12,
+  "per": 48,
+  "overhead": 0.046875,
+  "searchMs": 1
+ },
+ {
+  "name": "nibble",
+  "A": 16,
+  "N": 16,
+  "L": 256,
+  "blockBytes": 128,
+  "p": 17627,
+  "q": 19429,
+  "bitsP": 15,
+  "per": 60,
+  "overhead": 0.05859375,
+  "searchMs": 3
+ },
+ {
+  "name": "nibble",
+  "A": 16,
+  "N": 32,
+  "L": 1024,
+  "blockBytes": 512,
+  "p": 61381,
+  "q": 65831,
+  "bitsP": 16,
+  "per": 65,
+  "overhead": 0.015869140625,
+  "searchMs": 43
+ },
+ {
+  "name": "byte",
+  "A": 256,
+  "N": 16,
+  "L": 256,
+  "blockBytes": 256,
+  "p": 2265761,
+  "q": 2288267,
+  "bitsP": 22,
+  "per": 88,
+  "overhead": 0.04296875,
+  "searchMs": 3416
+ },
+ {
+  "name": "byte",
+  "A": 256,
+  "N": 32,
+  "L": 1024,
+  "blockBytes": 1024,
+  "p": 8030879,
+  "q": 8035021,
+  "bitsP": 23,
+  "per": 92,
+  "overhead": 0.01123046875,
+  "searchMs": 25908
+ }
+]

@@ -1,0 +1,32 @@
+{
+ "bit/128B": {
+  "corrected": 604,
+  "detected": 2353,
+  "wrong": 43,
+  "of": 3000
+ },
+ "nibble/128B": {
+  "corrected": 2997,
+  "detected": 3,
+  "wrong": 0,
+  "of": 3000
+ },
+ "nibble/512B": {
+  "corrected": 2973,
+  "detected": 27,
+  "wrong": 0,
+  "of": 3000
+ },
+ "byte/256B": {
+  "corrected": 3000,
+  "detected": 0,
+  "wrong": 0,
+  "of": 3000
+ },
+ "byte/1024B": {
+  "corrected": 3000,
+  "detected": 0,
+  "wrong": 0,
+  "of": 3000
+ }
+}

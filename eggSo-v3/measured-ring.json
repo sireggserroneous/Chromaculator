@@ -1,0 +1,739 @@
+{
+ "rows": [
+  {
+   "name": "bit/128B",
+   "A": 2,
+   "N": 32,
+   "sigma": false,
+   "note": "eggSo-v0's code exactly (p=2053, q=2063)"
+  },
+  {
+   "name": "bit/128B+o",
+   "A": 2,
+   "N": 32,
+   "sigma": true
+  },
+  {
+   "name": "nib/512B",
+   "A": 16,
+   "N": 32,
+   "sigma": false
+  },
+  {
+   "name": "nib/512B+o",
+   "A": 16,
+   "N": 32,
+   "sigma": true
+  },
+  {
+   "name": "byte/256B",
+   "A": 256,
+   "N": 16,
+   "sigma": false
+  },
+  {
+   "name": "byte/1KB",
+   "A": 256,
+   "N": 32,
+   "sigma": false
+  },
+  {
+   "name": "byte/1KB+o",
+   "A": 256,
+   "N": 32,
+   "sigma": true
+  }
+ ],
+ "injuries": [
+  "bitflip",
+  "byteflip",
+  "scratch",
+  "trunc"
+ ],
+ "results": {
+  "spec.md": {
+   "bytes": 15190,
+   "table": {
+    "bit/128B": {
+     "size": 15914,
+     "ratio": 1.0476629361421987,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "bit/128B+o": {
+     "size": 15914,
+     "ratio": 1.0476629361421987,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 15470,
+     "ratio": 1.0184331797235022,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 15470,
+     "ratio": 1.0184331797235022,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 15860,
+     "ratio": 1.0441079657669519,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 15380,
+     "ratio": 1.012508229098091,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 15380,
+     "ratio": 1.012508229098091,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  },
+  "stalk.js": {
+   "bytes": 19567,
+   "table": {
+    "bit/128B": {
+     "size": 20495,
+     "ratio": 1.0474267900035774,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "bit/128B+o": {
+     "size": 20495,
+     "ratio": 1.0474267900035774,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 19928,
+     "ratio": 1.0184494301630296,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 19928,
+     "ratio": 1.0184494301630296,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 20424,
+     "ratio": 1.0437982317166659,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 19817,
+     "ratio": 1.0127766136863086,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 19817,
+     "ratio": 1.0127766136863086,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  },
+  "og.png": {
+   "bytes": 33742,
+   "table": {
+    "bit/128B": {
+     "size": 35336,
+     "ratio": 1.0472408274553968,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "bit/128B+o": {
+     "size": 35336,
+     "ratio": 1.0472408274553968,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 34346,
+     "ratio": 1.017900539387114,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 34346,
+     "ratio": 1.017900539387114,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 35204,
+     "ratio": 1.0433287890462926,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 34148,
+     "ratio": 1.0120324817734574,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 34148,
+     "ratio": 1.0120324817734574,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  },
+  "wubbadub.html": {
+   "bytes": 92408,
+   "table": {
+    "bit/128B": {
+     "size": 96750,
+     "ratio": 1.0469872738291057,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "bit/128B+o": {
+     "size": 96750,
+     "ratio": 1.0469872738291057,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 94047,
+     "ratio": 1.017736559605229,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 94047,
+     "ratio": 1.017736559605229,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 96389,
+     "ratio": 1.0430806856549217,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 93510,
+     "ratio": 1.0119253744264567,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 93510,
+     "ratio": 1.0119253744264567,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  },
+  "program.exe": {
+   "bytes": 265216,
+   "table": {
+    "bit/128B": {
+     "size": 277658,
+     "ratio": 1.04691270511583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "bit/128B+o": {
+     "size": 277658,
+     "ratio": 1.04691270511583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 269888,
+     "ratio": 1.01761583011583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 269888,
+     "ratio": 1.01761583011583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 276622,
+     "ratio": 1.04300645511583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 268334,
+     "ratio": 1.01175645511583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 268334,
+     "ratio": 1.01175645511583,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  },
+  "notepad.exe": {
+   "bytes": 360448,
+   "table": {
+    "bit/128B": {
+     "size": 377354,
+     "ratio": 1.0469027432528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "WRONG",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": true
+    },
+    "bit/128B+o": {
+     "size": 377354,
+     "ratio": 1.0469027432528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 366794,
+     "ratio": 1.0176058682528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 366794,
+     "ratio": 1.0176058682528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 375946,
+     "ratio": 1.0429964932528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 364682,
+     "ratio": 1.0117464932528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 364682,
+     "ratio": 1.0117464932528408,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  },
+  "archive.zst": {
+   "bytes": 946623,
+   "table": {
+    "bit/128B": {
+     "size": 991009,
+     "ratio": 1.0468887825459554,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "bit/128B+o": {
+     "size": 991009,
+     "ratio": 1.0468887825459554,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "detected",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B": {
+     "size": 963274,
+     "ratio": 1.0175898958719576,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "nib/512B+o": {
+     "size": 963274,
+     "ratio": 1.0175898958719576,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/256B": {
+     "size": 987311,
+     "ratio": 1.0429822643227558,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB": {
+     "size": 957733,
+     "ratio": 1.011736456857693,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    },
+    "byte/1KB+o": {
+     "size": 957733,
+     "ratio": 1.011736456857693,
+     "cells": {
+      "bitflip": "EXACT",
+      "byteflip": "EXACT",
+      "scratch": "detected",
+      "trunc": "detected"
+     },
+     "survived": false,
+     "lied": false
+    }
+   },
+   "winner": "none"
+  }
+ },
+ "podium": {
+  "none": 7
+ },
+ "capacity": {
+  "bit/128B|spec.md": 2,
+  "bit/128B|stalk.js": 1,
+  "bit/128B|og.png": 1,
+  "bit/128B|wubbadub.html": 1,
+  "bit/128B|program.exe": 2,
+  "bit/128B|notepad.exe": 2,
+  "bit/128B|archive.zst": 1,
+  "bit/128B+o|spec.md": 61,
+  "bit/128B+o|stalk.js": 141,
+  "bit/128B+o|og.png": 185,
+  "bit/128B+o|wubbadub.html": 306,
+  "bit/128B+o|program.exe": 515,
+  "bit/128B+o|notepad.exe": 602,
+  "bit/128B+o|archive.zst": 974,
+  "nib/512B|spec.md": 2,
+  "nib/512B|stalk.js": 2,
+  "nib/512B|og.png": 2,
+  "nib/512B|wubbadub.html": 4,
+  "nib/512B|program.exe": 4,
+  "nib/512B|notepad.exe": 4,
+  "nib/512B|archive.zst": 3,
+  "nib/512B+o|spec.md": 3,
+  "nib/512B+o|stalk.js": 2,
+  "nib/512B+o|og.png": 4,
+  "nib/512B+o|wubbadub.html": 306,
+  "nib/512B+o|program.exe": 517,
+  "nib/512B+o|notepad.exe": 601,
+  "nib/512B+o|archive.zst": 975,
+  "byte/256B|spec.md": 2,
+  "byte/256B|stalk.js": 2,
+  "byte/256B|og.png": 2,
+  "byte/256B|wubbadub.html": 2,
+  "byte/256B|program.exe": 4,
+  "byte/256B|notepad.exe": 4,
+  "byte/256B|archive.zst": 3,
+  "byte/1KB|spec.md": 2,
+  "byte/1KB|stalk.js": 2,
+  "byte/1KB|og.png": 2,
+  "byte/1KB|wubbadub.html": 5,
+  "byte/1KB|program.exe": 4,
+  "byte/1KB|notepad.exe": 4,
+  "byte/1KB|archive.zst": 3,
+  "byte/1KB+o|spec.md": 2,
+  "byte/1KB+o|stalk.js": 2,
+  "byte/1KB+o|og.png": 5,
+  "byte/1KB+o|wubbadub.html": 306,
+  "byte/1KB+o|program.exe": 520,
+  "byte/1KB+o|notepad.exe": 604,
+  "byte/1KB+o|archive.zst": 1946
+ }
+}

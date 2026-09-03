@@ -1,0 +1,27 @@
+{
+ "bit/128B": {
+  "blockBytes": 128,
+  "bitsPerSquare": 48,
+  "idealOverhead": 0.046875
+ },
+ "nibble/128B": {
+  "blockBytes": 128,
+  "bitsPerSquare": 60,
+  "idealOverhead": 0.05859375
+ },
+ "nibble/512B": {
+  "blockBytes": 512,
+  "bitsPerSquare": 65,
+  "idealOverhead": 0.015869140625
+ },
+ "byte/256B": {
+  "blockBytes": 256,
+  "bitsPerSquare": 88,
+  "idealOverhead": 0.04296875
+ },
+ "byte/1024B": {
+  "blockBytes": 1024,
+  "bitsPerSquare": 92,
+  "idealOverhead": 0.01123046875
+ }
+}

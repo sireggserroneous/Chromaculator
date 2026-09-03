@@ -185,3 +185,15 @@ from the partition; applied per candidate, its own search takes 97.8% of them.
 
 Three constructions, three names, one theorem about the greens — and still no name for
 the fold.
+
+A fourth round, `eggSo-v3/`, then asked what those three had never varied: all of them put
+**one bit in a cell** and stopped at the square's edge. Both were inherited, not chosen. A
+cell holding a byte costs 1.12% where a bit costs 4.69%, and it turns the injury real
+storage actually delivers — one corrupted byte — into a single error named by its own
+syndrome: 3000 of 3000, against 604 of 3000 for the bit square, which also hands back
+**wrong** data 43 times in 3000 and did so once on a real file. And the fold's own
+anti-transpose, applied to the whole file instead of the square, scatters a contiguous
+wound into thin erasures across every block: it costs **nothing at all** and multiplies the
+survivable damage by 31× to 974×. What it does not buy is equations — surviving a 4 KB
+wound needs one per damaged byte per region, which is Reed–Solomon, and nothing in that
+folder survives 4 KB.
