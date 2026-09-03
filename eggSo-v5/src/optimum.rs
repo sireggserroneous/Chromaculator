@@ -733,6 +733,51 @@ pub fn exact(n: usize, l: usize, node_cap: u64) -> Exact {
 mod tests {
     use super::*;
 
+    /// B1, anchored. Every other test in this round compares a measurement
+    /// against `floor_of`, so `floor_of` sits on BOTH sides of every
+    /// comparison and a wrong floor would shift the measurements and the
+    /// assertions together and stay silent. (Found by mutation: replacing
+    /// `l.div_ceil(3)` with `l / 3` passed the whole suite.) So the floor is
+    /// pinned twice over, to literals and to the pigeonhole fact itself,
+    /// neither of which is derived from the function under test.
+    #[test]
+    fn the_floor_is_the_pigeonhole_bound_and_not_whatever_the_function_says() {
+        // pinned to literals, including the cases where rounding decides it
+        for (l, want) in [
+            (1usize, 1usize),
+            (2, 1),
+            (3, 1),
+            (4, 2),
+            (5, 2),
+            (6, 2),
+            (7, 3),
+            (8, 3),
+            (9, 3),
+            (10, 4),
+            (11, 4),
+            (12, 4),
+            (18, 6),
+        ] {
+            assert_eq!(floor_of(l), want, "the floor at L={l}");
+        }
+
+        // and pinned to the pigeonhole fact, computed independently of
+        // `div_ceil`: the smallest m with 3m >= L is both unavoidable and
+        // achievable when L items go into 3 bins.
+        for l in 1..=60usize {
+            let independent = (1..=l).find(|m| 3 * m >= l).unwrap();
+            assert_eq!(floor_of(l), independent, "the floor at L={l}");
+
+            // unavoidable: no distribution of L into 3 bins has every bin
+            // below the floor, or the three would not add up to L
+            assert!(3 * (floor_of(l) - 1) < l, "the floor is loose at L={l}");
+            // achievable: some distribution reaches it exactly
+            let (a, b) = (l / 3, (l + 1) / 3);
+            let c = l - a - b;
+            assert_eq!(a.max(b).max(c), floor_of(l), "the floor is unreachable at L={l}");
+        }
+    }
+
     /// B1. The floor is a floor: `L` cells over three classes cannot do
     /// better than `ceil(L/3)` in the fullest class, for any partition and
     /// any geometry.

@@ -627,3 +627,111 @@ pub fn v4_figures() -> PinResult {
 
     PinResult { name: NAME, checked, mismatches, skipped: None }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::json::{obj, J};
+
+    /// `Scan::num` reads a JSON number and nothing else. The hazard this
+    /// guards is specific and real: the records contain digits INSIDE strings
+    /// -- `"seam128"`, `"port vs v0 structure"`, `"arm": "diag3"` -- and a
+    /// reader that treated those as figures would compare the wrong numbers
+    /// and still report 0 mismatches.
+    #[test]
+    fn the_reader_reads_numbers_and_not_digits_in_strings() {
+        let mut s = Scan::new("{\"a\": 12, \"b\": -3, \"c\": 0.5, \"d\": 1e3, \"e\": 2.5e-2}");
+        assert_eq!(s.after("\"a\""), Some(12.0));
+        assert_eq!(s.after("\"b\""), Some(-3.0));
+        assert_eq!(s.after("\"c\""), Some(0.5));
+        assert_eq!(s.after("\"d\""), Some(1000.0));
+        assert_eq!(s.after("\"e\""), Some(0.025));
+
+        // a digit inside a string must not be read as the next figure
+        let mut s = Scan::new("{\"arm\": \"seam128\", \"corrected\": 7}");
+        assert_eq!(s.after("\"corrected\""), Some(7.0));
+        // and scanning from the top, the first NUMBER is 128 only because it
+        // really is a digit run; the guard is that callers seek their key
+        // first, which the line above does and every caller in v4_figures does
+        let mut s = Scan::new("{\"pin\": \"port vs v0 structure\", \"checked\": 6153}");
+        assert_eq!(s.after("\"checked\""), Some(6153.0));
+
+        // a missing key is None, never a stale or defaulted number
+        let mut s = Scan::new("{\"a\": 1}");
+        assert_eq!(s.after("\"nope\""), None);
+        assert!(!s.seek("\"nope\""));
+    }
+
+    /// The reader against the lineage's OWN writer, so the two cannot drift:
+    /// build a record with `json::J`, print it the way every round prints
+    /// one, and read the figures back out.
+    #[test]
+    fn the_reader_round_trips_the_writers_own_shape() {
+        let rec = J::A(vec![
+            obj(&[("pin", J::s("region_of vs stalk.js")), ("checked", J::U(22139)), ("mismatches", J::U(0))]),
+            obj(&[("pin", J::s("arcs vs stalk.js")), ("checked", J::U(1599)), ("mismatches", J::U(0))]),
+        ]);
+        let text = rec.text();
+        let mut s = Scan::new(&text);
+        for want in [22139.0, 1599.0] {
+            assert_eq!(s.after("\"checked\""), Some(want));
+            assert_eq!(s.after("\"mismatches\""), Some(0.0));
+        }
+    }
+
+    /// THE NEGATIVE CONTROL, and the reason this module needed tests at all.
+    /// A pin that cannot fail is not a pin. This proves the reader is really
+    /// addressing the field `v4_figures` believes it is addressing: perturb
+    /// v4's committed record in memory and the figure that comes back changes.
+    #[test]
+    fn a_perturbed_record_reads_back_perturbed() {
+        let Ok(real) = read_record("seam") else {
+            return; // v4's record is not on disk; v4_figures reports SKIPPED
+        };
+        let mut s = Scan::new(&real);
+        assert!(s.seek("\"arm\": \"diag3\""));
+        assert!(s.seek("\"classes\""));
+        assert_eq!(s.num(), Some(341.0), "v4 recorded diag3 at 341/342/341");
+
+        // the same lookup over a record whose first class size has been
+        // changed must return the changed value, so the comparison in
+        // v4_figures would have to fail
+        let faked = real.replacen("341", "999", 1);
+        assert_ne!(faked, real, "the perturbation did not apply");
+        let mut s = Scan::new(&faked);
+        assert!(s.seek("\"arm\": \"diag3\""));
+        assert!(s.seek("\"classes\""));
+        assert_eq!(s.num(), Some(999.0), "the reader ignored a change it should have seen");
+    }
+
+    /// P1 itself, as a test and not only as a line of `eggso5 pin` output --
+    /// and with the vacuous pass ruled out. `PinResult::ok()` is true when
+    /// nothing mismatched, so a pin that checked NOTHING would read as clean;
+    /// this asserts it checked something.
+    #[test]
+    fn the_v4_figures_pin_checks_something_and_agrees() {
+        let r = v4_figures();
+        if r.skipped.is_some() {
+            return; // v4's records are not on disk
+        }
+        assert!(r.checked > 0, "the pin passed without checking anything");
+        assert_eq!(r.mismatches, 0, "{}", r.line());
+        assert!(r.ok());
+    }
+
+    /// The reporting contract the round's verdict is read through: a skipped
+    /// pin is NOT a clean pin, and a mismatching pin is not either.
+    #[test]
+    fn a_skipped_pin_never_counts_as_clean() {
+        let s = PinResult::skipped("x", "node is missing".to_string());
+        assert!(!s.ok());
+        assert!(s.line().contains("SKIPPED"));
+
+        let bad = PinResult { name: "x", checked: 10, mismatches: 1, skipped: None };
+        assert!(!bad.ok());
+        assert!(bad.line().contains("MISMATCH"));
+
+        let good = PinResult { name: "x", checked: 10, mismatches: 0, skipped: None };
+        assert!(good.ok());
+    }
+}
