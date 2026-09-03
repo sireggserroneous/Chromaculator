@@ -1,0 +1,59 @@
+{
+ "inBand": {
+  "T": 200,
+  "roundTrip": 200,
+  "dataFix": 200,
+  "signFix": 200,
+  "slotDetected": 200,
+  "slotWrong": 0,
+  "flag10detected": 200,
+  "flag10wrong": 0,
+  "flag01detected": 200,
+  "flag01wrong": 0
+ },
+ "corpora": {
+  "spec.md": {
+   "squares": 119,
+   "inBand": 1,
+   "fallbackRate": 0.9915966386554622,
+   "overhead": 0.04758887425938117,
+   "v0Overhead": 0.047004608294930875
+  },
+  "stalk.js": {
+   "squares": 153,
+   "inBand": 1,
+   "fallbackRate": 0.9934640522875817,
+   "overhead": 0.04758649767465631,
+   "v0Overhead": 0.04691572545612511
+  },
+  "og.png": {
+   "squares": 264,
+   "inBand": 2,
+   "fallbackRate": 0.9924242424242424,
+   "overhead": 0.04756683065615553,
+   "v0Overhead": 0.04694446090925256
+  },
+  "program.exe": {
+   "squares": 2072,
+   "inBand": 169,
+   "fallbackRate": 0.9184362934362934,
+   "overhead": 0.044028263754826255,
+   "v0Overhead": 0.046875
+  },
+  "notepad.exe": {
+   "squares": 2816,
+   "inBand": 416,
+   "fallbackRate": 0.8522727272727273,
+   "overhead": 0.04092684659090909,
+   "v0Overhead": 0.046875
+  },
+  "archive.zst": {
+   "squares": 7396,
+   "inBand": 1,
+   "fallbackRate": 0.9998647917793402,
+   "overhead": 0.04784850991366151,
+   "v0Overhead": 0.04687821867839678
+  }
+ },
+ "randomOverhead": 0.0478515625
+}

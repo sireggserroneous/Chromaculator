@@ -1,0 +1,58 @@
+{
+ "canonicalBurst": {
+  "T": 400,
+  "corrected": 400,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0,
+  "notes": {}
+ },
+ "bitControl": {
+  "T": 400,
+  "corrected": 400,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0,
+  "notes": {}
+ },
+ "bitsAsTritsCap12": {
+  "T": 400,
+  "corrected": 1,
+  "ambiguous": 399,
+  "detected": 0,
+  "wrong": 0,
+  "notes": {
+   "erasures": 399
+  }
+ },
+ "bitsAsTritsCap10": {
+  "T": 400,
+  "corrected": 1,
+  "ambiguous": 146,
+  "detected": 253,
+  "wrong": 0,
+  "notes": {
+   "too many erasures": 253,
+   "erasures": 146
+  }
+ },
+ "scatteredCap12": {
+  "T": 400,
+  "corrected": 361,
+  "ambiguous": 39,
+  "detected": 0,
+  "wrong": 0,
+  "notes": {
+   "erasures": 39
+  }
+ },
+ "scatteredCanonical": {
+  "T": 400,
+  "corrected": 400,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0,
+  "notes": {}
+ },
+ "cap12ms": 6930
+}

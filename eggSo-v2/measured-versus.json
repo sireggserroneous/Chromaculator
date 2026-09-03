@@ -1,0 +1,413 @@
+{
+ "file": "spec.md",
+ "bytes": 15190,
+ "N": 32,
+ "T": 400,
+ "inBand": 1,
+ "results": {
+  "1 cell hit (d = +-1)": {
+   "codegg-v1": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 205,
+    "detected": 195,
+    "wrong": 0,
+    "direct": 205,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 309,
+    "detected": 91,
+    "wrong": 0,
+    "direct": 309,
+    "na": false
+   }
+  },
+  "1 sign flip (d = +-2), canonical": {
+   "codegg-v1": {
+    "corrected": 0,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 0,
+    "na": true
+   },
+   "codegg-v1·trit": {
+    "corrected": 228,
+    "detected": 172,
+    "wrong": 0,
+    "direct": 228,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 0,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 0,
+    "na": true
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 0,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 0,
+    "na": true
+   }
+  },
+  "2 cells hit, anywhere": {
+   "codegg-v1": {
+    "corrected": 342,
+    "detected": 58,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 59,
+    "detected": 340,
+    "wrong": 1,
+    "direct": 0,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 217,
+    "detected": 183,
+    "wrong": 0,
+    "direct": 216,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 216,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 216,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 232,
+    "detected": 167,
+    "wrong": 1,
+    "direct": 125,
+    "na": false
+   }
+  },
+  "2 cells, DIFFERENT regions": {
+   "codegg-v1": {
+    "corrected": 343,
+    "detected": 57,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 67,
+    "detected": 333,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 251,
+    "detected": 149,
+    "wrong": 0,
+    "direct": 251,
+    "na": false
+   }
+  },
+  "2 cells, SAME region": {
+   "codegg-v1": {
+    "corrected": 338,
+    "detected": 62,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 70,
+    "detected": 329,
+    "wrong": 1,
+    "direct": 0,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 120,
+    "detected": 280,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 277,
+    "detected": 123,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   }
+  },
+  "3 cells, one per region": {
+   "codegg-v1": {
+    "corrected": 0,
+    "detected": 364,
+    "wrong": 36,
+    "direct": 0,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 0,
+    "detected": 357,
+    "wrong": 43,
+    "direct": 0,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 228,
+    "detected": 172,
+    "wrong": 0,
+    "direct": 228,
+    "na": false
+   }
+  },
+  "12-cell row burst, flagged": {
+   "codegg-v1": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 1,
+    "detected": 237,
+    "wrong": 162,
+    "direct": 1,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 400,
+    "detected": 0,
+    "wrong": 0,
+    "direct": 400,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 6,
+    "detected": 394,
+    "wrong": 0,
+    "direct": 6,
+    "na": false
+   }
+  },
+  "12-cell row burst, UNFLAGGED, in-region": {
+   "codegg-v1": {
+    "corrected": 0,
+    "detected": 363,
+    "wrong": 37,
+    "direct": 0,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 0,
+    "detected": 367,
+    "wrong": 33,
+    "direct": 0,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 0,
+    "detected": 385,
+    "wrong": 15,
+    "direct": 0,
+    "na": false
+   }
+  },
+  "the Fold filled: 32 cells, unflagged": {
+   "codegg-v1": {
+    "corrected": 0,
+    "detected": 352,
+    "wrong": 48,
+    "direct": 0,
+    "na": false
+   },
+   "codegg-v1·trit": {
+    "corrected": 0,
+    "detected": 360,
+    "wrong": 40,
+    "direct": 0,
+    "na": false
+   },
+   "eggSo-v0": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(a)": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(b)": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   },
+   "v2(b)·bits-as-trits": {
+    "corrected": 0,
+    "detected": 400,
+    "wrong": 0,
+    "direct": 0,
+    "na": false
+   }
+  },
+  "push holds": {
+   "codegg-v1": 200,
+   "codegg-v1·trit": 200,
+   "eggSo-v0": 0,
+   "v2(a)": "vacuous",
+   "v2(b)": "vacuous",
+   "v2(b)·bits-as-trits": 0
+  }
+ }
+}

@@ -1,0 +1,45 @@
+{
+ "anywhere": {
+  "T": 1000,
+  "corrected": 1000,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 1072,
+  "searched": 928
+ },
+ "sameRegion": {
+  "T": 1000,
+  "corrected": 1000,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 0,
+  "searched": 2000
+ },
+ "crossRegion": {
+  "T": 1000,
+  "corrected": 1000,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 2000,
+  "searched": 0
+ },
+ "foldFilled": {
+  "T": 300,
+  "corrected": 0,
+  "ambiguous": 0,
+  "detected": 300,
+  "wrong": 0,
+  "direct": 0,
+  "searched": 0
+ },
+ "v0SearchPerCandidateQ": {
+  "T": 1000,
+  "corrected": 978,
+  "ambiguous": 22,
+  "detected": 0,
+  "wrong": 0
+ }
+}

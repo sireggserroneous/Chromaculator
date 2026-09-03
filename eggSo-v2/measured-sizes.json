@@ -1,0 +1,25 @@
+{
+ "a": {
+  "squares": 100,
+  "inBand": 0,
+  "fallbackRate": 1,
+  "dataBytes": 12800,
+  "checkBits": 4900,
+  "checkBytes": 613,
+  "totalBytes": 13413,
+  "overhead": 0.0478515625,
+  "share": 0.045666356011183594,
+  "residuesPerSquare": 4,
+  "bitsPerSquare": 49
+ },
+ "b": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 48,
+  "checkBytes": 6,
+  "totalBytes": 134,
+  "ratio": 1.046875,
+  "overhead": 0.046875,
+  "residuesPerSquare": 4
+ }
+}

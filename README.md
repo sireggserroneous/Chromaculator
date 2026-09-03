@@ -164,3 +164,24 @@ sharper finding is that as a pattern the fold is legitimate and sub-optimal — 
 split manages 67%. The thin seam that makes it the fold is what makes it worse.
 
 So: what one *does* with the fold has now been placed. What the fold *is* has not.
+
+Two more rounds, `eggSo-v1/` and `eggSo-v2/`, then tried the fold's *symmetry* and its
+alphabet's *slack*, every way each could be built, with predictions filed before code and
+the misses kept. v1 used the anti-transpose three ways. As one extra residue, `V − σV`, it
+gives each hemisphere a second equation and names any same-region pair by lookup, with no
+search and no miscorrection — a **two-syndrome arithmetic code**, the residue cousin of a
+two-locator BCH code, and blind to the Fold it turns on. As a mirror, `Outer := σ(Inner)`,
+it is a repetition code that reads an unflagged twelve-cell burst off the partner, the one
+row no other arm holds, at twice the size. As an interleaver it is a no-op: identical to
+v0 to the trial. v2 used the green, the alphabet's `0`. Under the canonical form every
+green is trailing, so the slack is the 2-adic valuation of the value — a geometric law
+with mean one, measured at 1.011 — and 0 of 10,000 random squares carry their own checks;
+only zero-padded binaries do. Greens as three-valued erasures cannot be decoded on a run
+at all, because `2^k − 2^(k−1) = 2^(k−1)` is an integer identity no residue sees — the
+identity push is built on. The Wub's two-valued coin is not an approximation of the
+erasure model; it is the only one that decodes. And one correction to the record above:
+v0's refusal of same-region pairs came from where it applied its confirming residue, not
+from the partition; applied per candidate, its own search takes 97.8% of them.
+
+Three constructions, three names, one theorem about the greens — and still no name for
+the fold.

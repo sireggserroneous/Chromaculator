@@ -1,0 +1,53 @@
+{
+ "filterAndQ": {
+  "d1": {
+   "T": 3000,
+   "corrected": 3000,
+   "ambiguous": 0,
+   "detected": 0,
+   "wrong": 0
+  },
+  "d2": {
+   "T": 3000,
+   "corrected": 3000,
+   "ambiguous": 0,
+   "detected": 0,
+   "wrong": 0
+  }
+ },
+ "bare": {
+  "d1": {
+   "T": 3000,
+   "corrected": 1642,
+   "ambiguous": 1358,
+   "detected": 0,
+   "wrong": 0
+  },
+  "d2": {
+   "T": 3000,
+   "corrected": 1630,
+   "ambiguous": 1370,
+   "detected": 0,
+   "wrong": 0
+  }
+ },
+ "filterOnly": {
+  "T": 3000,
+  "corrected": 3000,
+  "ambiguous": 0,
+  "detected": 0,
+  "wrong": 0
+ },
+ "qOnly": {
+  "T": 3000,
+  "corrected": 1661,
+  "ambiguous": 1339,
+  "detected": 0,
+  "wrong": 0
+ },
+ "codeggV1Trit": {
+  "corrected": 1515,
+  "wrong": 0,
+  "of": 3000
+ }
+}
