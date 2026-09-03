@@ -1,0 +1,9 @@
+target/
+corpus/
+corpus-big/
+corpus-fmt/
+corpus-jpeg/
+corpus-real/
+corpus-rle/
+*.egg13
+*.out

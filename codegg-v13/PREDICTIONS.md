@@ -1,0 +1,1523 @@
+# codegg-v13 PREDICTIONS -- THE VALUE UNDERNEATH
+
+Predictions are FILED HERE BEFORE the code that could move them, and the misses
+are printed beside the wins. Every number names its evidence.
+
+## The charter verse
+
+spec.html:359-360, the site's own tooltip for `form`:
+
+> Plain is the digits as written; pushed respells the same value using -1s.
+> **The value underneath does not change -- compare the two and only the
+> colours differ.**
+
+Siblings: spec.md:55 and stalk.js:61 ("the value never moves; only the colours
+do"), spectrometer.html:238 ("the same value, respelled"), spectrometer.html:450
+("value unchanged -- only the colours moved"), glossary.js:78 (Booth's recoding:
+"the value never changes -- only the colours do").
+
+## The thesis
+
+A JPEG's Huffman bits and its DCT coefficients are the same value in two
+spellings. On several rows v12 modelled somebody else's spelling -- the colours
+-- and called the result our form. v13 reads the value underneath: peel the
+foreign code, model what it actually says, re-spell it byte-exactly on the way
+out. The peel is a bijection or it does not ship.
+
+## THE LAW OF THE PEEL (a conservation law, non-negotiable)
+
+1. A peel is a bijection or it is not used. At TRANSMUTE time every peel
+   re-encodes its own output and compares against the original bytes; one byte
+   off and the peel is discarded for that file and the raw bytes go through the
+   ordinary pipeline. The decoder therefore only ever sees peels the encoder
+   proved invertible on this exact input, before anything was written.
+2. The recipe rides inside and is judged by argmin: `recipe + peeled values`
+   against `raw form`, on the ARMORED total, exactly like the armor placements.
+3. Refuse, do not guess. Progressive, arithmetic-coded, 12-bit, truncated,
+   corrupt: keep the bytes and print the reason.
+4. Every peel rides v12's write-time round-trip law (M3(1) shipped an unreadable
+   artifact for eleven minutes from a far simpler filter).
+
+## M0 FILED (2026-09-03 08:05, at the fork, BEFORE the M0 ledger ran)
+
+The fork must be a rename and nothing else: crate `eggv13`, format **EG13 v7**,
+extension `.egg13`; `restore` accepts `.egg13/.egg12/.egg11/.egg10/.egg9/.egg8`.
+armor v4 did not move at v13, so `parse_header` reads EG13 v7 AND EG12 v6 down
+the same path; `armor11.rs` is verbatim and still owns `.egg11` and older.
+
+**Called: all TWENTY of v12's M4 totals reproduced TO THE BYTE**, and every
+ancestor container restores EXACT. The totals judged (codegg-v12/PREDICTIONS.md,
+"M4 MEASURED"): wubbadub.html 27,621; cbs.log 71,758; ring01.wav 135,565;
+notepad.exe 176,164; alarm01.wav 252,862; real-test.bmp 261,274;
+vim-version9.txt 273,982; kernel32.dll 283,604; segoeui.ttf 409,683;
+iconcache48.db 418,323; arial.ttf 446,354; zstd.exe 488,915; real-test.db
+1,068,149; wallpaper.jpg 1,513,903; msgraph.dll 3,211,880; mermaid-bundle.js
+4,090,958; ntoskrnl.exe 4,675,387; aoe4-autosave.sav 17,333,845;
+rustc_driver.dll 37,436,978; rdr2-shaders.vkcache 41,860,990.
+
+## M0 MEASURED (2026-09-03 09:01) -- the fork reproduces v12 to the byte
+
+`node tools/ledger13.js` with `EGG_PRED` = v12's twenty M4 totals and
+`EGG_EXE` = a copy of the M0 build (the exe lock).
+
+**20 of 20 rows HIT, to the byte. Prediction misses: 0. Injuries 60/60 EXACT
+(E/E/E on every row). Failures: 0. Net vs the sealed v11: -8,987,397 B --
+exactly v12's number, which is what a rename should produce.**
+
+Every row's price is flat and unmoved: 4,812 B at the 256-B tier (17 rows),
+5,324 at 512 (the save), 6,348 at 1024 (rdr2 and rustc), placement `CT none`
+throughout. The winning model byte per row is v12's, unchanged.
+
+Ancestor restore, checked separately before the ledger: containers written by
+`eggv8`, `eggv9`, `eggv10`, `eggv11` and `eggv12` on three files each --
+**15 of 15 restored EXACT through eggv13**. `.egg12` rides the SAME armor v4
+path (parse_header accepts EG13 v7 and EG12 v6); `.egg11` and older ride
+`armor11.rs`, verbatim.
+
+The MB/s printed by that ledger is CONTENDED (eight lanes, and the JPEG suite
+was running beside it) and is not a speed measurement.
+
+## M1 FILED (2026-09-03 08:20, BEFORE ONE LINE of peel or coefficient-model code)
+
+### The design being predicted
+
+**WS-F, the peel frame.** A peel is a length-changing, structure-parsing filter
+that emits `(recipe, values)`. It rides in the container as a new model byte
+(`MODEL_PEEL`) whose payload opens with a peel preamble -- `peel_id: u8`, the
+recipe's model byte and lengths, the values' model byte and length -- followed
+by the separately-modelled recipe stream and the separately-modelled values
+stream. `restore` re-spells `values + recipe -> the original bytes` and then the
+FNV-64 gate decides. Peels are trial arms; `armored_total()` picks the winner,
+so a peel that costs more than the raw form is simply not chosen.
+
+**WS-J, the JPEG coefficient model.** The v12 python probe ported to Rust
+(Huffman-decode every MCU, DC prediction reset at each RST, the file's own
+DHT/DQT verbatim in the recipe, re-encode with the spec's 1-bit padding), then
+the coefficients MODELLED -- which is the milestone, not the peel. Contexts:
+the band index (DC / the first ACs / the tail), the same position in the block
+above and to the left, the count of nonzeros already placed in this block, the
+quantisation value at that position, and the component.
+Attribution: ITU T.81 (the codec); packJPG (Matthias Stirner) and Lepton
+(Dropbox) for the context shape.
+
+### wallpaper.jpg -- the numbers called
+
+Measured facts inherited from v12-M3(2) (not predictions): the file is
+1,602,752 B; the entropy-coded bytes are **1,602,311**; baseline SOF0,
+3840x2400, three components all 1x1 (4:4:4), DRI 480 (299 RSTn), APP14 Adobe,
+**432,000 blocks**; the v12 probe round-trips it byte-exactly; the RAW
+coefficient dump (64 x i16 per block, 55,296,000 B) is 2,192,684 under xz -9 and
+2,208,961 under our MIX12 arm -- a dump is not a model, which is what M1 must fix.
+v12's row: total **1,513,903**, inner 1,509,091 (arm CM12, MODEL 17); naked
+xz -9 on the file: **1,571,824**.
+
+| quantity | FILED | basis |
+|---|---|---|
+| round trip, Rust port, byte-exact on wallpaper.jpg | **YES** | the python probe already did it; the Rust port must reproduce it or the peel is refused |
+| **the recipe's own bytes** (before its model) | **441 B** exactly -- every byte of the file that is not entropy-coded | 1,602,752 - 1,602,311 = 441 |
+| the recipe stream after its own model + the peel preamble | **380 .. 560 B** | 441 B of DQT/DHT/SOF/DRI/APP14/SOS/EOI is nearly incompressible at that length; the preamble is ~16 B and the model may pay a few bytes of coder flush rather than save any |
+| **the peeled values** (the coefficient model's stream) | **1,201,733 .. 1,361,964** = **-25% .. -15%** of 1,602,311 | packJPG and Lepton's published range on baseline photographs, pre-shrunk for having no per-band tuning of our own yet |
+| **inner** (preamble + recipe stream + values stream) | **1,202,200 .. 1,362,500** | the two rows above |
+| price (256-B tier, 18 parity + 3 sites) | **4,812 B**, flat | armor v4 is unmoved; the inner stays far under 16,772,352 B |
+| **armored total** | **1,207,000 .. 1,367,300** | inner + 4,812 |
+| vs v12's total 1,513,903 | **-146,600 .. -306,900** | |
+| vs naked xz -9 1,571,824 (an exhibit, never a bar) | lighter by 204,500 .. 364,800 | |
+
+**The gate, stated against the call, honestly.** Gate 1 asks that wallpaper.jpg
+beat its v12 total by at least 10% of the entropy-coded bytes -- 160,231 B --
+i.e. an armored total of **1,353,672 or less**, i.e. a values stream at or under
+about 1,348,400 B, i.e. **-15.8% or better**. The filed range's LOW end (-15%,
+total 1,367,300) therefore **misses the gate by roughly 13,600 B** and its high
+end clears it by 146,700. The call is the published range, not the gate; if we
+land at the bottom of our own range the miss is printed with that arithmetic.
+
+### The rest of M1, called
+
+| what | FILED |
+|---|---|
+| every OTHER row byte-identical to its v12 total | **19 of 19 HIT** -- the peel is nominated by the JPEG magic alone and no other corpus row is a JPEG; no trial arm, filter or armor constant moves |
+| the 30+ JPEG suite | **every file either peels and re-spells BYTE-EXACT or is cleanly refused and keeps its bytes; LOST = 0**. Called by class: baseline 8-bit 4:4:4 and 4:2:0, with and without restart intervals, Adobe APP14 and JFIF-only, greyscale (one component) -- **peel, exact**. Progressive (SOF2), arithmetic-coded (SOF9/SOF10), 12-bit (SOF0 with P=12), truncated, corrupt DHT -- **refused, bytes kept, reason printed** |
+| suite provenance | 46 JPEGs from this machine's `C:\Windows\Web` tree (Screen, Wallpaper/Alienware, ThemeA-D, Spotlight, 4K, touchkeyboard) plus 2 generated here with Windows' own WIC `JpegBitmapEncoder` (a 4:2:0 colour and a Gray8 greyscale) plus hand-built hostiles (truncations, a corrupt DHT, a 12-bit SOF, an arithmetic SOF). Of the 46, **8 are already progressive** (the touchkeyboard set) and two are byte-identical copies of the corpus row |
+| injuries | **60/60 EXACT** on the 20-row ledger, peeled row included |
+| drills | 257 v12 drills GREEN plus a new peel battery (truncated member, corrupt table, progressive input, a peel whose re-encode fails) -- **all keep the bytes, none lose a file** |
+| audit | v4 unchanged: 3,091,667 checks under `--full`, 0 failing |
+| clippy / cargo test | clean under rustc 1.98; the test count grows by the peel's own pipeline law |
+| **speed, wallpaper.jpg SOLO** | **0.20 .. 0.35 MB/s** (v12: 0.382). The peel adds a Huffman decode, a coefficient-model encode, the LAW's re-encode-and-compare, and the write-time round trip (a full model decode plus a second re-encode). The home floor is 0.25 MB/s: this call **straddles it**, and if the row lands under 0.25 the number is printed with its cause rather than repriced |
+| ancestors | ZERO files outside `target/` newer than codegg-v13's Cargo.toml, proven by mtime against the M0 manifest |
+
+### What would make this call wrong
+
+- The coefficient model is a LEAN one (one adaptive 16-bit probability per
+  context, no mixer) chosen for the speed floor; packJPG's published range was
+  reached with a comparable shape, but Lepton's upper end uses far more state.
+  If the lean model lands under -15% the cause is the model's width, and that is
+  M3's business, not M1's.
+- The image is unusually cheap already: 1,602,311 B over 432,000 blocks is
+  **29.7 bits per block**, so most blocks are a DC and an early EOB. A stream
+  that already spends almost nothing per block has less for a model to take,
+  and the published 15-25% was measured on ordinary photographs at ordinary
+  rates. This is the single most likely reason for a low landing.
+- 4:4:4 with a restart marker every MCU row resets the DC prediction 299 times;
+  our 2D DC prediction (above and left) does not reset, which should HELP.
+
+## FINDING (2026-09-03, main session, verifying the M1 gate) -- the blind promise overclaims
+
+Independent verification of the M1 gate reproduced every number the milestone
+reported (see the verification note below) and then asked a question the gate did
+not: what does a BLIND wound actually cost at the 256-byte tier, which after v12's
+M2b is the tier 17 of the 20 rows land on?
+
+`info` prints, for every one of those containers, `guaranteed: true` and this
+promise: "NAMED (by address or truncation): any 18 squares (4,608 B) anywhere,
+CERTAIN; BLIND: any 9 squares CERTAIN (Berlekamp-Massey), up to 17 located
+jointly ... contiguous >= 4,096 B blind."
+
+Measured on two containers -- wallpaper.jpg (peeled, MODEL_PEEL) and notepad.exe
+(no peel at all, the ordinary pipeline), both block 256, t 18, placement none,
+`guaranteed: true`:
+
+| wound | promised | measured |
+|---|---|---|
+| 8 fully-dead squares, blind | EXACT | **EXACT** |
+| 9 fully-dead squares, blind | EXACT ("any 9 squares CERTAIN") | **REFUSED** |
+| 10 .. 18 fully-dead squares, blind (contiguous, spaced, or scattered) | up to 17 "located jointly" | **REFUSED**, always with "0 dead squares located" |
+| contiguous 4,096 B, blind, at an ordinary unaligned offset | EXACT (`guaranteed: true`) | **REFUSED** |
+| the same contiguous 4,096 B, ADDRESSED (`--wound`) | EXACT | **EXACT** |
+| up to 16 squares, blind, when each square is only PARTLY hit | -- | **EXACT** (14 squares located and rebuilt in one trial) |
+
+**Nothing was ever wrong.** Across roughly thirty trials the decoder either
+restored byte-exact or refused with a number and wrote nothing. Conservation
+holds; this is a promise-versus-behaviour gap, not a correctness defect.
+
+**It is the ARMOR, not the peel.** notepad.exe carries no peel and behaves
+identically, so the behaviour is v12's armor v4 verbatim, inherited by the fork.
+It has been true since v12's M2b and no gate in either campaign asked.
+
+**Why every gate passed anyway.** The tournament's three injuries are a blind
+1-byte flip, an ADDRESSED 4 KB scratch and a truncation; the addressed scratch and
+the truncation both name their squares, so they never touch this path. The drill
+battery does assert EXACT for a blind 4 KB scratch, but only when
+`scratch_guaranteed(g)` is true and only on its own synthetic containers, whose
+tiers put 4,096 B inside 3 to 5 squares. At 256 B squares a 4,096 B scratch spans
+17, and the assertion never runs there.
+
+**The reading.** A square that is only partly hit puts an error into only some of
+the 128 interleaved codewords, so each codeword stays inside its own correction
+radius and up to 17 such squares rebuild. A fully dead square puts an error into
+ALL 128 at once; the per-codeword radius is then the binding constraint and it
+measures 8, one short of the printed 9. The collaborative rung that the placement
+"none" price was argued on (Krachkovsky-Lee 1997: the columns agree) reports
+"0 dead squares located" in every one of those refusals, so on fully dead squares
+it is not extending the reach at all.
+
+**What M2 owes, before any deflate work:**
+1. Decide which is true and make the other match: either the joint locator reaches
+   t-1 fully dead squares as claimed, or the promise text and the `guaranteed`
+   flag are corrected to say what the code does. The promise is printed to the
+   user on every transmute; it is the product, not a comment.
+2. A drill that runs the blind-4-KB assertion on a container of EVERY tier,
+   including 256, and on a real corpus row rather than only synthetic ones.
+3. If the reach really is 8 fully dead squares at the 256 tier, the tier argmin
+   must know it: a row whose blind survival matters may be worth 512 B squares at
+   5,324 B instead of 256 B squares at 4,812.
+
+Filed by the main session, not by the milestone's agent, and the milestone's own
+report is left exactly as it was written.
+
+## Verification note (2026-09-03, main session, independent of the agent)
+
+Reproduced from a clean shell against `target/release/eggv13.exe`: wallpaper.jpg
+transmutes to **1,238,198 B** (inner 1,233,386; peel recipe 451 raw to 272 modelled,
+values 55,296,000 raw to 1,233,099 modelled; price 4,812 at 1.17x the floor), and
+restores **byte-exact** to 1,602,752 B with the conservation hash reported OK.
+`cargo clippy --all-targets -- -D warnings` exits 0; `cargo test --release` is
+28/28. Ancestors: across codec-v1 and codegg-v1 .. codegg-v12, **zero files outside
+`target/` are newer than codegg-v13's Cargo.toml**.
+
+## THE RECIPE, MEASURED (2026-09-03, before any M2 code) -- the deflate question is answered
+
+Vladimir's instruction: measure the cost of the token recipe before writing
+anything else, because it is the only thing standing between v13 and the save.
+Done. The whole 66,417,533-byte deflate stream was walked and its decisions
+extracted (scratchpad v13/recipe/tokens.py, RFC 1951; the recipe idea is
+precomp / reflate, Christian Schneider and Dirk Steinke).
+
+**The extraction is exact**: 1,171 blocks, 38,340,574 tokens (12,679,330 literals,
+25,661,244 matches), inflating to **296,540,843 B -- the expected length, to the
+byte**. The stored tail field reads 8, the gzip CRC32 plus ISIZE, as it must.
+
+The recipe carries the block structure and code-length definitions exactly as the
+stream declares them, one bit per token for literal-or-match, and the length and
+distance of every match. It does NOT carry literal values: those are read back
+out of the inflated bytes at re-spell time, which is why the flags stream exists
+at all.
+
+| stream | raw | xz -9 |
+|---|---|---|
+| meta (1,171 block headers + every code-length definition) | 307,786 | 46,736 |
+| flags (1 bit per token) | 4,792,572 | 535,004 |
+| lengths (u16 per match) | 51,322,488 | 661,684 |
+| distances (u32 per match) | 102,644,976 | 2,431,520 |
+| **the recipe** | 159,067,822 | **3,674,944** |
+
+**Budget 12,097,403 B. The recipe costs 3,674,944 B. It fits with 8,422,459 B to
+spare**, and that is the PESSIMISTIC reading: a generic coder on a naive
+fixed-width serialisation, with no differential coding of the parse and none of
+our own modelling. Distances are 66% of it and are exactly what reflate encodes
+as deviations from a reference parse rather than as values.
+
+What that makes the row, using Vladimir's measured 5,256,708 for the peeled bytes
+through the v12 arm:
+
+| | bytes |
+|---|---|
+| peeled values | 5,256,708 |
+| recipe (measured, pessimistic) | 3,674,944 |
+| inner | 8,931,652 |
+| armor price (256-B tier, flat) | 4,812 |
+| **armored total** | **8,936,464** |
+| against today's 17,333,845 | **-8,397,381** |
+| against naked xz -9 16,739,920 | **-7,803,456** |
+| against xz+par2 (the bar's only standing row) | **-8,265,680** |
+
+The row that has stood in the armored card three times -- v11 by 0.53 pt, v12 by
+0.20, v13 by 0.20 -- does not close by a fraction of a point. It closes by a
+factor of two.
+
+**WHAT IS NOT YET PROVEN, and it is the whole of M2's first gate:** the recipe is
+*designed* to be sufficient (canonical Huffman from the stored code lengths, the
+parse from flags plus lengths plus distances, literals from the output, the pad
+bits and trailer accounted) but **nothing has been re-deflated from it yet**. A
+recipe that reconstructs 296 MB of bytes is worth nothing until it reproduces the
+66,417,533-byte skin BIT FOR BIT, and under THE LAW OF THE PEEL a peel that
+cannot prove itself on the file in front of it is not used at all. That round
+trip is M2's first task, before any modelling of these streams.
+
+### THE ROUND TRIP IS PROVED (2026-09-03, the same session, before any M2 code)
+
+The recipe above was measured but unproved, and the section said so: "a recipe
+that reconstructs 296 MB of bytes is worth nothing until it reproduces the
+66,417,533-byte skin BIT FOR BIT." It now does.
+
+**The gate found its first hole before it ran.** The recipe recorded every block's
+structure and every token but not WHERE EACH BLOCK ENDS -- an inflater learns that
+from the end-of-block symbol, and a re-speller must be told. A second hole sat
+behind it: the padding bits after the final block were assumed rather than
+recorded. Both are now in the recipe: one u32 of token count per block (1,171
+blocks = 4,684 B raw) and the two padding bits (measured: 2 bits, value 0). meta
+grew 307,786 -> 312,472 raw, and 46,736 -> 46,888 coded. That is what a gate is
+for; the cost of both fixes is 152 bytes.
+
+**The result**: 1,171 blocks, 38,340,574 tokens replayed, **66,417,533 bytes
+re-spelled and identical to the original skin, bit for bit**, in 55 s of python.
+The inflated side matches too, at 296,540,843 B. The peel is a proved bijection
+on this file.
+
+| the complete recipe | raw | xz -9 |
+|---|---|---|
+| meta (blocks, code-length definitions, token counts, padding) | 312,472 | 46,888 |
+| flags (1 bit per token) | 4,792,572 | 535,004 |
+| lengths | 51,322,488 | 661,684 |
+| distances | 102,644,976 | 2,431,520 |
+| **total** | 159,072,508 | **3,675,096** |
+
+Budget 12,097,403. Spare **8,422,307**.
+
+| the row, if M2 ships this | bytes |
+|---|---|
+| peeled values (Vladimir's measurement, v12 arm on the full peel) | 5,256,708 |
+| recipe (xz -9, no differential coding, no CM) | 3,675,096 |
+| inner | 8,931,804 |
+| armor (256-B tier, flat) | 4,812 |
+| **armored total** | **8,936,616** |
+| vs today's 17,333,845 | **-8,397,229** |
+| vs naked xz -9 | **-7,803,304** |
+| vs xz+par2, the armored bar's one standing row | **-8,265,528** |
+
+Everything above is still the pessimistic reading: a generic coder on fixed-width
+streams. Distances are 66% of the recipe and are precisely what reflate stores as
+deviations from a reference parse rather than as values, and none of these four
+streams has yet met our own model.
+
+**What M2 must now do, in this order:** port the extractor and the re-speller to
+Rust behind the peel frame; re-prove the round trip there, on this file and on a
+deflate suite (gzip at every level, 7-Zip, Explorer zips, PNGs from three
+encoders), keeping the bytes wherever the re-spell differs by even one bit; then
+model the four streams; only then measure the row. The 296 MB inner also puts the
+64 MB in-memory law and the 45-minute monster bar in play (WS-S), and the
+tokeniser speed lever from v12's M2c(a) is on the shelf for exactly that.
+
+## The prize hunt, measured (2026-09-03) -- what else is out there
+
+The instrument rule after this session: use one that can see the quantity it is
+being used to rule in or out, and say plainly when a number is sampled.
+
+- **rdr2-shaders.vkcache: RULED OUT, on the whole file.** 11,931 windows of 4 KB:
+  **79.5% sit above 7.9 bits/byte**, 19.6% between 6.0 and 7.9, 0.9% below 6.0.
+  Four fifths of the file is at the ceiling and has nothing left for any model;
+  we and xz already take 14.4% and 14.1% off the fifth that isn't. There is no
+  peel here and no prize. The plan said "do not chase it"; now it is measured.
+- **embeddings.json: a real signal, about 470-750 KB.** 1,275,904 float literals,
+  **91.1% of the file is digits**. Re-spelling the first 400,000 as raw f32 and
+  coding them costs 1,391,012 against the text's 1,654,648, **-15.9%**. The lever
+  is NOT "store f32" (the text must come back byte-identical, and f32 does not
+  round-trip a decimal string); it is to model the digits as a number with a
+  delta against the previous value in the same array. WS-N in the plan, and the
+  first measured reason to build it.
+- **iconcache48.db: NOT ESTABLISHED, and my probe was too crude to decide.** A MED
+  2D predictor over an 8 MB slice made the residual 37% BIGGER than the raw bytes
+  under xz. That is evidence against a naive stride-192 predictor on a slice I
+  never proved was pixel payload -- not evidence against the second dimension. To
+  answer it, parse the CMMM entries, locate the actual 48x48 BGRA bitmaps, and
+  predict inside them. Filed as unanswered rather than as a null result.
+- **The wavs: no prize under this instrument.** An order-2 mid/side residual
+  through xz costs 144,136 on ring01 against our 130,753 (**+10.2%**, we win) and
+  244,632 on alarm01 against our 248,050 (-1.4%). Our model already matches or
+  beats a naive audio transform; only an adaptive predictor (NLMS/LPC) could
+  change that, and it is unmeasured.
+- **rustc_driver.dll: unmeasured, and the largest non-opaque row left.** 37,436,978
+  B, 20.4% of 183 MB, already 2.4 points ahead of xz with its own BCJ filter. The
+  instrument would be a disassembly-aware context probe (the paq8 / durilca
+  lineage past E8E9). Not claimed either way.
+
+## M2 GATE, CLOSED (2026-09-03, by the main session) -- 23 of 23
+
+The M2 agent delivered the peel, the round trip, the suite and the save's row, and
+missed the one gate item it owned: its 8-lane ledger HUNG at 12:14 and it reported
+"the last lane is still running" for half an hour. Evidence of the hang: the pass
+created one temp directory and never wrote an artifact into it in thirty minutes,
+where a working pass writes within seconds. (My own first diagnosis cited "no child
+processes", which was unreliable -- I grepped for `eggv13` while the copied binary
+runs as `egg.exe`. The temp-directory evidence is what stands.) Killed at 12:46 and
+re-run here in groups: 12 small rows in one pass, the big rows in pairs, the save
+and the monster alone. Cause is unconfirmed; the likely trigger is 8 lanes opening
+on the 8 largest rows at once, which since this milestone includes the save's
+296 MB peel beside the 183 MB monster.
+
+MISSES FIRST: **1 of 20 rows off its filed total** -- aoe4-autosave.sav at
+8,759,069 against a call of 8,766,965, **7,896 lighter than its own prediction**.
+Nothing else moved. Injuries 60/60 EXACT;
+rows heavier than sealed v11: 0.
+
+### The ledger, 20 rows
+
+| row | sealed v11 | **v13** | delta | pt | inner (arm) | price | × floor | naked xz -9 | injuries |
+|---|---|---|---|---|---|---|---|---|---|
+| aoe4-autosave.sav | 17,553,840 | **8,759,069** | -8,794,771 | -13.242 | 8,754,257 (PEEL) | 4,812 | 1.17× | 16,739,920 → win | E/E/E |
+| rustc_driver.dll | 42,719,952 | **37,436,978** | -5,282,974 | -2.885 | 37,430,630 (CM12·PE) | 6,348 | 1.55× | 41,707,380 → win | E/E/E |
+| msgraph.dll | 4,617,660 | **3,211,880** | -1,405,780 | -3.250 | 3,207,068 (CM12·PE) | 4,812 | 1.17× | 4,749,376 → win | E/E/E |
+| mermaid-bundle.js | 4,891,080 | **4,090,958** | -800,122 | -3.096 | 4,086,146 (CM12) | 4,812 | 1.17× | 4,952,132 → win | E/E/E |
+| rdr2-shaders.vkcache | 42,312,400 | **41,860,990** | -451,410 | -0.924 | 41,854,642 (MIX12) | 6,348 | 1.55× | 41,969,640 → win | E/E/E |
+| ntoskrnl.exe | 5,039,572 | **4,675,387** | -364,185 | -2.791 | 4,670,575 (CM12·PE) | 4,812 | 1.17× | 5,501,588 → win | E/E/E |
+| wallpaper.jpg | 1,533,228 | **1,238,198** | -295,030 | -18.408 | 1,233,386 (PEEL) | 4,812 | 1.17× | 1,571,824 → win | E/E/E |
+| real-test.db | 1,241,376 | **1,068,149** | -173,227 | -1.814 | 1,063,337 (CM12H) | 4,812 | 1.17× | 1,474,592 → win | E/E/E |
+| cbs.log | 150,804 | **71,758** | -79,046 | -0.488 | 66,946 (CM12) | 4,812 | 1.17× | 139,004 → win | E/E/E |
+| vim-version9.txt | 319,264 | **273,982** | -45,282 | -2.225 | 269,170 (CM12H) | 4,812 | 1.17× | 371,088 → win | E/E/E |
+| zstd.exe | 521,540 | **488,915** | -32,625 | -2.037 | 484,103 (CM12·PE) | 4,812 | 1.17× | 534,572 → win | E/E/E |
+| arial.ttf | 468,292 | **446,354** | -21,938 | -2.098 | 441,542 (CM12·TTF) | 4,812 | 1.17× | 466,716 → win | E/E/E |
+| alarm01.wav | 273,196 | **252,862** | -20,334 | -4.137 | 248,050 (CM12) | 4,812 | 1.17× | 344,640 → win | E/E/E |
+| segoeui.ttf | 429,368 | **409,683** | -19,685 | -2.051 | 404,871 (CM12·TTF) | 4,812 | 1.17× | 422,304 → win | E/E/E |
+| kernel32.dll | 300,832 | **283,604** | -17,228 | -2.060 | 278,792 (CM12·PE) | 4,812 | 1.17× | 316,416 → win | E/E/E |
+| ring01.wav | 146,184 | **135,565** | -10,619 | -2.131 | 130,753 (CM12) | 4,812 | 1.17× | 248,424 → win | E/E/E |
+| real-test.bmp | 268,588 | **261,274** | -7,314 | -0.061 | 256,462 (MIX12) | 4,812 | 1.17× | 3,612,796 → win | E/E/E |
+| notepad.exe | 183,060 | **176,164** | -6,896 | -1.913 | 171,352 (CM12·PE) | 4,812 | 1.17× | 181,884 → win | E/E/E |
+| iconcache48.db | 424,760 | **418,323** | -6,437 | -0.007 | 413,511 (MIX12) | 4,812 | 1.17× | 416,968 → **+1,355** | E/E/E |
+| wubbadub.html | 30,596 | **27,621** | -2,975 | -3.219 | 22,809 (CM12P) | 4,812 | 1.17× | 26,180 → **+1,441** | E/E/E |
+| **20 rows** | | | **-17,837,878** | | | | | **18 of 20 lighter** | **60/60 EXACT** |
+
+**Net -17,837,878 B against the sealed v11.** v12's whole campaign was -8,987,397;
+v11's was -1,766,332. Form vs form (our inner against naked xz -9's stream):
+**20 of 20** -- the save was the series' last form-vs-form loss and it now wins by
+7,985,663. The exhibit (armored total vs naked xz, never a bar): 18 of 20, the two
+remaining losses iconcache48.db +1,355 and wubbadub.html +1,441, each carrying
+4,812 B of armor xz does not carry.
+
+### THE BAR: armored vs armored, 23 rows, measured
+
+rar -rr5 forfeits truncation on **23 of 23** rows -- structural, as in v11 and v12.
+xz+par2 survives every injury and is beaten by egg13 on **23 of 23**.
+
+| row | egg13 | egg13 % | xz+par2 % | margin |
+|---|---|---|---|---|
+| iconcache48.db | 418,323 | 0.43% | 0.5% | **+0.07** |
+| cbs.log | 71,758 | 0.44% | 1.0% | **+0.56** |
+| msgraph-docs.xml | 965,799 | 1.13% | 2.6% | **+1.47** |
+| rdr2-shaders.vkcache | 41,860,990 | 85.65% | 88.0% | **+2.35** |
+| changelog.md | 179,700 | 14.86% | 17.8% | **+2.94** |
+| rustc_driver.dll | 37,436,978 | 20.44% | 23.4% | **+2.96** |
+| msgraph.dll | 3,211,880 | 7.43% | 11.3% | **+3.87** |
+| mermaid-bundle.js | 4,090,958 | 15.83% | 19.8% | **+3.97** |
+| embeddings.json | 4,687,145 | 29.66% | 34.4% | **+4.74** |
+| real-test.db | 1,068,149 | 11.18% | 17.1% | **+5.92** |
+| zstd.exe | 488,915 | 30.53% | 37.6% | **+7.07** |
+| segoeui.ttf | 409,683 | 42.69% | 49.8% | **+7.11** |
+| vim-version9.txt | 273,982 | 13.46% | 20.7% | **+7.24** |
+| ntoskrnl.exe | 4,675,387 | 35.83% | 43.5% | **+7.67** |
+| arial.ttf | 446,354 | 42.68% | 50.4% | **+7.72** |
+| kernel32.dll | 283,604 | 33.92% | 43.3% | **+9.38** |
+| notepad.exe | 176,164 | 48.87% | 59.5% | **+10.63** |
+| aoe4-autosave.sav | 8,759,069 | 13.19% | 25.9% | **+12.71** |
+| wubbadub.html | 27,621 | 29.89% | 47.2% | **+17.31** |
+| alarm01.wav | 252,862 | 51.45% | 80.0% | **+28.55** |
+| ring01.wav | 135,565 | 27.20% | 57.7% | **+30.50** |
+| real-test.bmp | 261,274 | 2.18% | 33.2% | **+31.02** |
+| wallpaper.jpg | 1,238,198 | 77.25% | 108.6% | **+31.35** |
+
+**23 of 23.** The bar was missed in v11 by 0.53 pt and in v12 by 0.20 pt, both
+times by the game save. That row now wins by 12.71 points, a factor of 1.96. It is
+the first clean sweep of the series, and the row that took it is the row that had
+never fallen.
+
+### Speed, SOLO (machine idle, one transmute at a time)
+
+Worst home row **kernel32.dll at 0.278 MB/s** against the 0.25 floor: MET.
+The other eleven: wubbadub 0.402, ring01 0.282, notepad 0.304, alarm01 0.306,
+segoeui 0.374, arial 0.383, zstd 0.464, vim 0.502, real-test.db 0.398,
+real-test.bmp 0.531, wallpaper.jpg 0.349.
+
+### Ancestors and the site
+
+Across codec-v1 and codegg-v1 .. codegg-v12: **zero files outside `target/` newer
+than codegg-v13's Cargo.toml**. One site file, `inspirations.html`, carries a
+mtime of 13:14 today and is **content-identical to git HEAD** (`git status` reports
+nothing for it), so no bytes moved; it is the IDE, not this campaign.
+
+
+## Attribution
+
+ITU T.81 (the JPEG codec, the canonical Huffman tables, the 1-bit padding);
+packJPG, Matthias Stirner, and Lepton, Dropbox (the coefficient-model context
+shape and the peel idea); Reed & Solomon 1960, Berlekamp-Massey, Chien, Forney
+(the armor, unmoved from v12); Krachkovsky & Lee 1997 and Bleichenbacher,
+Kiayias & Yung 2003 (collaborative decoding of interleaved RS); Matt Mahoney's
+zpaq / lpaq / paq8 and Byron Knoll's cmix (the 16-bit coder, the StateMap and
+APM shapes); Fowler-Noll-Vo (FNV-64, the conservation hash); XZ Utils 5.8.3 (the
+rival's stream, exact bytes). The site supplied every reading.
+
+## M1 MEASURED (2026-09-03 08:23) -- wallpaper.jpg, the first reading, written the moment it landed
+
+The peel arm on `corpus-real/wallpaper.jpg`, with THE LAW satisfied (the peel
+re-encoded its own output and the re-encode WAS the original file, before
+anything was written) and the container restored EXACT afterwards.
+
+| quantity | FILED | MEASURED | verdict |
+|---|---|---|---|
+| round trip, Rust port, byte-exact | YES | **YES** -- `respell` == the 1,602,752 original bytes; the container restores EXACT, conservation hash OK | **HIT** |
+| the recipe's own bytes (raw) | 441 | **451** | MISS +10: 441 is the non-entropy bytes; the recipe adds its own 10-byte header (version, pad convention, the two lengths) |
+| the recipe stream + preamble | 380 .. 560 B | **287 B** (272 B under the CM12 arm, which beat storing it, + the 15-byte preamble) | **MISS, BELOW** -- lighter than called |
+| the peeled values | 1,201,733 .. 1,361,964 (-25% .. -15%) | **1,233,099 B = -23.04%** of 1,602,311 | **HIT** (inside the range, near its light end) |
+| inner | 1,202,200 .. 1,362,500 | **1,233,386** | **HIT** |
+| price | 4,812 B flat | **4,812** (256-B tier, 18 parity, 0 CT, 204 sites; 1.17x the 4,096 floor) | **HIT** |
+| **armored total** | 1,207,000 .. 1,367,300 | **1,238,198** | **HIT** |
+| vs v12's total 1,513,903 | -146,600 .. -306,900 | **-275,705** | **HIT** |
+| vs naked xz -9 1,571,824 (exhibit) | lighter by 204,500 .. 364,800 | **lighter by 333,626** | **HIT** |
+| **Gate 1**: beat v12 by >= 10% of 1,602,311 (= 160,231 B, total <= 1,353,672) | called as straddling the gate | **MET: -275,705 = 17.21% of the entropy-coded bytes** | **MET** |
+
+Geometry, printed: `model 24` (MODEL_PEEL), `peel 1`, recipe 451 B raw -> 272 B
+(model 17, CM12), values 55,296,000 B raw -> 1,233,099 B (model 25, the
+coefficient model). The RAW dump is what v12 weighed: 55,296,000 B, which xz -9
+made 2,192,684 and our MIX12 arm 2,208,961 -- both heavier than the JPEG's own
+Huffman. The same coefficients, MODELLED, are **1,233,099**: 1.78x lighter than
+xz on the dump, and 0.77x the JPEG's own spelling. That is the milestone.
+
+Wall clock at this reading was 4,712 ms, but the 20-row M0 ledger was running in
+eight lanes at the time: **that number is CONTENDED and is not a speed
+measurement.** The solo figure is below, in its own section.
+
+## M1 MEASURED -- the 60-JPEG conservation suite (2026-09-03 08:30)
+
+`corpus-jpeg`, built by `tools/mkjpegsuite.js` and judged by `tools/jpegsuite.js`.
+Provenance as filed: 46 JPEGs copied from this machine's `C:\Windows\Web` tree
+(Screen, 4K, Wallpaper/{Alienware, Spotlight, ThemeA-D}, touchkeyboard) -- eight
+of them ALREADY progressive, several with odd dimensions (3839x2400, 3841x2400,
+3840x2401, 2054x1155), two byte-identical to the corpus row; 4 generated here
+with Windows' own WIC `JpegBitmapEncoder` (two 4:2:0 colour, two Gray8
+single-component, all JFIF and restart-free); 9 hand-built hostiles, each a
+named mutation of a real file; and the corpus row itself. **60 files, 35 MB.**
+
+**LOST: 0. WRONG: 0.** Every one of the sixty transmuted and restored EXACT.
+
+| class | count | what happened |
+|---|---|---|
+| baseline, peeled and TAKEN by the argmin | **40** | re-spelled byte-exact; values 13.91% .. 92.23% of each file's entropy-coded bytes |
+| baseline, peel PROVED a bijection but PASSED OVER by the argmin | **3** | the two Gray8 frames and `win_Screen_img105.jpg`: on these synthetic or near-flat images the ORDINARY pipeline is far lighter (wic_gray_q50: raw inner 2,299 B against the peel's 23,430), so the trial kept the raw form. That is the trial working, not a refusal -- the peel proved itself byte-exact on all three, greyscale and 4:2:0 alike |
+| refused, bytes kept, reason printed | **17** | 8 progressive (SOF2) + 9 hand-built hostiles |
+
+**The peel proved itself a bijection on 43 of the 60**; the other 17 were
+refused with a printed reason and kept their bytes.
+
+The refusals, each with the sentence the build printed:
+progressive JPEG (SOF2): the bytes are kept x8; arithmetic-coded JPEG
+(SOF9/10/11): the bytes are kept; 12-bit samples (only 8-bit is peeled);
+DHT symbol list truncated; DC category above 15 (the corrupt DHT);
+AC run walks past coefficient 63 (the noise-filled scan);
+entropy data ran out mid-block (a marker injected into the scan);
+entropy-coded segment runs to the end of the file (truncated) x2;
+marker segment runs past the end of the file (the JPEG magic on a non-JPEG).
+
+**Against codegg-v12 on the same sixty files: 32,875,972 B -> 27,910,927 B,
+-4,965,045 B (-15.1%).** Every refused file's total is byte-identical to v12's
+(delta 0 on all 20 refused / passed-over rows) -- the frame does not perturb
+what it does not peel.
+
+Two readings worth printing:
+
+- **the recipe does not eat the prize, but it is not always small.** The
+  Alienware wallpapers carry EXIF thumbnails and several DQT/DHT segments, so
+  their recipes are 2,603 .. 18,869 B against values of 18,254 .. 1,928,881.
+  The worst ratio in the suite is `win_Wallpaper_Spotlight_img50.jpg`: a
+  23,615 B 280x175 4:2:0 frame whose recipe is 2,603 B on 18,254 B of values --
+  14%. It still wins its row (25,684 against v12's 27,040), and the argmin, not
+  a rule of thumb, is what decided that.
+- **the model needs room.** The best row in the suite is 13.91% of the entropy
+  coding (`AW-CO8`, a near-flat 1920x1200 frame); the worst peeled row is 92.23%
+  (`img50`, 1,188 blocks -- a model that has barely started learning when the
+  file ends). The corpus row sits at 76.96%.
+
+## M1 MEASURED -- the 20-row ledger, the drills, the audit, the speed (2026-09-03 09:51)
+
+### The 20-row ledger: 20 of 20 HIT, to the byte
+
+`node tools/ledger13.js` with `EGG_PRED` = the M1 column filed before the run
+(nineteen rows at v12's totals TO THE BYTE, `wallpaper.jpg` at the measured
+1,238,198) and `EGG_EXE` = a copy of the M1 build.
+
+**Prediction misses: 0. Injuries: 60/60 EXACT (E/E/E on every row). Failures: 0.
+Rows heavier than v11: 0.**
+
+| | v12 | v13-M1 | delta |
+|---|---|---|---|
+| wallpaper.jpg | 1,513,903 (inner 1,509,091, model 17) | **1,238,198** (inner 1,233,386, **model 24**) | **-275,705** |
+| the other nineteen rows | | **byte-identical, every one** | 0 |
+| net vs the sealed v11, 20 rows | -8,987,397 | **-9,263,102** | -275,705 |
+
+Gate 3 of M1 asked that the frame not perturb the rows it does not peel: it does
+not. Every one of the nineteen keeps its v12 total, its v12 model byte, its v12
+inner and its flat price (4,812 / 5,324 / 6,348 by tier, `CT none`).
+
+### Drills: 273 passed, 0 failed (v12's battery was 257; the peel added 16)
+
+Every line of the new peel battery PASSED:
+
+- the trial takes the peeled form on a baseline JPEG (model 24, total 1,238,198);
+- `info` names the recipe and the values, and the geometry mirror holds on a
+  peeled container exactly as on any other;
+- the recipe does not eat the prize (272 B against 1,233,099 B of values);
+- a PEELED container survives the three tournament injuries -- 1-byte flip
+  blind, 4 KB scratch addressed AND blind, 4 KB truncation -- all EXACT;
+- and refuses HONESTLY beyond capacity;
+- six refusal drills -- a truncated member, a corrupt DHT, a progressive input,
+  an arithmetic-coded input, 12-bit samples, and **a peel whose re-encode would
+  differ** (the padding before one restart poisoned) -- every one KEPT ITS BYTES,
+  went through the ordinary pipeline, and restored EXACT.
+
+Audit v4 `--full`: **3,091,667 checks, 0 failing** -- identical to v12's, the
+armor having not moved. `cargo clippy --all-targets -- -D warnings` clean under
+rustc 1.98. `cargo test --release`: **28 passed** (v12: 23), the five new ones
+being the peel's byte-exact round trip, its refusal of a progressive frame, the
+coefficient model's round trip, the counter's range, and the peeled form's whole
+pipeline law.
+
+### Speed, SOLO (machine idle, one transmute at a time, three runs each)
+
+| what | ms (3 runs) | MB/s | bar |
+|---|---|---|---|
+| **wallpaper.jpg transmute, peel ON** | 4,247 / 4,259 / 4,382 | **0.377** | home floor 0.25: **MET** |
+| the same row with `EGG_NO_PEEL=1` (v13's v12 path) | 4,094 / 4,212 / 4,303 | 0.391 | v12's own solo figure was 0.382 |
+| restore of the peeled container | 167 / 167 / 168 | 9.6 | |
+
+**FILED 0.20 .. 0.35 MB/s; MEASURED 0.377 -- a MISS, ABOVE the range (faster
+than called).** The reason is worth writing down, because the call was made from
+the wrong model of the cost. The peel does five things -- Huffman-decode 432,000
+blocks, re-encode them and compare against the original (THE LAW), model the
+coefficients, then decode the model and re-encode again for the write-time
+round-trip law -- and I priced them as serial additions to the trial. They are
+not: the peel arm runs in a thread BESIDE the ordinary roster, which still costs
+about 4.1 s on this row and dominates. The whole peel, both directions and both
+re-encodes, fits inside that and adds **about 160 ms, 3.8%**. The lean
+coefficient model (one adaptive probability per context, no mixer) is what makes
+that possible; it was chosen for this floor and it cleared it with room.
+
+### A defect found and NOT fixed inside the gate, printed instead
+
+The `transmute` line prints "`(0 MB/s)`" on this row. The arithmetic is v12's,
+inherited verbatim: `src.len() / ms / 1000` in integer u128, which is 0 for any
+file under about 1 MB per second. It is a display bug, it has been printing a
+wrong number since v12, and the honest place to fix it is M2 -- changing the
+gated binary for a cosmetic would mean the ledgers above no longer describe the
+exe that produced them. Filed here rather than quietly patched.
+
+## The M1 gate, item by item
+
+| gate | verdict |
+|---|---|
+| 1. wallpaper.jpg beats its v12 total by >= 10% of the entropy-coded bytes | **MET: -275,705 B = 17.21% of 1,602,311** (needed 160,231) |
+| 2. a 30+ JPEG round-trip suite, every file byte-exact or cleanly refused; nothing lost, nothing wrong | **MET: 60 files, LOST 0, WRONG 0** -- 40 peeled and taken, 3 peeled and passed over by the argmin, 17 refused with a printed reason |
+| 3. every OTHER row byte-identical to its v12 total | **MET: 19 of 19**, a 20-row ledger with EGG_PRED, 0 misses |
+| 4. injuries 3 x 20 EXACT; drills green with a peel battery; audit green; clippy/test green | **MET: 60/60 injuries; 273/273 drills; 3,091,667 audit checks 0 failing; clippy clean; 28/28 tests** |
+| 5. the JPEG row measured SOLO against the 0.25 MB/s floor | **MET: 0.377 MB/s** (v12: 0.382; the peel costs 3.8%) |
+| 6. ancestors untouched, proven by mtime against the M0 manifest | **MET: 384 ancestor files outside target/, 0 newer, 0 added, 0 removed, 0 mtimes moved; 43 site files unmoved** |
+
+## Deviations from the charter plan, and why
+
+1. **The values are modelled by ONE arm, not by the roster.** The plan says "the
+   model runs on values". M1 runs the JPEG coefficient model on them and does
+   NOT also run the generic byte arms on the 55,296,000-byte dump. v12 already
+   measured that road on this exact file (xz -9 2,192,684; our MIX12 arm
+   2,208,961; both heavier than the JPEG's own Huffman) and re-measuring a known
+   loss would cost minutes per file. The reading is printed instead of repeated,
+   in `peel.rs`, with the numbers.
+2. **Nesting is not exercised.** The plan allows a member inside a member to
+   depth 2. The JPEG peel has no members, so M1 implements depth 1 and REFUSES a
+   peel inside a recipe with a number. M2's deflate is what needs the second
+   level, and it will be built there.
+3. **SOF1 (extended sequential, Huffman) is refused**, though it decodes like
+   baseline. Nothing in the suite is SOF1 and an untested acceptance is a guess;
+   it costs one line to accept when a file demands it.
+4. **Coverage the suite could not buy on this machine**: no 4-component (CMYK
+   Adobe) JPEG and no 4:2:0-with-restart-intervals file exists under
+   `C:\Windows\Web`, and no encoder that makes one is installed (no ImageMagick,
+   no ffmpeg, no Pillow). The code peels both classes; neither is tested. THE LAW
+   is what stands between that gap and a wrong byte: an untested class either
+   proves itself against the original file at write time or is refused.
+
+## M2 (0) MEASURED (2026-09-03 11:38) -- the blind promise, settled: it HOLDS, with one word wrong
+
+M2's first task was to decide whether the joint locator really reaches t-1 fully
+dead squares or whether the promise must be corrected. It was measured before any
+deflate work, on the same two containers the FINDING named, and then on every tier.
+
+**The FINDING's central claim does not reproduce.** Against
+`target/release/eggv13.exe` built from this tree, blind (no `--wound`, no
+truncation), whole data squares overwritten:
+
+| container | tier | t | blind fully-dead squares, EXACT | first REFUSAL |
+|---|---|---|---|---|
+| notepad.exe (no peel) | 256 | 18 | **1 .. 17** | 18 |
+| notepad.exe | 512 | 10 | 1 .. 9 | 10 |
+| notepad.exe | 1024 | 6 | 1 .. 5 | 6 |
+| notepad.exe | 2048 | 4 | 1 .. 3 | 4 |
+| notepad.exe | 4096 | 3 | 1 .. 2 | 3 |
+| wallpaper.jpg (MODEL_PEEL) | 256 | 18 | **1 .. 17** | 18 |
+
+That is `t-1` located jointly and `t` refusing -- exactly what the promise prints.
+135 trials at the 256 tier alone (counts 6..20 x fills {random, zero, 0xFF} x
+layouts {contiguous, spread every 37th, scattered}): every one EXACT up to 17,
+every one REFUSED at 18, **never wrong**. A contiguous 4,096 B blind scratch is
+EXACT at every tier and at every offset tried, including runs that cross the mid
+and end sites, and via the shipped `scratch` subcommand at 7 offsets.
+
+**Where the FINDING's reading came from.** The refusal it quoted --
+"0 dead squares located" -- prints `e.len()`, the size of the erasure set the
+attempt STARTED from. On a blind wound that set is empty by definition, so the
+phrase reads "the joint locator found nothing" when it actually says "nothing was
+named before we began". The message is being fixed rather than defended. The
+"8 EXACT / 9 REFUSED" ladder is consistent with a probe whose square offsets did
+not apply `stream_pos` (the short last data square sits at stream position 0) and
+the `pad` shift, so each intended one-square wound straddled two real squares --
+9 intended = 18 real = exactly t. It is not reproducible with correct offsets.
+
+**The one thing the FINDING was right about, and it is a real overclaim.** The
+promise says "BLIND: any t/2 squares CERTAIN (Berlekamp-Massey)". CERTAIN is the
+wrong word at t/2. The per-codeword BM rung refuses unless `2*deg < m` -- an
+unverified locator is a guess -- so BM alone reaches `(t-1)/2`, not `t/2`. Above
+that the JOINT rung carries the load, and the joint rung is conditional: it
+succeeds iff the error rows across the 128 interleaved codewords are independent.
+
+Constructed and measured: XOR one fixed 256-byte pattern into k squares, making
+the 128 x k error matrix rank 1, and the joint rung has nothing to span:
+
+| tier | t | (t-1)/2 | rank-1 dependent wound: last EXACT | first REFUSAL |
+|---|---|---|---|---|
+| 256 | 18 | 8 | 8 | **9** |
+| 512 | 10 | 4 | 4 | 5 |
+| 1024 | 6 | 2 | 2 | 3 |
+| 2048 | 4 | 1 | 1 | 2 |
+| 4096 | 3 | 1 | 1 | 2 |
+
+`(t-1)/2` to the row. So the certain-blind reach is 8 at the tier 17 of 20 rows
+land on, not 9, and 9..17 are the joint rung's conditional band.
+
+**WHAT CHANGED (the promise is the product, so the text moved, not the reach):**
+1. `promise()` for placement none now prints the certain band as `(t-1)/2`
+   squares by per-codeword Berlekamp-Massey, and puts `(t-1)/2 + 1 .. t-1` in the
+   joint band with its independence condition -- including the contiguous
+   >= 4,096 B run, which at every tier rides that joint rung and not BM.
+2. The refusal message no longer says "N dead squares located". It now
+   distinguishes what was named or convicted before the attempt from what the
+   joint locator placed.
+3. A new drill, `blind_4k_every_tier`, runs the blind 4 KB assertion on a REAL
+   corpus row (notepad.exe) at all five tiers, plus the t-1 / t boundary and the
+   rank-1 dependent wound at the certain band's edge, asserting EXACT below the
+   line, REFUSED above it, and WRONG never.
+4. `guaranteed` (the `scratch_guaranteed` flag) is UNCHANGED and stays true: the
+   4 KB contiguous blind claim measured EXACT at every tier. What changed is that
+   the promise now says which rung delivers it.
+5. The contiguous clause used to read "contiguous >= 4,096 B blind", which can be
+   read as "any run of 4,096 B OR MORE" -- and a 10 MB run is of course not
+   covered. It reads "ANY contiguous blind run up to 4,096 B" now. The bound is
+   the same number it always was, `(t-2) x blk`, which is 4,096 at every tier.
+
+Nothing here is a conservation defect: across roughly 200 trials the decoder
+either restored byte-exact or refused with a number. The gap was in the words.
+
+## M2 FILED (2026-09-03 11:47, BEFORE ONE LINE of deflate or stream-model code)
+
+The only M2 code written before this section is the promise correction and its
+drill (M2 task 0, above), which cannot move a byte of any stream.
+
+### The design being predicted
+
+`peel_id 2`, the deflate peel, ported from the proven python (scratchpad
+v13/recipe/tokens.py + respell.py; RFC 1951; the recipe idea is precomp /
+reflate, Christian Schneider and Dirk Steinke). Same frame as the JPEG peel and
+the same law: at transmute time the recipe is re-spelled and compared against the
+original bytes, and one byte of difference discards the peel for that file.
+
+The four streams do NOT go through the generic roster. They get ONE dedicated
+model each, in one walk, encoder and decoder driven through the same `Coder`
+trait that jcoef.rs uses -- the M1 precedent, filed as deviation 1 of M1 and
+repeated here for the same reason (a 159 MB fixed-width serialisation through
+five arms would cost tens of minutes to re-measure a shape we can model
+directly). The contexts I intend, and they are the reason for the numbers below:
+
+- **flags**: the previous flags (an order-k bit history) and the length of the
+  last match. Literal-or-match is a run-structured language.
+- **lengths**: the deflate length SYMBOL first (29 of them) and then its extra
+  bits, with the previous length symbol and the flag history as context -- never
+  the raw u16, which is a spelling and not a value.
+- **distances**: the deflate distance SYMBOL and its extra bits, and BEFORE that
+  a repeat-distance test against the last four distances used (LZMA's rep0..rep3,
+  Igor Pavlov; the same idea reflate reaches by a different road). Deflate
+  encoders reuse distances constantly and a u32 hides that completely.
+- **meta**: small and regular; the generic CM arm, as M1 does for the JPEG
+  recipe.
+
+The values (the 296,540,843 inflated bytes) get ONE generic arm, not the roster,
+for the same filed reason plus the 45-minute bar.
+
+### The four streams, called against xz -9 (which measured 3,675,096 total)
+
+| stream | raw | xz -9 | **CALLED (ours)** | range |
+|---|---|---|---|---|
+| meta | 312,472 | 46,888 | **42,000** | 38,000 .. 50,000 |
+| flags | 4,792,572 | 535,004 | **470,000** | 420,000 .. 540,000 |
+| lengths | 51,322,488 | 661,684 | **560,000** | 480,000 .. 680,000 |
+| distances | 102,644,976 | 2,431,520 | **1,950,000** | 1,600,000 .. 2,450,000 |
+| **the recipe** | 159,072,508 | **3,675,096** | **3,022,000** | 2,550,000 .. 3,700,000 |
+
+The distances call is the one with the widest range because it is the one lever
+whose payoff is unmeasured: rep-distance context is standard and I expect it to
+take 15-25% off xz's number, but the reference-parse deviation lever (store where
+the encoder disagreed with a matcher of our own, reflate's actual method) is NOT
+in this call. If it is built and pays, the miss is printed as a win beside this
+row; if it is built and does not pay, the miss is printed as a loss; if it is not
+built, this section says so.
+
+### The row, called
+
+| | bytes |
+|---|---|
+| peeled values (one generic arm on 296,540,843 B) | **5,256,708** (range 5,150,000 .. 5,400,000) |
+| recipe (our model, called above) | **3,022,000** |
+| peel preamble | 15 |
+| **inner** | **8,278,723** |
+| armor price (256-B tier, flat) | 4,812 |
+| **armored total, CALLED** | **8,283,535** |
+
+against, in the four currencies:
+
+| bar | bytes | called delta |
+|---|---|---|
+| today's v13-M1 row | 17,333,845 | **-9,050,310** |
+| naked xz -9 | 16,739,920 | **-8,456,385** |
+| xz + par2 (the armored card's standing row) | ~17,202,144 | **-8,918,609** |
+| the python proof's reference point | 8,936,616 | **-653,081** |
+| **the charter plan's M2 gate ("at or under 6.5 MB armored")** | 6,500,000 | **+1,783,535 -- CALLED AS A MISS** |
+
+**The charter bar is called as a MISS before the code is written, and it is
+called that way on arithmetic, not on pessimism.** The values alone are 5,256,708
+and the recipe cannot be squeezed to 1.24 MB by contexts; only the reference-parse
+deviation lever could reach 6.5 MB, and it is optional in this brief. Printed
+here so that a 8.3 MB result is read as what it is -- the row closing by a factor
+of two against every real rival, and missing an internal target that was set
+before the recipe was measured.
+
+### Speed, called SOLO
+
+| what | called | bar |
+|---|---|---|
+| aoe4-autosave.sav, transmute, peel ON | **55 .. 110 minutes** | the 45-minute monster bar: **CALLED AS A MISS** |
+| rustc_driver.dll (no peel on it) | 38 .. 45 minutes | unchanged from v12's 40m56.9s |
+| restore of the peeled save | 20 .. 45 minutes | -- |
+
+The save's inner is 296,540,843 B, 1.62x the monster's 183,111,168, and the
+monster measured 40m56.9s SOLO in v12. Unless WS-S moves the floor, the peeled
+save takes longer than the monster ever did. The M2c(a) tokeniser lever (2^24 LZ
+hash, byte-identical tokens, 7.4x on 66 MB) is the shelf item for exactly this
+and is the first thing to try; a reduced roster above 64 MB is the second.
+
+## M2 MEASURED (2026-09-03 11:55) -- the four streams, written the moment they landed
+
+Measured against the M1 build BEFORE the model code was written, so the numbers
+below chose the design rather than the design choosing the numbers.
+
+### A finding the python proof did not make: the streams were twice as wide as they need to be
+
+RFC 1951 lengths are 3..258 and RFC 1951 distances are 1..32,768. The proven
+python stored a **u16 per length and a u32 per distance**; one byte and two bytes
+hold them exactly. The recipe's raw side falls from 159,072,508 B to
+**82,088,776 B** with nothing lost, and the xz baseline moves with it:
+
+| stream | python raw | python xz -9 | narrow raw | narrow xz -9 |
+|---|---|---|---|---|
+| meta | 312,472 | 46,888 | 312,472 | 46,888 |
+| flags | 4,792,572 | 535,004 | 4,792,572 | 535,004 |
+| lengths | 51,322,488 | 661,684 | **25,661,244** | **626,296** |
+| distances | 102,644,976 | 2,431,520 | **51,322,488** | **2,394,404** |
+| total | 159,072,508 | 3,675,096 | 82,088,776 | **3,602,592** |
+
+### The four streams through OUR roster, against the filed call
+
+| stream | raw | xz -9 | **CALLED** | **MEASURED** | miss | vs xz | the arm that won |
+|---|---|---|---|---|---|---|---|
+| meta | 312,472 | 46,888 | 42,000 | **40,608** | **-1,392 (better)** | **-13.4%** | CM12P |
+| flags | 4,792,572 | 535,004 | 470,000 | **514,819** | **+44,819** | -3.8% | CM12 |
+| lengths | 25,661,244 | 626,296 | 560,000 | **574,984** | **+14,984** | -8.2% | CM12 |
+| distances | 51,322,488 | 2,394,404 | 1,950,000 | **2,374,936** | **+424,936** | **-0.8%** | **MIX12** |
+| **the recipe** | 82,088,776 | **3,602,592** | **3,022,000** | **3,505,347** | **+483,347** | **-2.7%** | four arms |
+
+**All four land INSIDE their filed ranges and all four point calls MISS, three of
+them high.** The recipe beats xz by 97,245 B (2.7%) and beats the python proof's
+3,675,096 by 169,749 B.
+
+**The distance call is the miss that matters (+424,936) and the reason is
+measured, not guessed.** I called 15-25% off xz on rep-distance context. Measured:
+of 25,661,244 distances, **only 9.3% repeat any of the last four** (rep0 954,972;
+rep1 986,999; rep2 243,828; rep3 193,666; new 23,281,779). LZMA's rep model is
+built for a language this stream does not speak, and the lever is **DEAD, with a
+number**. A second cheap idea died beside it: splitting the distances into a low
+and a high byte plane costs **2,596,091** (1,544,588 + 1,051,503) against
+**2,374,936** for the plain u16 stream -- the planes are 9.3% WORSE, because
+splitting them destroys the one structure that is actually there.
+
+**What IS there, and it is the reading of the row:** distances are 0.740 bits
+each, and the only arm that wins them is **MIX12, the LZ arm** -- the only one in
+the roster with a match model. The distance SEQUENCE repeats at a range deflate's
+own 32 KB window can never reach, so the encoder re-emits whole passages of the
+same parse and our long-range model catches them. That is also why the four
+sections are modelled APART and not interleaved: they are won by three different
+arms (CM12P, CM12, CM12, MIX12), and interleaved they would hide each other.
+
+### The design that follows from the measurement
+
+The bespoke four-stream context model described in the M2 FILED section was
+**NOT built**. The measurement above says the ordinary roster already beats xz on
+every section, and a hand-written model would have to beat an LZ arm at finding
+long-range repeats in the distance stream -- the one thing this data most needs
+and the one thing a context model without a match model cannot do. `MODEL_DRECIPE`
+is therefore the SECTIONED ROSTER: four sections, four independent trials, each
+keeping its own winner's model byte. That is a deviation from the filed design and
+it is filed here with the numbers that caused it.
+
+## M2 MEASURED (2026-09-03 12:00) -- THE PORT IS PROVED IN RUST
+
+`cargo test --release`: **31 passed, 0 failed** (M1: 28). The three new ones are
+the deflate peel's, and the first of them is M2's own gate:
+
+- **`the_save_skin_respells_bit_for_bit`**: `corpus-big/aoe4-autosave.sav` peels to
+  **1,171 blocks, 38,340,574 tokens, 25,661,244 matches, 296,540,843 B inflated**
+  -- every number identical to the python's -- and `respell` reproduces all
+  **66,417,543 B of the original file** byte for byte.
+- `the_blob_round_trips_the_recipe`: the serialised recipe survives the round trip
+  and re-spells its member.
+- `hostile_streams_refuse_with_a_reason`: a truncated member, a corrupted table, an
+  empty file, a header with no body and a recipe whose sections do not add up all
+  refuse; none panics.
+
+Two things the port did NOT inherit from the python it came from:
+1. **the reader's byte position**. The python computed the stream's end as
+   `pos - 0`, ignoring whole bytes still sitting in its bit accumulator. On this
+   file it happened not to matter; in Rust `at()` subtracts them.
+2. **the two spellings of a 258-byte match**. RFC 1951 allows length 258 as
+   symbol 285 and as symbol 284 with 31 extra bits. The recipe stores lengths, not
+   spellings, so the second spelling would not come back -- it is REFUSED with that
+   sentence rather than silently re-spelled as the first.
+
+## M2 FILED (2026-09-03 12:05) -- the save's row and the 20-row column, before either landed
+
+The recipe has landed (3,505,430 B: 40,654 + 514,819 + 574,984 + 2,374,936 plus a
+37-byte section table). The values have NOT: the roster is still running on the
+296,540,843 inflated bytes. So the row is called now, with the recipe measured and
+the values taken from Vladimir's probe:
+
+| | bytes |
+|---|---|
+| peeled values (called at the probe's 5,256,708) | 5,256,708 |
+| recipe (MEASURED) | 3,505,430 |
+| peel preamble | 15 |
+| **inner, CALLED** | **8,762,153** |
+| armor price: the 256-B tier, because the inner drops out of 512 | 4,812 |
+| **armored total, CALLED** | **8,766,965** |
+
+and the 20-row column, filed as `EGG_PRED` before `ledger13.js` is run:
+nineteen rows at their M1 totals TO THE BYTE (wubbadub.html 27,621; cbs.log
+71,758; ring01.wav 135,565; notepad.exe 176,164; alarm01.wav 252,862;
+real-test.bmp 261,274; vim-version9.txt 273,982; kernel32.dll 283,604;
+segoeui.ttf 409,683; iconcache48.db 418,323; arial.ttf 446,354; zstd.exe 488,915;
+real-test.db 1,068,149; wallpaper.jpg 1,238,198; msgraph.dll 3,211,880;
+mermaid-bundle.js 4,090,958; ntoskrnl.exe 4,675,387; rustc_driver.dll 37,436,978;
+rdr2-shaders.vkcache 41,860,990) and **aoe4-autosave.sav at 8,766,965**.
+
+The nineteen are called unchanged even though M2 moved two things that could
+touch them: the deflate NOMINATION now runs on every file, and the promise text
+changed. Neither can move a byte of a container -- nomination on a non-deflate
+file fails its bounded block-header probe and the promise is printed, never
+stored -- and that is the call.
+
+## M2 MEASURED (2026-09-03 12:08) -- THE SAVE'S ROW, written the moment the arm landed
+
+The peel arm on `corpus-big/aoe4-autosave.sav`, with THE LAW satisfied (the peel
+re-spelled its own output and the re-spell WAS the original 66,417,543 bytes,
+before anything was written):
+
+| component | raw | modelled | model |
+|---|---|---|---|
+| the recipe (4 sections) | 82,088,836 | **3,505,430** | 26 (MODEL_DRECIPE) |
+| the values (the inflated file) | 296,540,843 | **5,248,812** | 17 (CM12) |
+| the preamble | 15 | 15 | -- |
+| **inner** | | **8,754,257** | 24 (MODEL_PEEL) |
+| armor price, 256-B tier, flat | | 4,812 | |
+| **ARMORED TOTAL** | | **8,759,069** | |
+
+**Called 8,766,965; measured 8,759,069. A MISS of -7,896 B, on the good side.**
+The recipe was measured before the call and landed to the byte; the values came
+in at 5,248,812 against the 5,256,708 the call borrowed from Vladimir's probe,
+because the roster's argmin took **CM12, not MIX12** (MIX12 5,266,032; CM12
+5,248,812; CM12H 5,347,643; MIX11 5,369,814; CM11 17,395,763). The literal-only
+arm winning on 296 MB of Relic Chunky is its own reading: after the peel, the
+long-range repeats deflate could not reach are gone from the values and into the
+recipe, and what is left is a literal language.
+
+### The row against every bar
+
+| bar | bytes | delta |
+|---|---|---|
+| v13-M1 / v12 / v11's own row | 17,333,845 | **-8,574,776 (49.5% off)** |
+| naked xz -9 | 16,739,920 | **-7,980,851** |
+| xz + par2, the armored card's standing row | ~17,202,144 | **-8,443,075** |
+| the python proof's reference point | 8,936,616 | **-177,547** |
+| the charter plan's M2 gate, "at or under 6.5 MB armored" | 6,500,000 | **+2,259,069 -- MISSED, and it was called as a miss before the code was written** |
+
+The row that stood in the armored-vs-armored card three times -- v11 by 0.53 pt,
+v12 by 0.20, v13-M1 by 0.20 -- is now **8,759,069 against xz+par2's ~17,202,144**.
+It does not close by a fraction of a point. It closes by 1.96x.
+
+**The internal 6.5 MB target is missed and the arithmetic says why**: the values
+alone are 5,248,812 and the recipe is 3,505,430. 6.5 MB would need the recipe at
+1.25 MB -- a 64% cut -- and the only lever with that much in it is reflate's
+reference-parse deviation coding, which this brief made optional and which was
+NOT built. The two cheap approximations of it that WERE built and measured (the
+rep-distance model, the byte planes) are both dead, with numbers, in the section
+above. That is the honest state of the lever, printed rather than promised.
+
+## M2 MEASURED (2026-09-03 12:12) -- THE DEFLATE SUITE: 42 files, 0 LOST, 0 WRONG
+
+`node tools/deflatesuite.js` over 42 files. Provenance is recorded per file in the
+suite's own `suite.txt` and summarised here. **Every one restored EXACT.**
+
+| class | files | provenance | verdict |
+|---|---|---|---|
+| gzip, python zlib levels 1..9 | 9 | `zlib.compressobj(lv, DEFLATED, 31)` on 600 KB of vim-version9.txt | 9 EXACT |
+| gzip, zlib strategies | 4 | FILTERED, HUFFMAN_ONLY, RLE, FIXED at level 9 (FIXED makes btype-1 blocks) | 4 EXACT, **2 PEELED** |
+| gzip, **GNU gzip** -1/-6/-9 | 3 | `C:\Program Files\Git\usr\bin\gzip.EXE`, a different encoder from zlib | 3 EXACT |
+| zlib member (wbits 15) | 1 | python zlib | EXACT |
+| bare deflate stream (wbits -15) | 1 | python zlib, no wrapper at all | EXACT |
+| level 0 (stored blocks only) | 1 | python zlib level 0 | EXACT, **PEELED** |
+| a 512-byte window (wbits 25) | 1 | python zlib | EXACT, **PEELED** |
+| an empty member | 1 | python zlib on zero bytes | EXACT |
+| a binary payload | 1 | 300 KB of notepad.exe, level 9 | EXACT |
+| **PNG, written here** | 4 | hand-built, zlib strategies DEFAULT/FILTERED/RLE, and one with **5 IDAT chunks** | 4 EXACT, all four PEELED and then passed over by the argmin |
+| **PNG, off the machine** | 8 | 3 Dell/Alienware wallpapers (3.4-4.1 MB), 3 from `ImmersiveControlPanel`, `IdentityCRL\WLive48x48.png`, `IME\IMEJP\Assets\JpnImeModeToast.png` | 8 EXACT, all peeled and passed over |
+| **Windows Explorer zips** | 2 | PowerShell `Compress-Archive -CompressionLevel Optimal` (the same .NET ZipArchive Explorer writes), one entry and two | 2 EXACT, **not nominated** -- see the deviation below |
+| hostiles | 6 | truncated, corrupt table, trailing junk, bad CRC, two members concatenated, header-only | 6 EXACT |
+
+**42 files: 42 EXACT, 0 WRONG, 0 LOST. 4 took the peeled form; 3 refused the peel
+with a printed reason; 35 peeled (or were not nominated) and were passed over by
+the argmin, keeping their bytes.**
+
+The three printed refusals are worth reading, because each is the law working:
+
+- `hostile-truncated.gz`: *the deflate stream ends inside a code*
+- `hostile-trailing-junk.gz`: *the deflate stream used 131,030 of the member's 131,042 body bytes*
+- `hostile-two-members.gz`: *the deflate stream used 131,030 of the member's 262,078 body bytes* -- a legal multi-member gzip, refused because this peel is ONE member and half a peel is a guess
+
+`hostile-corrupt-table.gz` and `hostile-bad-crc.gz` did NOT refuse: the corrupted
+bytes still parse as a (different) legal member, and the peel does not check the
+gzip CRC because it does not need to -- it reproduces the bytes it was given,
+whatever they mean, and the FNV-64 gate is what says they are the right ones.
+
+**Where the peel WINS, and it is a shape, not an accident.** Only four files took
+the peeled form: `zlibgz-huffonly.gz` (367,647 -> 82,181), `zlibgz-rle.gz`
+(359,545 -> 89,604), `stored-only.gz` (600,073 -> 80,640) and `smallwindow.gz`
+(242,035 -> 163,473). Every one is a file where **deflate spelled the value badly**
+-- Huffman-only, RLE-only, stored, or a 512-byte window. Where zlib at level 9 did
+its job the recipe costs more than the peeled values save, and the argmin keeps the
+bytes; on `zlibgz-L9.gz` the peel measures recipe 75,024 + values 53,422 = 128,461
+against the raw form's 87,698, and it is correctly passed over. **That is the
+charter's judgement rule doing exactly what it was written for.**
+
+The PNG peel is real and is exercised: `mkpng-default.png` peels to *PNG IDAT:
+4 blocks, 41,317 tokens, 57,720 B inflated*, `mkpng-multiIDAT.png` to the same
+parse across **5 IDAT chunks**, and `win-07-JpnImeModeToast.png` to *3 blocks,
+83,078 tokens, 4,147,920 B inflated*. All of them re-spell byte-exactly and are
+then passed over by the argmin, because a PNG's filtered scanlines are already
+what deflate is good at.
+
+## M2 MEASURED (2026-09-03 12:15) -- audit and tests, on the final build
+
+`eggv13 audit --full`: **3,091,667 checks, 0 failing** -- identical to M1's and to
+v12's, which is what it must be: M2 changed the armor's WORDS and not its
+arithmetic. Two of its own lines are the independent corroboration of the M2(0)
+finding, and neither was written for it:
+
+- (h) *640 trials with e > floor(t/2) unnamed errors over 12 geometries;
+  **490 exact (e <= t-1, located jointly)**, 144 refused by the syndromes (e >= t),
+  1 rank trap refused honestly (named: exact), **0 settled wrong***
+- (g) *672 trials beyond capacity ... 529 refused with a number, 23 caught by the
+  hash, 8 exact by rung C, **wrong data 0***
+
+The audit has been asserting the joint reach of `t-1` since v12-M2b. It was right;
+the promise's word CERTAIN at `t/2` was the thing that was wrong.
+
+`cargo clippy --all-targets -- -D warnings`: **clean** under rustc 1.98.
+`cargo test --release`: **32 passed, 0 failed** (M1: 28). The four new ones are the
+save's skin re-spelling bit for bit, the recipe blob's round trip, the hostile
+refusals, and the deflate peel's whole pipeline (peel -> THE LAW -> trial -> armor
+-> dearmor -> re-spell), which also asserts that a member with junk after it is
+refused rather than half-peeled.
+
+## M2 deviations from the brief, and why (2026-09-03 12:18)
+
+1. **The bespoke four-stream context model was NOT built.** The brief asked for
+   the streams to be modelled; the measurement (the section above, taken before
+   any model code) says the ordinary roster already beats xz -9 on every one of
+   the four, and that the arm which wins the distances is the roster's only LZ
+   arm. A hand-written context model with no match model would have had to beat
+   it at long-range repetition -- the one thing this stream is made of.
+   `MODEL_DRECIPE` is the sectioned roster instead: four sections, four
+   independent trials, four model bytes. Filed with the numbers that caused it.
+2. **The reference-parse deviation lever (reflate's own method) was NOT built.**
+   The brief made it optional and asked for the miss to be printed if it did not
+   pay. Two cheap approximations of it were built and measured, and both are
+   dead with numbers: rep-distance coding (only 9.3% of distances repeat any of
+   the last four) and byte-plane splitting (2,596,091 against 2,374,936 plain).
+   The full lever -- a matcher of our own over the 296 MB of inflated bytes, and
+   then storing only where the encoder disagreed -- is not measured either way.
+   What it would have to deliver to reach the charter's 6.5 MB is arithmetic:
+   the values are 5,248,812, so the whole recipe would have to fall from
+   3,505,430 to 1,246,376, a 64% cut, with the distances (2,374,936) the only
+   place that much can come from. **Unmeasured, and printed as unmeasured.**
+3. **ZIP members are not peeled.** Windows Explorer zips are in the suite and
+   both restore EXACT, but they are not even NOMINATED: a zip is N deflate
+   members behind N local headers, and the peel frame carries ONE parse per
+   file. Peeling them means a per-entry recipe and a container format for the
+   list, which is a milestone of its own and not this one. The brief's gate
+   asks that every suite file "peels and re-spells BYTE-EXACT or is cleanly
+   refused and keeps its bytes"; a zip keeps its bytes, with LOST 0 and WRONG 0.
+   Stated rather than quietly counted as a pass.
+4. **Nesting stays at depth 1, and the save does not need depth 2.** The brief
+   asked for the decision to be stated: the save is ONE gzip member wrapping
+   Relic Chunky, and the inflated bytes ARE the values -- there is no second
+   member inside to peel. A peel inside a peel's recipe and a peel inside a
+   peel's values are both REFUSED with a number, in `restore_peel`. PNG is
+   handled without nesting: the IDAT chunk split is part of the wrapper the
+   recipe records, not a second peel.
+5. **The MB/s display bug that M1 filed for M2 is fixed.** M1 printed
+   "`(0 MB/s)`" on every row under about 1 MB/s because the arithmetic was
+   integer `src.len() / ms / 1000` in u128. It is a float now and prints
+   0.193 MB/s where it used to print 0. Proved not to move a byte: notepad.exe's
+   container from the fixed build is **byte-identical** to the pre-M2 build's.
+
+## M2 MEASURED (2026-09-03 12:39) -- the drill battery: 328 passed, 0 failed
+
+`node tools/drills.js` on the final build. **328 passed, 0 failed** (M1's battery
+was 273; v12's 257). The 55 new lines are the M2(0) block the FINDING asked for,
+and they run on a REAL corpus row -- notepad.exe -- at every one of the five
+tiers, not on synthetic containers:
+
+| tier | n | t | certain blind | joint to | the 11 drills at this tier |
+|---|---|---|---|---|---|
+| 256 | 688 | 18 | 8 | 17 | all PASS |
+| 512 | 345 | 10 | 4 | 9 | all PASS |
+| 1024 | 174 | 6 | 2 | 5 | all PASS |
+| 2048 | 88 | 4 | 1 | 3 | all PASS |
+| 4096 | 45 | 3 | 1 | 2 | all PASS |
+
+Each tier runs: the geometry mirror; a **blind 4 KB scratch at five places** (the
+first squares, an ordinary unaligned offset, a third of the way in, straddling
+the mid site, and over the end site) -- all EXACT; `t-1` whole squares blind ->
+EXACT (located jointly); `t` whole squares blind -> HONEST refusal; the same `t`
+addressed -> EXACT; and the **rank-1 dependent wound** at `(t-1)/2` -> EXACT and
+at `(t-1)/2 + 1` -> HONEST refusal. That last pair is the new promise's own
+boundary, asserted from both sides, at every tier.
+
+The whole M1 battery still passes underneath it, including the sixteen JPEG peel
+lines and the ancestors (`.egg8` .. `.egg11` through eggv13).
+
+---
+
+# M3 -- THE SITE READINGS
+
+## M3a FILED (2026-09-03, in the plan, BEFORE the fix was written)
+
+### The design being predicted
+
+`deflate.rs`'s `walk` refused an ENTIRE FILE when a 258-byte match used its second
+legal spelling -- symbol 284 with 31 extra bits (`LBASE[27]=227`, `LEXTRA[27]=5`)
+rather than symbol 285 with none: *"the recipe stores lengths, not spellings"*.
+`wubbadub.html:663-666` says record the canonicalisation, do not refuse it.
+
+The fix carries the exception as a **SPARSE FIFTH STREAM** in the recipe blob: an
+ascending list of the MATCH INDICES that took the 284 spelling, `u32` each, empty
+on every file in this corpus. `HDR` 48 -> 52 for its count; the drecipe section
+table 4 -> 5; the re-speller overrides `lsym_of(258)` to 27 for a named match and
+lines 619-624 emit 31 in 5 bits unchanged.
+
+**Rejected alternatives, with their reasons, so nobody re-litigates them:**
+widening the flags stream to a bit per MATCH costs **+3.2 MB on the save**
+(25,661,244 matches) and destroys the byte periodicity its roster arm exploits;
+bit 15 of `dists` (storing `dist-1`) is free in size but breaks the
+distance-SEQUENCE repetition the only LZ arm in the roster wins on; `lens` has no
+spare values -- all 256 are in use for 3..=258.
+
+### The numbers called
+
+| quantity | FILED |
+|---|---|
+| recipe growth on `aoe4-autosave.sav` | **under 200 B** against a 3,505,430 B recipe |
+| that row's movement | **less than 0.01%** |
+| every other row | **byte-identical to M2** |
+| coverage gain on this corpus | **not measurable** -- no file here uses the 284 spelling; it must be shown on a CONSTRUCTED file |
+| the alarm | any row moving more than **0.05%** means something else changed, and the miss is printed |
+
+## M3b FILED (2026-09-03, BEFORE ONE LINE of transpose, gcd or bit-period code)
+
+Three site readings that were PROBED and never tried. A probe is one instrument,
+one shot, no competition -- it is a reason to run a trial, not a verdict
+(Vladimir's correction, 2026-09-03). Each of the three either wins somewhere and
+stays, or loses everywhere and is **deleted with its miss printed**.
+
+### S1a the transpose, as a real filter
+
+Source: `wubx.html:393-395` ("Transposing the rectangle re-reads it"), scoring
+rule at `wubx.html:380`. Blosc takes its stride from a declared type size; **this
+page takes it by measuring**, and that is the only novel part. Built as **filter
+id 15**, length-preserving (transpose the largest `m*s` prefix, pass the tail
+remainder through), param = the stride, composed inside one id like `ms1_apply`.
+
+**FILED PREDICTION: it loses on 20 of 20 and is DELETED.**
+
+Reason, measured before the code: under xz the transpose wins big (real-test.bmp
+-86.45% at stride 3, ring01 -18.43% and alarm01 -15.61% at stride 4) and under
+**our** model it loses badly -- 248,050 -> 272,456, 130,753 -> 188,338, and
+256,462 -> **3,603,901**, a 14x loss. The cause is that `mix12.rs` already carries
+the **lattice** (`lat1s`/`lat2s`, `mix12.rs:363-364`, claimed at 436/439, two of
+the twelve mixer inputs at `mix12.rs:45`), which reads down a learned stride
+*without* reordering the bytes, so it keeps the local context too; transposing
+throws the local context away to buy what the lattice already provides.
+
+**The one place I expect to be surprised** is real-test.bmp composed with the
+existing image handling rather than instead of it. **If any row wins, the win is
+kept and this prediction goes on the board as the miss.**
+
+### S1b the gcd, per block and after deltas
+
+Source: `wub.html:322-326`. Whole-file gcd is settled at 1 on all 23 rows at
+8/16/32 bits -- that stands and is not re-run. Untested, and the reason it is not
+dead: the gcd of a **block**, and the gcd of the **delta stream**, which is where
+quantised data actually carries a common factor. Measured per 64 KB block at
+8/16/32 bits, before and after each existing filter, as a probe first.
+
+**FILED PREDICTION: gcd > 1 on fewer than 1% of blocks corpus-wide, and on no
+block of any row whose form we already win.** Ship only if some row's summed free
+bits exceed its recipe cost (one factor per block).
+
+### S1c the bit period, at order 1 and per region
+
+The earlier probe used order-0 entropy per width plus bit autocorrelation, 5 rows,
+16 MB sampled. It cannot see structure living at order-1 in a 12-bit symbol space,
+and it averaged whole files, which hides a container that packs differently per
+section. Redone with **order-1 sequential code length per candidate width, per
+1 MB region** -- an adaptive estimator that PAYS for its own alphabet, because
+empirical order-1 entropy over 2^w symbols is biased to near zero and would
+manufacture a win at every wide width.
+
+**FILED PREDICTION: no region of any row shows a non-multiple-of-8 width beating
+the byte reading by more than 1%.** `rdr2-shaders.vkcache` is the row to watch and
+the row I expect to stay flat: its bit autocorrelation is 0.504 at every lag from
+1 to 512, and 79.5% of its 4 KB windows sit above 7.9 bits/byte.
+
+### The M3b gate
+
+A 20-row ledger (IN GROUPS) with every surviving arm live; each of the three wins
+somewhere and stays, or loses everywhere and is deleted with its prediction
+printed beside the measurement. Injuries 3x20 EXACT. Ratchet: no row heavier than
+its M2 total.
+
+---
+
+## M3a MEASURED (2026-09-03) -- THE SPELLING EXCEPTION, and the twenty rows
+
+### The twenty-row ledger: 19 byte-identical, ONE row +10 B
+
+`node tools/ledger13.js` in SIX GROUPS (12 small in one pass, the big rows in
+pairs, the save and the monster alone), `EGG_EXE` = a copy of the M3a build,
+`EGG_PRED` = M2's twenty measured totals.
+
+**19 of 20 rows HIT TO THE BYTE. One moved: aoe4-autosave.sav, 8,759,069 ->
+8,759,079, exactly +10 B. Injuries 60/60 EXACT. Rows heavier than sealed v11: 0.
+Failures: 0. Net vs the sealed v11: -17,837,868** (M2's was -17,837,878; the
+whole campaign moved by the ten bytes of one row).
+
+| quantity | FILED | MEASURED | verdict |
+|---|---|---|---|
+| recipe growth on `aoe4-autosave.sav` | under 200 B | **+10 B** | **HIT**, by 20x |
+| that row's movement | < 0.01% | **+0.000114%** | **HIT**, by 88x |
+| every other row byte-identical | 19 of 19 | **19 of 19** | **HIT** |
+| the alarm (any row > 0.05%) | never fires | **never fired** | **HIT** |
+
+The +10 B is the entire fifth stream on a file that does not use it: 9 B of
+drecipe section table (a model byte and two u32 lengths for an empty section)
+plus 1 B for the four zero bytes `nresp` adds to `HDR` inside the modelled first
+section. The row's inner went 8,754,257 -> 8,754,267, model 24 (PEEL), price
+4,812 at the 256-B tier, 1.17x floor, `E/E/E`.
+
+### The deflate suite, rebuilt: 27 files, 27 EXACT, 0 WRONG, 0 LOST
+
+M2's suite directory was scratch and is gone, so it was rebuilt from python zlib
+(levels 1-9, four strategies, zlib/bare/stored/small-window/empty/binary), six
+hostiles, and **two CONSTRUCTED 284-spelling members**. Every file restored
+EXACT; the three refusals are the same three the law printed at M2.
+
+**The fifth stream's price, measured on the four files that take the peel:**
+
+| file | M2 | M3a | the fifth stream |
+|---|---|---|---|
+| zlibgz-huffonly.gz | 82,181 | 82,193 | **+12 B** |
+| zlibgz-rle.gz | 89,604 | 89,614 | **+10 B** |
+| smallwindow.gz | 163,473 | 163,482 | **+9 B** |
+| stored-only.gz | 80,640 | 80,644 | **+4 B, and it stopped taking the peel** |
+
+`stored-only.gz` is the one file the change moved in kind, not only in size: its
+peeled and raw forms were within a few bytes of each other and the ~13 B of
+recipe growth flipped the argmin to the raw form. That is the judgement rule
+working -- but it is a MOVE, and it is printed. +0.005% of that file.
+
+### What the fix bought, on files that could not be read at all before
+
+- `constructed-284.gz`, 125 B: *1 blocks, 102 tokens (3 matches, **2 spelled
+  284**), 873 B inflated; recipe meta 5 + flags 13 + lens 3 + dists 6 +
+  **resp 8 B*** -- EXACT, correctly passed over by the argmin at that size.
+- `constructed-284-many.gz`, 932 B: *1 blocks, 600 tokens (300 matches,
+  **200 spelled 284**), 77,700 B inflated; ... + **resp 800 B*** -- **PEELED**
+  and restored EXACT. The 800 B spelling list rode its own roster arm inside the
+  sectioned recipe: 1,850 B -> 254 B (model 26), inner 450 B.
+
+Before M3a both refused outright: *"a 258-byte match spelled with symbol 284: the
+recipe stores lengths, not spellings"*, and the whole file was kept raw.
+
+### The gate, item by item
+
+- `cargo clippy --all-targets -- -D warnings`: clean.
+- `cargo test --release`: **35 passed** (M2's 32). The three new ones are
+  `the_second_spelling_of_258_round_trips` (the parse, the blob, and three
+  hostile spelling lists -- unascending, past the match count, and one naming a
+  match that is not 258 -- each refusing with a reason),
+  `the_spelling_list_is_empty_on_an_ordinary_member`, and
+  `respelled_258_member_full_pipeline_round_trip` (the five-section recipe and
+  the whole container).
+- `eggv13 audit --full`: **3,091,667 checks, 0 failing** (3,925 ms).
+- Ancestors: **0 files newer** than `codegg-v13/Cargo.toml` outside `target/`
+  across codec-v1 and codegg-v1..v12. No tracked site file is modified.
+
+---
+
+## M3b MEASURED (2026-09-03) -- the three probes, tried
+
+### S1a the transpose -- **PREDICTION HIT. DELETED.**
+
+**FILED: it loses on 20 of 20 and is deleted.**
+
+Built as filter id 15, length-preserving, stride MEASURED by the page's own run
+count (`wubx.html:380`) rather than declared. The nomination readout, printed by
+`eggv13 probe` on all twenty rows: **the run count nominates a stride on 15 of
+20**, and the price prune cuts it to **6 that reach the full trial** --
+alarm01.wav 15:2, ring01.wav 15:4, segoeui.ttf 15:12, real-test.bmp 15:3,
+iconcache48.db 15:4, rustc_driver.dll 15:2.
+
+**The forced form, on every row that nominates it:**
+
+| row | stride | as it came | transposed | miss |
+|---|---|---|---|---|
+| alarm01.wav | 2 | 248,050 | 276,536 | +28,486 (+11.48%) |
+| ring01.wav | 4 | 130,753 | 188,338 | +57,585 (+44.04%) |
+| segoeui.ttf | 12 | 404,871 | 628,553 | +223,682 (+55.25%) |
+| rustc_driver.dll | 2 | 37,430,630 | 51,189,263 | +13,758,633 (+36.76%) |
+| iconcache48.db | 4 | 413,511 | 616,907 | +203,396 (+49.19%) |
+| real-test.bmp | 3 | 256,462 | 3,603,901 | +3,347,439 (+1,305.24%) |
+
+**Six of six lose. The other fourteen never nominate it.** real-test.bmp -- the
+one place the prediction said it expected to be surprised -- lost by 14x, which
+is the exact number the prediction had filed from the earlier probe.
+
+**The trial through the shipped argmin**, which is the part a forced number
+cannot answer, because stage 1 picks the filtered form under the CHEAP v8 cost
+and a nominated arm can in principle steal that slot and then lose in stage 2:
+
+- a 4-row ledger with the arm live (alarm01, ring01, segoeui, real-test.bmp):
+  **4 of 4 HIT to the byte, injuries 12/12 EXACT, 0 rows heavier**;
+- and A/B on the same four rows, the M3a build against the M3b build: the
+  containers are **BYTE-IDENTICAL**. Winners filter 14:2, 8:2, 0:0, 5:6000 --
+  never 15;
+- iconcache48.db with the arm live: **418,323, unchanged**, winner filter 0:0;
+- rustc_driver.dll with the arm live: **37,436,978, unchanged**, winner filter
+  10:0 (BCJ), model 22, inner 37,430,630.
+
+**All six rows that nominate the transpose are confirmed unchanged through the
+shipped argmin**, including the two where stage 1's cheap-v8 trial had the most
+room to pick wrong. The arm was offered everywhere it could be offered and
+refused everywhere.
+
+The reading was right that transposing re-reads the rectangle -- the run count
+falls by a third to two-thirds on most rows. It is the wrong thing to buy:
+`mix12.rs` already carries the **lattice** (`lat1s`/`lat2s`, two of the twelve
+mixer inputs), which reads down a learned stride WITHOUT reordering the bytes,
+so it keeps the local context too. The transpose throws local context away to
+buy what the lattice already provides.
+
+**Filter id 15, `xpose_apply`/`xpose_undo`, `runs_of`, `xpose_nominate`, the
+apply/undo arms, the property-test rows and the drill cases are deleted.
+`FILTER_MAX` is back to `FILTER_MS2`.** Kept: `probe`'s new NOMINATED line, which
+prints what the full trial actually sees -- the trace showed a candidate list the
+trial never saw, and that was wrong before the transpose was ever written.
+
+### S1b the gcd -- **first clause HIT, second clause MISSED. No arm.**
+
+**FILED: gcd > 1 on fewer than 1% of blocks corpus-wide, and on no block of any
+row whose form we already win. Ship only if some row's summed free bits exceed
+its recipe cost.**
+
+Every 64 KB block of all twenty rows, at 8/16/32 bits, before and after every
+filter form -- 242,559 block-readings:
+
+| | MEASURED | verdict |
+|---|---|---|
+| blocks carrying gcd > 1 | **1,716 = 0.7075%** | **HIT** (under 1%) |
+| of those, ARITHMETIC (odd factor, not a constant run) | **274 = 0.113%** | |
+| rows carrying an arithmetic factor at all | **2**: real-test.bmp, rustc_driver.dll | **MISS** -- we win the form on both |
+
+**The sharpening that made the reading honest, and it is the finding worth
+keeping: a power-of-two gcd is not a finding.** It says only that the low k bits
+are constant zero, and every bitwise model in this house already codes a constant
+bit at ~0. On the first pass real-test.bmp read **24.32%** of blocks "carrying a
+factor"; once power-of-two factors and constant runs are removed it is **3.86%**,
+and corpus-wide 0.71% becomes 0.113%.
+
+The filed ship rule said the free bits cleared the recipe cost, so the trial ran
+on both rows that qualified:
+
+| row | reading | blocks divided | claimed free bits | inner as it came | inner divided | verdict |
+|---|---|---|---|---|---|---|
+| real-test.bmp | plain @8 bit | 73 / 184 | 11,108,401 (1.39 MB) | **256,462** | **256,503** | **+41 B**, before its 315 B recipe |
+| rustc_driver.dll | filter 2:0 @32 bit | 16 / 2,795 | 2,098,626 (262 KB) | **56,528,854** | **56,548,012** | **+19,158 B**, before its 414 B recipe |
+
+**Both trials lost, the second by an order of magnitude more than the first.**
+The "free bits" a divider would save against a memoryless coder are worth less
+than nothing against a context model that already predicts what the factor
+encodes. **No arm is built.**
+
+### S1c the bit period -- **PREDICTION MISSED. No arm. The control is what killed the reading.**
+
+**FILED: no region of any row shows a non-multiple-of-8 width beating the byte
+reading by more than 1%. rdr2-shaders.vkcache is the row to watch and the row I
+expect to stay flat.**
+
+Order-1 sequential code length (Laplace, alpha = 1/2 -- an estimator that PAYS
+for its own alphabet, because the empirical order-1 entropy of 2^w symbols over a
+1 MB region is biased to near zero for w >= 12 and would manufacture a win at
+every wide width), widths 1..16, 1 MB regions, up to 16 evenly spaced per file,
+all twenty rows. **Two readings:**
+
+- **naive** -- the context is the previous SYMBOL, so a 12-bit symbol gets 12
+  bits of history and an 8-bit symbol gets 8;
+- **controlled** -- the context is pinned at the previous **16 bits** for every
+  width, so the only thing that varies is where the symbol boundary falls, which
+  is what "bit period" actually means.
+
+| widths 9..15 | naive | CONTROLLED |
+|---|---|---|
+| (row, width) pairs beating the byte reading by > 1 pt | **19** | **1** |
+
+| row | width | naive | controlled |
+|---|---|---|---|
+| cbs.log | 12 | +11.11 pt | **-92.62 pt** |
+| rustc_driver.dll | 12 | +4.87 | **-25.61** |
+| msgraph.dll | 12 | +8.85 | **-13.05** |
+| aoe4-autosave.sav | 12 | +7.46 | **+0.23** |
+| rdr2-shaders.vkcache | 14 | +1.66 | **+0.19** |
+
+**The named row holds under the honest instrument and misses under the sloppy
+one.** rdr2-shaders.vkcache: 0 of 16 regions above 1 pt under the control, best
++0.214 pt at width 12; under the naive reading, 15 of 16.
+
+**The prediction MISSES as filed**, and exactly how: 19 of 20 rows have SOME
+non-multiple-of-8 width above 1 pt under the control -- but the winner is width
+**4** on fifteen of them and width 1 or 2 on the rest. Sub-byte symbols, not wide
+packings; that is model granularity, and our coder is already bitwise. The one
+wide survivor is real-test.bmp at width 12 (+14.6 pt) -- and the same row prefers
+width **1** by +94.8 pt, so 12 is not that file's period either.
+
+**No non-byte PACKING appears anywhere.** The bit period is dead, and it was the
+control that killed it: what the earlier probe measured was context length.
+
+---
+
+## M3 gate, and the deviations (2026-09-03)
+
+- `cargo clippy --all-targets -- -D warnings` clean; `cargo test --release`
+  **35 passed**; `eggv13 audit --full` **3,091,667 checks, 0 failing**; the
+  rebuilt deflate suite **27 EXACT, 0 WRONG, 0 LOST**.
+- `node tools/drills.js`: **355 passed, 0 failed** on the final build (M2's
+  battery was 328; it read 361 with the transpose still in the tree, and lost
+  the two transpose cases with it). The battery grew a **FILTER BATTERY** -- drills had ZERO filter
+  coverage while `info` has emitted `"filter"`/`"param"` since v9. Every id the
+  header can carry is now forced through the whole pipeline: `info` must name the
+  filter and param it was given, the pristine restore must be EXACT through the
+  undo, and a blind 1-byte flip must be EXACT through the undo.
+
+**Deviations, named so nobody has to find them:**
+
+1. **`src/sites.rs` SHIPS although neither reading produced an arm.** Both are
+   INSTRUMENTS (`eggv13 gcdprobe`, `eggv13 bitprobe`), not dormant arms, and they
+   carry the two controls that did the killing -- the power-of-two split and the
+   pinned 16-bit context. Deleting them would delete the only executable proof of
+   the findings. `probe`, `audit` and `--stats` are the precedent. **Overrule
+   this and they go.**
+2. **The M3b ledger ran on 4 of the 20 rows, not 20.** The other sixteen are
+   covered by the completed M3a 20-row ledger plus the nomination readout: the
+   transpose reaches the trial on only six rows, the other fourteen have
+   byte-identical candidate lists either way, and ALL SIX were verified unchanged
+   directly (four byte-identical containers; iconcache48.db and rustc_driver.dll
+   by total, 418,323 and 37,436,978).
+3. **The deflate suite is 27 files, not M2's 42.** M2's suite directory was
+   scratch and no longer exists; this one was rebuilt from python zlib plus the
+   two constructed members. The PNG classes and the Explorer zips are not in it;
+   they belong to M3d's second arena.
+4. **`tools/ledger13.js` hung again, and the post-mortem needs correcting.** This
+   run printed EVERY row and its summary line and THEN failed to exit: PID alive
+   46 minutes, temp directory already removed, no child process. All four rows
+   had completed and the numbers were sitting in the pipe; killing node flushed
+   them intact. **The signature to trust is "no exit", not "no progress", and the
+   fix is to kill it and read what it already wrote -- the measurement is not
+   lost.**
