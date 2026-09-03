@@ -1,0 +1,2612 @@
+{
+ "objective": {
+  "worst": "max over bursts of max over classes of |B & k|",
+  "geometries": [
+   "row",
+   "col",
+   "diag",
+   "tape"
+  ],
+  "floor": "ceil(L/3)"
+ },
+ "linearFamily": {
+  "comparedAtLdivisibleBy3": 927,
+  "violationsAtLdivisibleBy3": 0,
+  "comparedElsewhere": 504,
+  "disagreementsElsewhere": 28,
+  "finding": "the four shatter conditions are exact at 3|L, which is where the ground computed them. Where 3 does not divide L the floor has slack and the tape condition is sufficient but not necessary.",
+  "exhibitN": 32,
+  "exhibitL": 12,
+  "exhibit": [
+   {
+    "a": 0,
+    "b": 0,
+    "worst": [
+     "12",
+     "12",
+     "12",
+     "12"
+    ],
+    "atFloor": false
+   },
+   {
+    "a": 0,
+    "b": 1,
+    "worst": [
+     "4",
+     "12",
+     "4",
+     "5"
+    ],
+    "atFloor": false
+   },
+   {
+    "a": 0,
+    "b": 2,
+    "worst": [
+     "4",
+     "12",
+     "4",
+     "5"
+    ],
+    "atFloor": false
+   },
+   {
+    "a": 1,
+    "b": 0,
+    "worst": [
+     "12",
+     "4",
+     "4",
+     "12"
+    ],
+    "atFloor": false
+   },
+   {
+    "a": 1,
+    "b": 1,
+    "worst": [
+     "4",
+     "4",
+     "12",
+     "5"
+    ],
+    "atFloor": false
+   },
+   {
+    "a": 1,
+    "b": 2,
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "atFloor": true
+   },
+   {
+    "a": 2,
+    "b": 0,
+    "worst": [
+     "12",
+     "4",
+     "4",
+     "12"
+    ],
+    "atFloor": false
+   },
+   {
+    "a": 2,
+    "b": 1,
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "atFloor": true
+   },
+   {
+    "a": 2,
+    "b": 2,
+    "worst": [
+     "4",
+     "4",
+     "12",
+     "5"
+    ],
+    "atFloor": false
+   }
+  ]
+ },
+ "theorem": {
+  "solutionsAtNmod3Zero": 0,
+  "solutionsAtNmod3One": 0,
+  "solutionsAtNmod3Two": 2,
+  "theTwo": [
+   [
+    1,
+    2
+   ],
+   [
+    2,
+    1
+   ]
+  ]
+ },
+ "periodicityLemma": [
+  {
+   "n": 15,
+   "L": 6,
+   "colQuotient": 2,
+   "diagQuotient": 3,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 15,
+   "L": 9,
+   "colQuotient": 3,
+   "diagQuotient": 9,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 15,
+   "L": 12,
+   "colQuotient": 4,
+   "diagQuotient": 6,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 15,
+   "L": 18,
+   "colQuotient": "vacuous",
+   "diagQuotient": "vacuous",
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 16,
+   "L": 6,
+   "colQuotient": 3,
+   "diagQuotient": 2,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 16,
+   "L": 9,
+   "colQuotient": 9,
+   "diagQuotient": 3,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 16,
+   "L": 12,
+   "colQuotient": 3,
+   "diagQuotient": 4,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 16,
+   "L": 18,
+   "colQuotient": "vacuous",
+   "diagQuotient": "vacuous",
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 30,
+   "L": 6,
+   "colQuotient": 1,
+   "diagQuotient": 6,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 30,
+   "L": 9,
+   "colQuotient": 3,
+   "diagQuotient": 9,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 30,
+   "L": 12,
+   "colQuotient": 2,
+   "diagQuotient": 12,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 30,
+   "L": 18,
+   "colQuotient": 3,
+   "diagQuotient": 18,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 31,
+   "L": 6,
+   "colQuotient": 6,
+   "diagQuotient": 1,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 31,
+   "L": 9,
+   "colQuotient": 9,
+   "diagQuotient": 3,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 31,
+   "L": 12,
+   "colQuotient": 12,
+   "diagQuotient": 2,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 31,
+   "L": 18,
+   "colQuotient": 18,
+   "diagQuotient": 3,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 33,
+   "L": 6,
+   "colQuotient": 2,
+   "diagQuotient": 3,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 33,
+   "L": 9,
+   "colQuotient": 3,
+   "diagQuotient": 9,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  },
+  {
+   "n": 33,
+   "L": 12,
+   "colQuotient": 4,
+   "diagQuotient": 3,
+   "lemmaSaysPossible": false,
+   "constructionBuilt": false,
+   "constructionAtFloor": false
+  },
+  {
+   "n": 33,
+   "L": 18,
+   "colQuotient": 6,
+   "diagQuotient": 9,
+   "lemmaSaysPossible": true,
+   "constructionBuilt": true,
+   "constructionAtFloor": true
+  }
+ ],
+ "exactSearch": {
+  "nodeCap": 200000000,
+  "lemmaAgreesSmallN": 5,
+  "lemmaTestedSmallN": 5,
+  "smallCases": [
+   {
+    "n": 3,
+    "L": 3,
+    "floor": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "IMPOSSIBLE",
+    "nodes": 9
+   },
+   {
+    "n": 4,
+    "L": 3,
+    "floor": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "IMPOSSIBLE",
+    "nodes": 15
+   },
+   {
+    "n": 4,
+    "L": 4,
+    "floor": 2,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "reached the floor",
+    "nodes": 27
+   },
+   {
+    "n": 5,
+    "L": 3,
+    "floor": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "reached the floor",
+    "nodes": 49
+   },
+   {
+    "n": 5,
+    "L": 4,
+    "floor": 2,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "reached the floor",
+    "nodes": 46
+   },
+   {
+    "n": 5,
+    "L": 5,
+    "floor": 2,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "reached the floor",
+    "nodes": 274
+   },
+   {
+    "n": 6,
+    "L": 3,
+    "floor": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "IMPOSSIBLE",
+    "nodes": 18
+   },
+   {
+    "n": 6,
+    "L": 4,
+    "floor": 2,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "reached the floor",
+    "nodes": 54
+   },
+   {
+    "n": 6,
+    "L": 5,
+    "floor": 2,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "reached the floor",
+    "nodes": 13785
+   },
+   {
+    "n": 6,
+    "L": 6,
+    "floor": 2,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "IMPOSSIBLE",
+    "nodes": 407
+   }
+  ],
+  "lemmaConfirmedFullWidth": 20,
+  "lemmaCasesFullWidth": 20,
+  "annealMissedWhatEnumerationFound": 11,
+  "searchGrid": [
+   {
+    "n": 15,
+    "L": 6,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 1730
+   },
+   {
+    "n": 15,
+    "L": 8,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 304449
+   },
+   {
+    "n": 15,
+    "L": 9,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 450
+   },
+   {
+    "n": 15,
+    "L": 11,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 426
+   },
+   {
+    "n": 15,
+    "L": 12,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 2,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 1527582
+   },
+   {
+    "n": 15,
+    "L": 18,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 0,
+    "annealBGap": 0,
+    "enumeration": "REACHED",
+    "nodes": 444
+   },
+   {
+    "n": 16,
+    "L": 6,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 1883
+   },
+   {
+    "n": 16,
+    "L": 8,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 0,
+    "annealBGap": 0,
+    "enumeration": "REACHED",
+    "nodes": 84992244
+   },
+   {
+    "n": 16,
+    "L": 9,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 509
+   },
+   {
+    "n": 16,
+    "L": 11,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 0,
+    "annealBGap": 0,
+    "enumeration": "REACHED",
+    "nodes": 486
+   },
+   {
+    "n": 16,
+    "L": 12,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 1378599
+   },
+   {
+    "n": 16,
+    "L": 18,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 0,
+    "annealBGap": 0,
+    "enumeration": "REACHED",
+    "nodes": 508
+   },
+   {
+    "n": 30,
+    "L": 6,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 2567
+   },
+   {
+    "n": 30,
+    "L": 8,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "INCONCLUSIVE",
+    "nodes": 200000001
+   },
+   {
+    "n": 30,
+    "L": 9,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 1800
+   },
+   {
+    "n": 30,
+    "L": 11,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 1716
+   },
+   {
+    "n": 30,
+    "L": 12,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 2295060
+   },
+   {
+    "n": 30,
+    "L": 18,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 1800
+   },
+   {
+    "n": 31,
+    "L": 6,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 2792
+   },
+   {
+    "n": 31,
+    "L": 8,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 0,
+    "annealBGap": 0,
+    "enumeration": "REACHED",
+    "nodes": 22490408
+   },
+   {
+    "n": 31,
+    "L": 9,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 1920
+   },
+   {
+    "n": 31,
+    "L": 11,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 0,
+    "annealBGap": 0,
+    "enumeration": "REACHED",
+    "nodes": 1831
+   },
+   {
+    "n": 31,
+    "L": 12,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 2485635
+   },
+   {
+    "n": 31,
+    "L": 18,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 1916
+   },
+   {
+    "n": 33,
+    "L": 6,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 3890
+   },
+   {
+    "n": 33,
+    "L": 8,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "INCONCLUSIVE",
+    "nodes": 200000001
+   },
+   {
+    "n": 33,
+    "L": 9,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 2178
+   },
+   {
+    "n": 33,
+    "L": 11,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "INCONCLUSIVE",
+    "nodes": 200000001
+   },
+   {
+    "n": 33,
+    "L": 12,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "IMPOSSIBLE",
+    "nodes": 2929866
+   },
+   {
+    "n": 33,
+    "L": 18,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "annealAGap": 1,
+    "annealBGap": 1,
+    "enumeration": "REACHED",
+    "nodes": 2172
+   }
+  ]
+ },
+ "anneal": {
+  "seed": 20260903,
+  "budget": 2000000,
+  "scheduleAsFiled": [
+   2,
+   0.005
+  ],
+  "scheduleAmended": "T_hot = L, T_cold = 0.05",
+  "schedules": [
+   {
+    "schedule": "A",
+    "note": "as filed: T = 2.0 -> 0.005",
+    "runs": 30,
+    "floorReached": 6,
+    "beatTheirSeed": 3,
+    "worstRegressed": 1,
+    "meanAcceptance": 0.0029896500000000004
+   },
+   {
+    "schedule": "B",
+    "note": "the amendment: T = L -> 0.05, the energy's own scale",
+    "runs": 30,
+    "floorReached": 6,
+    "beatTheirSeed": 3,
+    "worstRegressed": 0,
+    "meanAcceptance": 0.08717388333333334
+   }
+  ],
+  "cases": [
+   {
+    "schedule": "A",
+    "n": 15,
+    "L": 6,
+    "floor": 2,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 56,
+    "bestEnergy": 56,
+    "acceptance": 0.004785,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 15,
+    "L": 8,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 42,
+    "bestEnergy": 25,
+    "acceptance": 0.012,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "4",
+     "4",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "beat its seed, short of the floor"
+   },
+   {
+    "schedule": "A",
+    "n": 15,
+    "L": 9,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 84,
+    "bestEnergy": 84,
+    "acceptance": 0.0045995,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 15,
+    "L": 11,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 56,
+    "bestEnergy": 10,
+    "acceptance": 0.0129825,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "5",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "beat its seed, short of the floor"
+   },
+   {
+    "schedule": "A",
+    "n": 15,
+    "L": 12,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 112,
+    "bestEnergy": 99,
+    "acceptance": 0.0056305,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "5",
+     "6",
+     "6",
+     "5"
+    ],
+    "gap": 2,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "lower energy, WORSE worst case"
+   },
+   {
+    "schedule": "A",
+    "n": 15,
+    "L": 18,
+    "floor": 6,
+    "tHot": 2,
+    "seedArm": [
+     0,
+     1
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "worst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "gap": 0,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR (only the tape exists at this n)"
+   },
+   {
+    "schedule": "A",
+    "n": 16,
+    "L": 6,
+    "floor": 2,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 60,
+    "bestEnergy": 60,
+    "acceptance": 0.003389,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 16,
+    "L": 8,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "A",
+    "n": 16,
+    "L": 9,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 90,
+    "bestEnergy": 90,
+    "acceptance": 0.0041625,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 16,
+    "L": 11,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "A",
+    "n": 16,
+    "L": 12,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 120,
+    "bestEnergy": 120,
+    "acceptance": 0.00454,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 16,
+    "L": 18,
+    "floor": 6,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     1
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "worst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "gap": 0,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR (only the tape exists at this n)"
+   },
+   {
+    "schedule": "A",
+    "n": 30,
+    "L": 6,
+    "floor": 2,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 116,
+    "bestEnergy": 116,
+    "acceptance": 0.001329,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 30,
+    "L": 8,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 87,
+    "bestEnergy": 87,
+    "acceptance": 0.0086835,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 30,
+    "L": 9,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 174,
+    "bestEnergy": 174,
+    "acceptance": 0.0012405,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 30,
+    "L": 11,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 116,
+    "bestEnergy": 116,
+    "acceptance": 0.0052025,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 30,
+    "L": 12,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 232,
+    "bestEnergy": 232,
+    "acceptance": 0.001193,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 30,
+    "L": 18,
+    "floor": 6,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 348,
+    "bestEnergy": 348,
+    "acceptance": 0.001955,
+    "moves": 2000000,
+    "seedWorst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "worst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 31,
+    "L": 6,
+    "floor": 2,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 120,
+    "bestEnergy": 120,
+    "acceptance": 0.000983,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 31,
+    "L": 8,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "A",
+    "n": 31,
+    "L": 9,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 180,
+    "bestEnergy": 180,
+    "acceptance": 0.0008885,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 31,
+    "L": 11,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "A",
+    "n": 31,
+    "L": 12,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 240,
+    "bestEnergy": 240,
+    "acceptance": 0.000899,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 31,
+    "L": 18,
+    "floor": 6,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 360,
+    "bestEnergy": 360,
+    "acceptance": 0.001083,
+    "moves": 2000000,
+    "seedWorst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "worst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 33,
+    "L": 6,
+    "floor": 2,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 128,
+    "bestEnergy": 128,
+    "acceptance": 0.001191,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 33,
+    "L": 8,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 96,
+    "bestEnergy": 96,
+    "acceptance": 0.006123,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 33,
+    "L": 9,
+    "floor": 3,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 192,
+    "bestEnergy": 192,
+    "acceptance": 0.001096,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 33,
+    "L": 11,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 128,
+    "bestEnergy": 128,
+    "acceptance": 0.0036675,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 33,
+    "L": 12,
+    "floor": 4,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 256,
+    "bestEnergy": 256,
+    "acceptance": 0.000989,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "A",
+    "n": 33,
+    "L": 18,
+    "floor": 6,
+    "tHot": 2,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 384,
+    "bestEnergy": 384,
+    "acceptance": 0.001077,
+    "moves": 2000000,
+    "seedWorst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "worst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 15,
+    "L": 6,
+    "floor": 2,
+    "tHot": 6,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 56,
+    "bestEnergy": 34,
+    "acceptance": 0.0887055,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "beat its seed, short of the floor"
+   },
+   {
+    "schedule": "B",
+    "n": 15,
+    "L": 8,
+    "floor": 3,
+    "tHot": 8,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 42,
+    "bestEnergy": 6,
+    "acceptance": 0.132277,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "4",
+     "4",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "beat its seed, short of the floor"
+   },
+   {
+    "schedule": "B",
+    "n": 15,
+    "L": 9,
+    "floor": 3,
+    "tHot": 9,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 84,
+    "bestEnergy": 84,
+    "acceptance": 0.12189,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 15,
+    "L": 11,
+    "floor": 4,
+    "tHot": 11,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 56,
+    "bestEnergy": 8,
+    "acceptance": 0.1515625,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "beat its seed, short of the floor"
+   },
+   {
+    "schedule": "B",
+    "n": 15,
+    "L": 12,
+    "floor": 4,
+    "tHot": 12,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 112,
+    "bestEnergy": 112,
+    "acceptance": 0.151304,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 15,
+    "L": 18,
+    "floor": 6,
+    "tHot": 18,
+    "seedArm": [
+     0,
+     1
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "worst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "gap": 0,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR (only the tape exists at this n)"
+   },
+   {
+    "schedule": "B",
+    "n": 16,
+    "L": 6,
+    "floor": 2,
+    "tHot": 6,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 60,
+    "bestEnergy": 60,
+    "acceptance": 0.089572,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 16,
+    "L": 8,
+    "floor": 3,
+    "tHot": 8,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "B",
+    "n": 16,
+    "L": 9,
+    "floor": 3,
+    "tHot": 9,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 90,
+    "bestEnergy": 90,
+    "acceptance": 0.117938,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 16,
+    "L": 11,
+    "floor": 4,
+    "tHot": 11,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "B",
+    "n": 16,
+    "L": 12,
+    "floor": 4,
+    "tHot": 12,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 120,
+    "bestEnergy": 120,
+    "acceptance": 0.143263,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 16,
+    "L": 18,
+    "floor": 6,
+    "tHot": 18,
+    "seedArm": [
+     1,
+     1
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "worst": [
+     "--",
+     "--",
+     "--",
+     "6"
+    ],
+    "gap": 0,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR (only the tape exists at this n)"
+   },
+   {
+    "schedule": "B",
+    "n": 30,
+    "L": 6,
+    "floor": 2,
+    "tHot": 6,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 116,
+    "bestEnergy": 116,
+    "acceptance": 0.0759125,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 30,
+    "L": 8,
+    "floor": 3,
+    "tHot": 8,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 87,
+    "bestEnergy": 87,
+    "acceptance": 0.0991735,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 30,
+    "L": 9,
+    "floor": 3,
+    "tHot": 9,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 174,
+    "bestEnergy": 174,
+    "acceptance": 0.094434,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 30,
+    "L": 11,
+    "floor": 4,
+    "tHot": 11,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 116,
+    "bestEnergy": 116,
+    "acceptance": 0.108431,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 30,
+    "L": 12,
+    "floor": 4,
+    "tHot": 12,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 232,
+    "bestEnergy": 232,
+    "acceptance": 0.1077885,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 30,
+    "L": 18,
+    "floor": 6,
+    "tHot": 18,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 348,
+    "bestEnergy": 348,
+    "acceptance": 0.130153,
+    "moves": 2000000,
+    "seedWorst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "worst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 31,
+    "L": 6,
+    "floor": 2,
+    "tHot": 6,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 120,
+    "bestEnergy": 120,
+    "acceptance": 0.076951,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 31,
+    "L": 8,
+    "floor": 3,
+    "tHot": 8,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "3"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "B",
+    "n": 31,
+    "L": 9,
+    "floor": 3,
+    "tHot": 9,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 180,
+    "bestEnergy": 180,
+    "acceptance": 0.093142,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 31,
+    "L": 11,
+    "floor": 4,
+    "tHot": 11,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 0,
+    "bestEnergy": 0,
+    "acceptance": 0,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "4"
+    ],
+    "gap": 0,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "AT THE FLOOR"
+   },
+   {
+    "schedule": "B",
+    "n": 31,
+    "L": 12,
+    "floor": 4,
+    "tHot": 12,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 240,
+    "bestEnergy": 240,
+    "acceptance": 0.1060185,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 31,
+    "L": 18,
+    "floor": 6,
+    "tHot": 18,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 360,
+    "bestEnergy": 360,
+    "acceptance": 0.1273365,
+    "moves": 2000000,
+    "seedWorst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "worst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 33,
+    "L": 6,
+    "floor": 2,
+    "tHot": 6,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 128,
+    "bestEnergy": 128,
+    "acceptance": 0.07708,
+    "moves": 2000000,
+    "seedWorst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "worst": [
+     "2",
+     "2",
+     "2",
+     "3"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 33,
+    "L": 8,
+    "floor": 3,
+    "tHot": 8,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 96,
+    "bestEnergy": 96,
+    "acceptance": 0.096299,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 33,
+    "L": 9,
+    "floor": 3,
+    "tHot": 9,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 192,
+    "bestEnergy": 192,
+    "acceptance": 0.092979,
+    "moves": 2000000,
+    "seedWorst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "worst": [
+     "3",
+     "3",
+     "3",
+     "4"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 33,
+    "L": 11,
+    "floor": 4,
+    "tHot": 11,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 128,
+    "bestEnergy": 128,
+    "acceptance": 0.10471,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": false,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 33,
+    "L": 12,
+    "floor": 4,
+    "tHot": 12,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 256,
+    "bestEnergy": 256,
+    "acceptance": 0.1039025,
+    "moves": 2000000,
+    "seedWorst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "worst": [
+     "4",
+     "4",
+     "4",
+     "5"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": false,
+    "verdict": "no better than its linear seed"
+   },
+   {
+    "schedule": "B",
+    "n": 33,
+    "L": 18,
+    "floor": 6,
+    "tHot": 18,
+    "seedArm": [
+     1,
+     2
+    ],
+    "seedEnergy": 384,
+    "bestEnergy": 384,
+    "acceptance": 0.1243935,
+    "moves": 2000000,
+    "seedWorst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "worst": [
+     "6",
+     "6",
+     "6",
+     "7"
+    ],
+    "gap": 1,
+    "lemmaApplies": true,
+    "lemmaSaysPossible": true,
+    "verdict": "no better than its linear seed"
+   }
+  ]
+ }
+}

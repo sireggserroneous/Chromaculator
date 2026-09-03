@@ -1,0 +1,1516 @@
+{
+ "n": 32,
+ "arms": [
+  {
+   "arm": "fold",
+   "note": "the anti-diagonal -- eggSo-v0 exactly",
+   "classes": [
+    496,
+    32,
+    496
+   ],
+   "separation": 0.5303030303030303,
+   "checkBits": 48
+  },
+  {
+   "arm": "diag3",
+   "note": "(r+c) mod 3 -- the fold's own level sets, at the optimal split",
+   "classes": [
+    341,
+    342,
+    341
+   ],
+   "separation": 0.6673177083333333,
+   "checkBits": 48
+  },
+  {
+   "arm": "idx3",
+   "note": "j mod 3 -- shatters rows, columns and diagonals at n=32",
+   "classes": [
+    342,
+    341,
+    341
+   ],
+   "separation": 0.6673177083333333,
+   "checkBits": 48
+  },
+  {
+   "arm": "rows3",
+   "note": "r mod 3 -- shatters columns, concentrates rows",
+   "classes": [
+    352,
+    352,
+    320
+   ],
+   "separation": 0.6666666666666667,
+   "checkBits": 48
+  },
+  {
+   "arm": "cols3",
+   "note": "c mod 3 -- the mirror of rows3",
+   "classes": [
+    352,
+    352,
+    320
+   ],
+   "separation": 0.6666666666666667,
+   "checkBits": 48
+  },
+  {
+   "arm": "blocks",
+   "note": "contiguous thirds -- the control: optimal split, worst bursts",
+   "classes": [
+    341,
+    341,
+    342
+   ],
+   "separation": 0.6673177083333333,
+   "checkBits": 48
+  },
+  {
+   "arm": "seam128",
+   "note": "the fold's shape with a four-diagonal seam",
+   "classes": [
+    435,
+    124,
+    465
+   ],
+   "separation": 0.5992542613636364,
+   "checkBits": 48
+  },
+  {
+   "arm": "cubic",
+   "note": "the basin decomposition of z^3 - 1",
+   "classes": [
+    348,
+    338,
+    338
+   ],
+   "separation": 0.6672547043010753,
+   "checkBits": 48
+  },
+  {
+   "arm": "tape12",
+   "note": "g(j mod 12), the block interleaver Part 2 names",
+   "classes": [
+    344,
+    340,
+    340
+   ],
+   "separation": 0.6673081622678396,
+   "checkBits": 48
+  }
+ ],
+ "channels": [
+  {
+   "channel": "1 cell",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "2 anywhere",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 215,
+     "classMaxMean": 1.4625,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 258,
+     "classMaxMean": 1.355,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 399,
+     "detected": 1,
+     "wrong": 0,
+     "direct": 261,
+     "classMaxMean": 1.3475,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 256,
+     "classMaxMean": 1.36,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cols3",
+     "corrected": 399,
+     "detected": 1,
+     "wrong": 0,
+     "direct": 260,
+     "classMaxMean": 1.35,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 397,
+     "detected": 3,
+     "wrong": 0,
+     "direct": 264,
+     "classMaxMean": 1.34,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 239,
+     "classMaxMean": 1.4025,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "direct": 265,
+     "classMaxMean": 1.3375,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 397,
+     "detected": 3,
+     "wrong": 0,
+     "direct": 266,
+     "classMaxMean": 1.335,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 387,
+     "detected": 13,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "rows3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cols3",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "seam128",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 398,
+     "detected": 2,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "tape12",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 different classes",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "3 one per class",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.77,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 11.955,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.165,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 8.5375,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 390,
+     "wrong": 10,
+     "direct": 0,
+     "classMaxMean": 10.755,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "direct": 0,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "direct": 0,
+     "classMaxMean": 11.8925,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "direct": 0,
+     "classMaxMean": 10.0675,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 8.4725,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 in-region burst, blind",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 390,
+     "wrong": 10,
+     "direct": 0,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "direct": 0,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 396,
+     "wrong": 4,
+     "direct": 0,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "direct": 0,
+     "classMaxMean": 11.8275,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "direct": 0,
+     "classMaxMean": 8.5875,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "direct": 0,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 col burst, flagged",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.77,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 8.6775,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.165,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 8.6225,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 diag burst, flagged",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 8.7725,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 12,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 5.7375,
+     "classMaxWorst": 10
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "12 tape burst, flagged",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.1725,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4.2475,
+     "classMaxWorst": 5
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.83,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4.2475,
+     "classMaxWorst": 5
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 11.965,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 9.595,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 7.9825,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "tape12",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4,
+     "classMaxWorst": 4
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 32,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "direct": 0,
+     "classMaxMean": 32,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "direct": 0,
+     "classMaxMean": 11,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 11,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 11,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 11,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 32,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 11,
+     "classMaxWorst": 11
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 11,
+     "classMaxWorst": 11
+    }
+   ]
+  },
+  {
+   "channel": "the thinnest class filled",
+   "trials": 400,
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 32,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "direct": 0,
+     "classMaxMean": 341,
+     "classMaxWorst": 341
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "direct": 0,
+     "classMaxMean": 341,
+     "classMaxWorst": 341
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 391,
+     "wrong": 9,
+     "direct": 0,
+     "classMaxMean": 320,
+     "classMaxWorst": 320
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "direct": 0,
+     "classMaxMean": 320,
+     "classMaxWorst": 320
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "direct": 0,
+     "classMaxMean": 341,
+     "classMaxWorst": 341
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 124,
+     "classMaxWorst": 124
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 391,
+     "wrong": 9,
+     "direct": 0,
+     "classMaxMean": 338,
+     "classMaxWorst": 338
+    },
+    {
+     "arm": "tape12",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "direct": 0,
+     "classMaxMean": 340,
+     "classMaxWorst": 340
+    }
+   ]
+  }
+ ],
+ "m1": {
+  "channel": "12-cell unflagged in-region burst",
+  "finding": "a pigeonhole: 12 cells over 3 classes gives some class 4, and the decoder searches to depth 2. No arm takes it. v1(b) keeps its row.",
+  "liars": [
+   {
+    "arm": "fold",
+    "channel": "12 row burst, blind",
+    "wrong": 10
+   },
+   {
+    "arm": "rows3",
+    "channel": "12 row burst, blind",
+    "wrong": 4
+   },
+   {
+    "arm": "blocks",
+    "channel": "12 row burst, blind",
+    "wrong": 4
+   },
+   {
+    "arm": "seam128",
+    "channel": "12 row burst, blind",
+    "wrong": 6
+   },
+   {
+    "arm": "cubic",
+    "channel": "12 row burst, blind",
+    "wrong": 1
+   },
+   {
+    "arm": "fold",
+    "channel": "12 in-region burst, blind",
+    "wrong": 10
+   },
+   {
+    "arm": "diag3",
+    "channel": "12 in-region burst, blind",
+    "wrong": 1
+   },
+   {
+    "arm": "rows3",
+    "channel": "12 in-region burst, blind",
+    "wrong": 5
+   },
+   {
+    "arm": "cols3",
+    "channel": "12 in-region burst, blind",
+    "wrong": 1
+   },
+   {
+    "arm": "blocks",
+    "channel": "12 in-region burst, blind",
+    "wrong": 4
+   },
+   {
+    "arm": "seam128",
+    "channel": "12 in-region burst, blind",
+    "wrong": 6
+   },
+   {
+    "arm": "cubic",
+    "channel": "12 in-region burst, blind",
+    "wrong": 2
+   },
+   {
+    "arm": "tape12",
+    "channel": "12 in-region burst, blind",
+    "wrong": 2
+   },
+   {
+    "arm": "diag3",
+    "channel": "one full anti-diagonal",
+    "wrong": 6
+   },
+   {
+    "arm": "idx3",
+    "channel": "one full anti-diagonal",
+    "wrong": 3
+   },
+   {
+    "arm": "blocks",
+    "channel": "one full anti-diagonal",
+    "wrong": 1
+   },
+   {
+    "arm": "fold",
+    "channel": "the thinnest class filled",
+    "wrong": 1
+   },
+   {
+    "arm": "diag3",
+    "channel": "the thinnest class filled",
+    "wrong": 2
+   },
+   {
+    "arm": "idx3",
+    "channel": "the thinnest class filled",
+    "wrong": 3
+   },
+   {
+    "arm": "rows3",
+    "channel": "the thinnest class filled",
+    "wrong": 9
+   },
+   {
+    "arm": "cols3",
+    "channel": "the thinnest class filled",
+    "wrong": 5
+   },
+   {
+    "arm": "blocks",
+    "channel": "the thinnest class filled",
+    "wrong": 3
+   },
+   {
+    "arm": "cubic",
+    "channel": "the thinnest class filled",
+    "wrong": 9
+   },
+   {
+    "arm": "tape12",
+    "channel": "the thinnest class filled",
+    "wrong": 5
+   }
+  ]
+ },
+ "atN33": {
+  "n": 33,
+  "channels": [
+   {
+    "channel": "18 row burst, flagged",
+    "arms": [
+     {
+      "arm": "diag3",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 6,
+      "classMaxWorst": 6
+     },
+     {
+      "arm": "idx3",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 6,
+      "classMaxWorst": 6
+     },
+     {
+      "arm": "blocks",
+      "corrected": 0,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 18,
+      "classMaxWorst": 18
+     },
+     {
+      "arm": "cubic",
+      "corrected": 177,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 11.76,
+      "classMaxWorst": 18
+     }
+    ]
+   },
+   {
+    "channel": "18 col burst, flagged",
+    "arms": [
+     {
+      "arm": "diag3",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 6,
+      "classMaxWorst": 6
+     },
+     {
+      "arm": "idx3",
+      "corrected": 0,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 18,
+      "classMaxWorst": 18
+     },
+     {
+      "arm": "blocks",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 10.495,
+      "classMaxWorst": 11
+     },
+     {
+      "arm": "cubic",
+      "corrected": 176,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 11.94,
+      "classMaxWorst": 18
+     }
+    ]
+   },
+   {
+    "channel": "18 diag burst, flagged",
+    "arms": [
+     {
+      "arm": "diag3",
+      "corrected": 0,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 18,
+      "classMaxWorst": 18
+     },
+     {
+      "arm": "idx3",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 6,
+      "classMaxWorst": 6
+     },
+     {
+      "arm": "blocks",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 10.375,
+      "classMaxWorst": 11
+     },
+     {
+      "arm": "cubic",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 7.625,
+      "classMaxWorst": 10
+     }
+    ]
+   },
+   {
+    "channel": "18 tape burst, flagged",
+    "arms": [
+     {
+      "arm": "diag3",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 6.405,
+      "classMaxWorst": 7
+     },
+     {
+      "arm": "idx3",
+      "corrected": 200,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 6,
+      "classMaxWorst": 6
+     },
+     {
+      "arm": "blocks",
+      "corrected": 7,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 17.8,
+      "classMaxWorst": 18
+     },
+     {
+      "arm": "cubic",
+      "corrected": 184,
+      "of": 200,
+      "wrong": 0,
+      "classMaxMean": 11.195,
+      "classMaxWorst": 18
+     }
+    ]
+   }
+  ]
+ }
+}

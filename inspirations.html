@@ -495,6 +495,30 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
           a room this project has already walked into from another door. The same round found that the free
           variable in four rounds of work was the one nobody had touched: how much the cell holds.</span></span>
       </div>
+      <div class="item open">
+        <span class="mine">the eighteenth: if burst spread is what the geometry costs, then which
+          three-class partition of the grid actually minimises a burst?</span>
+        <span class="theirs">Asked properly &mdash; the worst cells landing in one class over every
+          placement of a length-<code>L</code> run, along a row, a column, an anti-diagonal, and the
+          row-major tape that wraps at row boundaries &mdash; it has a floor of
+          <code>&lceil;L/3&rceil;</code> by the
+          <a href="https://en.wikipedia.org/wiki/Pigeonhole_principle">pigeonhole principle</a>, and the
+          partitions that reach it are
+          <a href="https://en.wikipedia.org/wiki/Burst_error-correcting_code#Interleaved_codes">block
+          interleavers</a>: <code>class(j) = g(j mod L)</code> for a balanced
+          <code>g</code>. Named again, and not by this project.
+          <br><span class="who">The useful half is the obstruction. When <code>3</code> divides
+          <code>L</code> a window at the floor has no slack, which forces the tape to be
+          <code>L</code>-periodic, and then a
+          <a href="https://en.wikipedia.org/wiki/Coset">coset</a> count decides everything: for a run that
+          fits across the grid, a partition at the floor exists exactly when <code>3</code> divides both
+          <code>L/gcd(n, L)</code> and <code>L/gcd(n&minus;1, L)</code>. So it is arithmetic in the
+          grid&rsquo;s width that rules most widths out, not the shape of the partition &mdash; while the
+          fold&rsquo;s own <code>(r+c) mod 3</code> is ruled out at <i>every</i> width for a simpler reason:
+          an anti-diagonal is its level set, so a burst along one lands entirely in a single class. Nothing
+          here is a claim about the instrument; it is what the instrument&rsquo;s geometry looks like once the
+          right question is asked of it.</span></span>
+      </div>
     </div>
   </section>
 

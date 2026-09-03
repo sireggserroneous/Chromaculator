@@ -1,0 +1,299 @@
+{
+ "construction": {
+  "coordinate": "z = rho * exp(2*pi*i*k/arcs(n)[d]), k = min(n-1,d)-r",
+  "map": "Newton on z^3 - 1",
+  "iters": 200,
+  "name": "the basin decomposition of a cubic Newton map"
+ },
+ "byN": [
+  {
+   "n": 8,
+   "classes": [
+    28,
+    18,
+    18
+   ],
+   "separation": 0.6607142857142857,
+   "nearestClassOffAThird": 0.15624999999999994,
+   "unsettled": 0,
+   "foldBandSplit": [
+    4,
+    2,
+    2
+   ]
+  },
+  {
+   "n": 16,
+   "classes": [
+    98,
+    79,
+    79
+   ],
+   "separation": 0.665594362745098,
+   "nearestClassOffAThird": 0.07421874999999994,
+   "unsettled": 0,
+   "foldBandSplit": [
+    6,
+    5,
+    5
+   ]
+  },
+  {
+   "n": 32,
+   "classes": [
+    348,
+    338,
+    338
+   ],
+   "separation": 0.6672547043010753,
+   "nearestClassOffAThird": 0.009765624999999944,
+   "unsettled": 0,
+   "foldBandSplit": [
+    10,
+    11,
+    11
+   ]
+  },
+  {
+   "n": 64,
+   "classes": [
+    1414,
+    1340,
+    1342
+   ],
+   "separation": 0.6666175404456655,
+   "nearestClassOffAThird": 0.017089843749999944,
+   "unsettled": 15,
+   "foldBandSplit": [
+    22,
+    21,
+    21
+   ]
+  }
+ ],
+ "spread": [
+  {
+   "arm": "diag3",
+   "burst": 12,
+   "floor": 4,
+   "worst": [
+    {
+     "geometry": "row",
+     "worst": 4
+    },
+    {
+     "geometry": "col",
+     "worst": 4
+    },
+    {
+     "geometry": "diag",
+     "worst": 12
+    },
+    {
+     "geometry": "tape",
+     "worst": 5
+    }
+   ],
+   "fullAntiDiagonal": 32,
+   "fullAntiDiagonalSplit": [
+    0,
+    32,
+    0
+   ]
+  },
+  {
+   "arm": "cubic",
+   "burst": 12,
+   "floor": 4,
+   "worst": [
+    {
+     "geometry": "row",
+     "worst": 12
+    },
+    {
+     "geometry": "col",
+     "worst": 12
+    },
+    {
+     "geometry": "diag",
+     "worst": 10
+    },
+    {
+     "geometry": "tape",
+     "worst": 12
+    }
+   ],
+   "fullAntiDiagonal": 11,
+   "fullAntiDiagonalSplit": [
+    10,
+    11,
+    11
+   ]
+  }
+ ],
+ "channels": [
+  {
+   "channel": "1 cell",
+   "arms": [
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 1
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "arms": [
+    {
+     "arm": "diag3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "cubic",
+     "corrected": 398,
+     "detected": 2,
+     "wrong": 0,
+     "classMaxWorst": 2
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, flagged",
+   "arms": [
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "cubic",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "channel": "12 row burst, blind",
+   "arms": [
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "arms": [
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "classMaxWorst": 32
+    },
+    {
+     "arm": "cubic",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "classMaxWorst": 11
+    }
+   ]
+  }
+ ],
+ "picture": [
+  "..#.ooooooo#....................",
+  ".o.###.ooooooooooooo#o#.o.......",
+  "..o.#####.ooooooooooooooooooo...",
+  ".#oo..######.ooooooooooooooo....",
+  ".#oo...o#######.oooooooooooo....",
+  ".#.oo....#########.ooooooo#o....",
+  ".##oo#....o##########.#o.#oo....",
+  ".##ooo.....o################....",
+  ".##.ooo......o#############.#...",
+  ".###ooo#......o############.....",
+  ".o##oooo#......##############...",
+  "..##.oooo........o##########o...",
+  "..###oooo#........##########o...",
+  "..###ooooo#.......###########...",
+  "..###.oooooo.....#############..",
+  "..####oooooo.....o###########...",
+  "..####oooooo#..o#.###########o..",
+  "..####.ooooooooooo.o#########o..",
+  "..#####ooooooooooo#.##########..",
+  "..o####ooooooooooooo.##########.",
+  "..#####.ooooooooooooo.########o.",
+  "..o####ooooooooooooooo.#######o.",
+  "...#####ooooooooooooooo.######..",
+  "..#####.oooooooooooooooo.######.",
+  "...####oooooooooooooooooo.#####.",
+  "...###o#oooooooooooooooooo.####o",
+  "...#####o..oooooooooooooooo.###o",
+  "...#.....o.o##oooooooooooooo.###",
+  "...............o.##oooooooooo.##",
+  "....................o##.oooooo.#",
+  "..........................##ooo.",
+  "................................"
+ ],
+ "pictureDiag3": [
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#",
+  "#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.",
+  ".o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o",
+  "o#.o#.o#.o#.o#.o#.o#.o#.o#.o#.o#"
+ ]
+}
