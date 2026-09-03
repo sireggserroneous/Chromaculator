@@ -527,3 +527,67 @@ takes 45/400 for a rate.
 **Bar status is unchanged** — M2 asked that miscorrections be reported per arm and they were,
 and B1–B5 and N1–N4 are payload-independent — but the round is more honest with this addendum
 than without it, and the cubic arm's "stops lying" line is now a withdrawn claim.
+
+## Second addendum, 2026-09-03 — and it was one square size
+
+Asked next how big the `Mul32` chunk was, and whether it varied. **It did not vary.** Every
+codec figure in this file was taken at
+
+> `n = 32`, `L = 1024` cells = **128 bytes per square**, 400 trials, one 12-cell burst.
+
+The only other width any codec touched is the `n = 33` table in `arms`. Part 1's partition was
+computed at n = 8/16/32/64 and Part 2's optimum at n = 3..6 and 15/16/30/31/33, but those are
+payload- and size-independent counts; the **correction rates** sat on a single point. `eggso5
+sizes` sweeps it, and separates the two things size changes, because they pull opposite ways:
+the **price** falls as `log L / L`, while the decoder's **caps** are v0's fixed constants — 16
+flagged per class, 64 hits, 8192 readings — and do not scale at all.
+
+**The overhead figure is a point, not a property.**
+
+| n | L | p | check bits | overhead | `\|class\|/p` |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 64 | 131 | 32 | **50.00%** | 0.1603 |
+| 16 | 256 | 523 | 40 | 15.62% | 0.1644 |
+| **32** | **1024** | **2053** | **48** | **4.69%** | 0.1661 |
+| 64 | 4096 | 8219 | 56 | 1.37% | 0.1662 |
+| 96 | 9216 | 18443 | 60 | **0.65%** | 0.1666 |
+
+So "4.69%" is the cost at n = 32 and nowhere else — consistent with eggSo-v3, which already
+found this at file scale. And `|class|/p`, v4's alias density, is nearly size-invariant at
+about 1/6, which is exactly why the pair channels come out flat: 1 cell 200/200 at every
+width, 2-same-class 195–199, 2-anywhere 197–200. **The round's pair figures do generalise
+across width. Its burst figures and its overhead figure do not.**
+
+**And the burst table was measured at the one width where it says least.** Under a burst held
+at a fixed *fraction* of the row — `3n/8`, which is exactly 12 at n = 32, so it agrees with the
+round there and diverges either side — flagged corrections of 200:
+
+| n | burst | `fold` | `diag3` | `idx3` | `blocks` |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 3 | 200 (w3) | 200 (w1) | 200 (w1) | 200 (w3) |
+| 16 | 6 | 200 (w6) | 200 (w2) | 200 (w2) | 200 (w6) |
+| **32** | **12** | **200 (w12)** | **200 (w4)** | **200 (w4)** | **200 (w12)** |
+| 64 | 24 | **28** (w24) | 200 (w8) | 200 (w8) | **1** (w24) |
+| 96 | 36 | **0** (w36) | 200 (w12) | 200 (w12) | **0** (w36) |
+
+At n = 32 every arm scores 200 of 200 and the channel cannot separate them. Two widths up, the
+concentrating arms are dead and the burst-floor arms are untouched — because `w`, the worst
+cells in one class, tracks the burst for `fold` and `blocks` and crosses v0's 16-per-class
+ceiling, while `diag3` and `idx3` hold it at `⌈L/3⌉`. **Part 2's optimum shows up as a
+survival difference, and it only becomes visible when the width moves.**
+
+This is not new in kind — v4 already swept burst *length* at fixed n = 32 and found `fold`
+breaking at 18 cells. What the width sweep adds is that **it is the fraction that matters, not
+the absolute length**: under a fixed 12-cell burst every arm *improves* with width and `fold`
+is still at 200/200 at n = 96, because 12 cells of a 96-wide row is a smaller wound than 12 of
+a 32-wide one.
+
+One boundary worth keeping, from the small end: at n = 8 with a 3-cell burst, `diag3` and
+`idx3` correct the **blind** burst 200 of 200. The burst floor puts exactly one cell in each
+class, one error per class is a single, and singles are direct. So at the floor the optimum
+buys blind correction outright — the only place in this round where the burst optimum converts
+into a capability rather than a survival margin.
+
+**Bars unchanged again** — none of them was stated as size-independent — but two of the
+round's headline numbers, the 4.69% and the burst table, are now correctly labelled as
+measurements at n = 32 rather than properties of the arms.

@@ -1,0 +1,534 @@
+{
+ "measuredAt": {
+  "n": 32,
+  "L": 1024,
+  "bytesPerSquare": 128
+ },
+ "widths": [
+  8,
+  16,
+  32,
+  64,
+  96
+ ],
+ "trials": 200,
+ "price": [
+  {
+   "n": 8,
+   "L": 64,
+   "p": 131,
+   "checkBits": 32,
+   "overhead": 0.5,
+   "classOverP": 0.16030534351145037
+  },
+  {
+   "n": 16,
+   "L": 256,
+   "p": 523,
+   "checkBits": 40,
+   "overhead": 0.15625,
+   "classOverP": 0.16443594646271512
+  },
+  {
+   "n": 32,
+   "L": 1024,
+   "p": 2053,
+   "checkBits": 48,
+   "overhead": 0.046875,
+   "classOverP": 0.16609839259620068
+  },
+  {
+   "n": 64,
+   "L": 4096,
+   "p": 8219,
+   "checkBits": 56,
+   "overhead": 0.013671875,
+   "classOverP": 0.16620026767246623
+  },
+  {
+   "n": 96,
+   "L": 9216,
+   "p": 18443,
+   "checkBits": 60,
+   "overhead": 0.006510416666666667,
+   "classOverP": 0.16656726129154692
+  }
+ ],
+ "burstRegimes": [
+  {
+   "regime": "fixed 12",
+   "n": 8,
+   "burst": 12,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "absent": true
+    },
+    {
+     "arm": "diag3",
+     "absent": true
+    },
+    {
+     "arm": "idx3",
+     "absent": true
+    },
+    {
+     "arm": "blocks",
+     "absent": true
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 16,
+   "burst": 12,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 3,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 2,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 32,
+   "burst": 12,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 8,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 3,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 64,
+   "burst": 12,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 6,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 2,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "fixed 12",
+   "n": 96,
+   "burst": 12,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 5,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 2,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 8,
+   "burst": 3,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 76,
+     "wrong": 2,
+     "classMaxWorst": 3
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 200,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 200,
+     "wrong": 0,
+     "classMaxWorst": 1
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 18,
+     "wrong": 0,
+     "classMaxWorst": 3
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 16,
+   "burst": 6,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 4,
+     "classMaxWorst": 6
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 1,
+     "classMaxWorst": 2
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 2,
+     "classMaxWorst": 6
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 32,
+   "burst": 12,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 8,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 4
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 3,
+     "classMaxWorst": 12
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 64,
+   "burst": 24,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 28,
+     "blindCorrected": 0,
+     "wrong": 5,
+     "classMaxWorst": 24
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 8
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 8
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 1,
+     "blindCorrected": 0,
+     "wrong": 4,
+     "classMaxWorst": 24
+    }
+   ]
+  },
+  {
+   "regime": "scaled 3n/8",
+   "n": 96,
+   "burst": 36,
+   "trials": 200,
+   "arms": [
+    {
+     "arm": "fold",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 6,
+     "classMaxWorst": 36
+    },
+    {
+     "arm": "diag3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "idx3",
+     "flaggedCorrected": 200,
+     "blindCorrected": 0,
+     "wrong": 0,
+     "classMaxWorst": 12
+    },
+    {
+     "arm": "blocks",
+     "flaggedCorrected": 0,
+     "blindCorrected": 0,
+     "wrong": 2,
+     "classMaxWorst": 36
+    }
+   ]
+  }
+ ],
+ "geometryIndependentChannels": [
+  {
+   "n": 8,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 200,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 195,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 197,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 2
+    }
+   ]
+  },
+  {
+   "n": 16,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 200,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 197,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 198,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 3
+    }
+   ]
+  },
+  {
+   "n": 32,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 200,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 199,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 199,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 1
+    }
+   ]
+  },
+  {
+   "n": 64,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 200,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 196,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 200,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 1
+    }
+   ]
+  },
+  {
+   "n": 96,
+   "channels": [
+    {
+     "channel": "1 cell",
+     "corrected": 200,
+     "wrong": 0
+    },
+    {
+     "channel": "2 same class",
+     "corrected": 195,
+     "wrong": 0
+    },
+    {
+     "channel": "2 anywhere",
+     "corrected": 199,
+     "wrong": 0
+    },
+    {
+     "channel": "the thinnest class filled",
+     "corrected": 0,
+     "wrong": 2
+    }
+   ]
+  }
+ ]
+}

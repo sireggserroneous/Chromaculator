@@ -55,6 +55,12 @@ round separates the halves rather than scoring itself on the average.
 One of them turned out to be a pigeonhole rather than a measurement, which is a better
 answer than the one that was asked for.
 
+**Two things the round was asked afterwards, both of which found something.** Every codec
+figure was taken on uniform random bits and at a single square size. Real bytes leave the
+structural results untouched and move the miscorrection counts on 35 cells; varying the width
+shows that the 4.69% overhead and the whole burst table were properties of n = 32 rather than
+of the arms. Both are below, and neither was in the plan.
+
 ## What failed, first
 
 - **The cubic arm's class sizes.** Filed: unbalanced, no class within 5% of a third, class 0
@@ -349,7 +355,8 @@ miscorrect, `diag3` and `idx3` do not. Landed: `fold` 10 of 400, `blocks` 4, `id
 
 `eggso5 arms` prints all of it: **24 arm/channel pairs** carry a miscorrection, none of them
 on any flagged channel. The nine arms at n = 32, all paying the same 48 check bits so every
-difference is pure geometry:
+difference is pure geometry — and 48 bits is 4.69% **at n = 32 only**; see
+"One square size" below, where it runs from 50% to 0.65%:
 
 | arm | classes | separation |
 | --- | --- | --- |
@@ -459,6 +466,69 @@ representable count is `L` for every payload, biased or uniform. The payload cha
 cells are flippable in which direction — hence which aliases a syndrome has — not how many.
 `seam.rs` pins the true invariant and records the correction.
 
+## One square size — every codec figure was taken at n = 32
+
+Asked how big the `Mul32` chunk was and whether it varied. It did not:
+
+> `n = 32`, `L = 1024` cells = **128 bytes per square**, 400 trials, one 12-cell burst.
+
+The only other width any codec touched is the `n = 33` table above. Part 1's partition ran at
+n = 8/16/32/64 and Part 2's optimum at n = 3..6 and 15/16/30/31/33, but those are size- and
+payload-independent counts. The **correction rates** sat on a single point. `eggso5 sizes`
+sweeps it, separating the two things size changes, because they pull opposite ways: the
+**price** falls as `log L / L`, while the decoder's **caps** are v0's fixed constants — 16
+flagged per class, 64 hits, 8192 readings — and do not scale at all.
+
+### The overhead is a point, not a property
+
+| n | L | p | check bits | overhead | `\|class\|/p` |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 64 | 131 | 32 | **50.00%** | 0.1603 |
+| 16 | 256 | 523 | 40 | 15.62% | 0.1644 |
+| **32** | **1024** | **2053** | **48** | **4.69%** | 0.1661 |
+| 64 | 4096 | 8219 | 56 | 1.37% | 0.1662 |
+| 96 | 9216 | 18443 | 60 | **0.65%** | 0.1666 |
+
+"4.69%" is the cost at n = 32 and nowhere else — consistent with eggSo-v3, which found the
+same thing at file scale. Meanwhile `|class|/p`, v4's alias density, is nearly size-invariant
+at about 1/6, and that is exactly why the pair channels come out flat: 1 cell **200/200 at
+every width**, 2-same-class 195–199, 2-anywhere 197–200.
+
+**So the round's pair figures do generalise across width. Its burst figures and its overhead
+figure do not.**
+
+### The burst table was measured at the one width where it says least
+
+Hold the burst at a fixed *fraction* of the row — `3n/8`, which is exactly 12 at n = 32, so it
+agrees with the round there and diverges either side. Flagged corrections of 200, with `w` the
+worst cells landing in one class:
+
+| n | burst | `fold` | `diag3` | `idx3` | `blocks` |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 3 | 200 (w3) | 200 (w1) | 200 (w1) | 200 (w3) |
+| 16 | 6 | 200 (w6) | 200 (w2) | 200 (w2) | 200 (w6) |
+| **32** | **12** | **200 (w12)** | **200 (w4)** | **200 (w4)** | **200 (w12)** |
+| 64 | 24 | **28** (w24) | 200 (w8) | 200 (w8) | **1** (w24) |
+| 96 | 36 | **0** (w36) | 200 (w12) | 200 (w12) | **0** (w36) |
+
+At n = 32 every arm scores 200 of 200 and the channel separates nothing. Two widths up the
+concentrating arms are dead and the burst-floor arms are untouched, because `w` tracks the
+burst for `fold` and `blocks` and crosses v0's 16-per-class ceiling, while `diag3` and `idx3`
+hold it at `⌈L/3⌉`. **Part 2's optimum shows up as a survival difference, and only once the
+width moves.**
+
+Not new in kind — v4 already swept burst *length* at fixed n = 32 and found `fold` breaking at
+18 cells. What the width sweep adds is that **it is the fraction that matters, not the absolute
+length**: under a fixed 12-cell burst every arm *improves* with width, and `fold` is still at
+200/200 at n = 96, because 12 cells of a 96-wide row is a smaller wound than 12 of a 32-wide
+one.
+
+One boundary worth keeping, from the small end: at n = 8 with a 3-cell burst, `diag3` and
+`idx3` correct the **blind** burst 200 of 200. The floor puts exactly one cell in each class,
+one error per class is a single, and singles are direct. So at the floor the optimum buys blind
+correction outright — the only place in this round where it converts into a capability rather
+than a survival margin.
+
 ## Running it
 
 ```
@@ -471,7 +541,8 @@ cargo run --release -- cubic      # Part 1: the picture, the classes, the channe
 cargo run --release -- optimum    # Part 2: the floor, the theorem, the lemma, both searches
 cargo run --release -- arms       # Part 3: every arm on every channel
 cargo run --release -- real       # the codec channels on real repo bytes, vs the coin
-cargo run --release -- audit      # all of it, ~30s, writes every measured-*.json
+cargo run --release -- sizes      # the same channels swept across square size
+cargo run --release -- audit      # all of it, ~31s, writes every measured-*.json
 ```
 
 `--full` widens the linear sweep and the pictures. It deliberately does **not** widen the
@@ -484,7 +555,7 @@ cannot be quietly retried until it wins.
 Cargo.toml        name = "eggso5", edition 2021, NO dependencies
 PREDICTIONS.md    filed first, with the measured column filled in afterwards
 src/lib.rs        pub mod declarations
-src/main.rs       pin | cubic | optimum | arms | real | audit
+src/main.rs       pin | cubic | optimum | arms | real | sizes | audit
 src/fold.rs       carried from v4 unchanged
 src/code.rs       carried from v4; `in_bit` made pub
 src/json.rs       carried from v4 unchanged

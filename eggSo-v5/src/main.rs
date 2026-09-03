@@ -39,6 +39,9 @@ fn main() {
         "real" => {
             cmd_real(full);
         }
+        "sizes" => {
+            cmd_sizes(full);
+        }
         "audit" => {
             let a = cmd_pin();
             println!();
@@ -49,11 +52,13 @@ fn main() {
             let d = cmd_arms(full);
             println!();
             let e = cmd_real(full);
+            println!();
+            let f = cmd_sizes(full);
             println!(
-                "\nAUDIT: {a} pins clean, {b} degree-3 claims, {c} optimum claims, {d} arms, {e} real corpora"
+                "\nAUDIT: {a} pins clean, {b} degree-3 claims, {c} optimum claims, {d} arms, {e} real corpora, {f} widths"
             );
         }
-        _ => println!("usage: eggso5 pin | cubic | optimum | arms | real | audit [--full]"),
+        _ => println!("usage: eggso5 pin | cubic | optimum | arms | real | sizes | audit [--full]"),
     }
 }
 
@@ -1437,4 +1442,203 @@ fn cmd_real(full: bool) -> usize {
         ]),
     );
     corpora.len()
+}
+
+// ---- and every codec figure was taken at exactly one square size ---------
+
+/// `n = 32`, `L = 1024` cells, **128 bytes per square**, 400 trials. That is
+/// where every correction rate in this round was measured, and it was never
+/// varied -- the only other width any codec touched is the `n = 33` table in
+/// `arms`.
+///
+/// Size is not a free parameter here, for two reasons that pull in opposite
+/// directions and are separated below:
+///
+/// * **the price falls fast.** `check_bits` is
+///   `3*ceil(log2 p) + ceil(log2 q)` with `p` about `2L`, so the cost per
+///   cell goes as `log L / L`. The round's headline 4.69% is the cost AT
+///   `n = 32` and nowhere else.
+/// * **the caps do not move.** The erasure decoder's limits are v0's fixed
+///   constants -- 16 flagged per class, 64 hits, 8192 readings -- and they do
+///   not scale with `L`. So a burst that is a fixed FRACTION of the row meets
+///   a fixed ceiling, and a burst of fixed absolute length runs away from it.
+///
+/// Both burst regimes are therefore swept: a fixed 12 cells, which is what
+/// the round measured, and `3n/8`, which is 12 at `n = 32` and so agrees with
+/// the round exactly there and diverges on either side of it.
+fn cmd_sizes(full: bool) -> usize {
+    println!("SQUARE SIZE -- every codec figure above was taken at n = 32: L = 1024 cells,");
+    println!("  128 bytes per square, 400 trials, and never varied. Two things move with size and");
+    println!("  they pull opposite ways, so they are separated here:");
+    println!("    the PRICE falls as log(L)/L, because p is about 2L and the checks are its logs;");
+    println!("    the CAPS do not move at all -- 16 flagged per class, 64 hits, 8192 readings are");
+    println!("    v0's fixed constants -- so a burst that is a fixed FRACTION of the row runs into");
+    println!("    a fixed ceiling while a burst of fixed absolute length runs away from it.");
+    println!("  So the burst is swept twice: a fixed 12 cells, and 3n/8, which IS 12 at n = 32 and");
+    println!("  therefore agrees with the round exactly there and diverges on either side.\n");
+
+    let widths: Vec<usize> =
+        if full { vec![8, 16, 24, 32, 48, 64, 96] } else { vec![8, 16, 32, 64, 96] };
+    let trials = if full { 400 } else { 200 };
+
+    println!("  the price, which the round quoted as one number:");
+    println!("  {:<6}{:>9}{:>8}{:>8}{:>12}{:>14}", "n", "L", "p", "bits", "overhead", "|class|/p");
+    let mut price = Vec::new();
+    for &n in &widths {
+        let c = Code::new(n, true, "diag3", seam::a_diag3);
+        let cls = c.sizes()[0] as f64 / c.p as f64;
+        println!(
+            "  {:<6}{:>9}{:>8}{:>8}{:>11.2}%{:>14.4}",
+            n,
+            c.l,
+            c.p,
+            c.check_bits(),
+            100.0 * c.overhead(),
+            cls
+        );
+        price.push(obj(&[
+            ("n", J::U(n)),
+            ("L", J::U(c.l)),
+            ("p", J::U(c.p as usize)),
+            ("checkBits", J::U(c.check_bits())),
+            ("overhead", J::N(c.overhead())),
+            ("classOverP", J::N(cls)),
+        ]));
+    }
+    println!("    4.69% is the cost AT n = 32. It is 50% at n = 8 and 0.65% at n = 96, so the");
+    println!("    round's overhead figure is a point and not a property -- as eggSo-v3 already");
+    println!("    found at file scale. |class|/p is v4's alias density, and it is nearly");
+    println!("    size-invariant at about 1/6, which is why the pair rates below barely move.");
+
+    // the class-assignment signature `seam.rs` fixes: (r, c, j, n) -> class
+    type Assign = fn(usize, usize, usize, usize) -> u8;
+    let arms: Vec<(&str, Assign)> = vec![
+        ("fold", seam::a_fold),
+        ("diag3", seam::a_diag3),
+        ("idx3", seam::a_idx3),
+        ("blocks", seam::a_blocks),
+    ];
+
+    let mut rows = Vec::new();
+    for (label, scaled) in [
+        ("a FIXED 12-cell burst -- what the round measured", false),
+        ("a SCALED 3n/8 burst -- 12 at n = 32, and it is the fraction that matters", true),
+    ] {
+        println!("\n  {label}");
+        print!("  {:<7}{:>7}", "n", "burst");
+        for (a, _) in &arms {
+            print!("{:>22}", a);
+        }
+        println!();
+        println!("  {:<7}{:>7}   flagged / blind (worst cells in one class)", "", "");
+        for &n in &widths {
+            let b = if scaled { 3 * n / 8 } else { 12 };
+            print!("  {:<7}{:>7}", n, b);
+            let mut cells = Vec::new();
+            for (a, f) in &arms {
+                let c = Code::new(n, true, a, *f);
+                let fl = seam::run_channel(&c, Channel::RowBurstFlagged(b), trials, 1900);
+                let bl = seam::run_channel(&c, Channel::RowBurstBlind(b), trials, 1900);
+                match (fl, bl) {
+                    (Some(fl), Some(bl)) => {
+                        let w = fl.wrong + bl.wrong;
+                        print!(
+                            "{:>22}",
+                            format!(
+                                "{}/{}{} (w{})",
+                                fl.corrected,
+                                bl.corrected,
+                                if w > 0 { format!("+{w}W") } else { String::new() },
+                                fl.class_max_worst
+                            )
+                        );
+                        cells.push(obj(&[
+                            ("arm", J::s(a)),
+                            ("flaggedCorrected", J::U(fl.corrected)),
+                            ("blindCorrected", J::U(bl.corrected)),
+                            ("wrong", J::U(w)),
+                            ("classMaxWorst", J::U(fl.class_max_worst)),
+                        ]));
+                    }
+                    _ => {
+                        print!("{:>22}", "-- (no such run)");
+                        cells.push(obj(&[("arm", J::s(a)), ("absent", J::B(true))]));
+                    }
+                }
+            }
+            println!();
+            rows.push(obj(&[
+                ("regime", J::s(if scaled { "scaled 3n/8" } else { "fixed 12" })),
+                ("n", J::U(n)),
+                ("burst", J::U(b)),
+                ("trials", J::U(trials)),
+                ("arms", J::A(cells)),
+            ]));
+        }
+    }
+    println!("    `w` is the worst cells landing in one class. Read the two tables against each");
+    println!("    other: under a FIXED burst every arm improves with width, because 12 cells of a");
+    println!("    96-wide row is a smaller wound than 12 cells of a 32-wide one. Under a SCALED");
+    println!("    burst the arms that concentrate run into v0's 16-per-class ceiling and stop");
+    println!("    dead, while the arms at the burst floor keep working -- which is Part 2's");
+    println!("    optimum showing up as a survival difference rather than as a count.");
+
+    println!("\n  the channels that do NOT depend on the burst geometry, corrected of {trials}:");
+    print!("  {:<7}", "n");
+    for c in ["1 cell", "2 same class", "2 anywhere", "thinnest class"] {
+        print!("{:>16}", c);
+    }
+    println!();
+    let mut flat = Vec::new();
+    for &n in &widths {
+        let c = Code::new(n, true, "diag3", seam::a_diag3);
+        print!("  {:<7}", n);
+        let mut cells = Vec::new();
+        for ch in
+            [Channel::One, Channel::TwoSameClass, Channel::TwoAnywhere, Channel::ThinnestClass]
+        {
+            match seam::run_channel(&c, ch, trials, 2100) {
+                Some(t) => {
+                    print!(
+                        "{:>16}",
+                        if t.wrong > 0 {
+                            format!("{}/{}W", t.corrected, t.wrong)
+                        } else {
+                            t.corrected.to_string()
+                        }
+                    );
+                    cells.push(obj(&[
+                        ("channel", J::s(&ch.label())),
+                        ("corrected", J::U(t.corrected)),
+                        ("wrong", J::U(t.wrong)),
+                    ]));
+                }
+                None => {
+                    print!("{:>16}", "--");
+                    cells.push(obj(&[("channel", J::s(&ch.label())), ("absent", J::B(true))]));
+                }
+            }
+        }
+        println!();
+        flat.push(obj(&[("n", J::U(n)), ("channels", J::A(cells))]));
+    }
+    println!("    these are the rates v4 explained by |class|/p, and they are flat because that");
+    println!("    ratio is. So the round's PAIR figures do generalise across width, and its BURST");
+    println!("    figures and its OVERHEAD figure do not.");
+
+    let _ = record(
+        "sizes",
+        &obj(&[
+            (
+                "measuredAt",
+                obj(&[("n", J::U(32)), ("L", J::U(1024)), ("bytesPerSquare", J::U(128))]),
+            ),
+            ("widths", J::A(widths.iter().map(|&w| J::U(w)).collect())),
+            ("trials", J::U(trials)),
+            ("price", J::A(price)),
+            ("burstRegimes", J::A(rows)),
+            ("geometryIndependentChannels", J::A(flat)),
+        ]),
+    );
+    widths.len()
 }
