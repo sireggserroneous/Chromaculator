@@ -136,9 +136,21 @@ Conway's, the bit reversal is van der Corput and Cooley–Tukey, the ring geomet
 rotary encoder disc, the phasor sum is Fourier epicycles. See **Inspirations** for the
 full accounting, with links.
 
-What I have not been able to place is the fold itself: laying a digit string along the
-anti-diagonals of a square and cutting it into three regions that sum back to the
-number. Held loosely.
+What I could not place for a long time was the fold itself: laying a digit string along
+the anti-diagonals of a square and cutting it into three regions that sum back to the
+number. It now has a name, and the name is a **basin boundary**. Give a cell the
+coordinate `rho = 2^((r+c) - (n-1))` and Inner becomes the inside of the unit
+circle, Outer the outside, and the Fold the circle itself. That circle is the Julia set
+of `z -> z^2`, whose two Fatou basins are exactly those two hemispheres, and the
+anti-transpose is the inversion `rho -> 1/rho` that exchanges them. Checked over
+89,439 cells, n = 2 to 64, with no exceptions.
+
+That places the geometry rather than a new object: `z -> z^2` is the oldest example
+in complex dynamics. And the page had already named what that map does *on* the circle,
+the doubling map, credited under Shifting, without ever naming the circle as the map’s own
+invariant set. Held loosely still, for one honest reason: the coordinate is an exact place
+value on the product rectangle and a magnitude *ordering* on a single folded stalk, which
+is what the three-region key says in words rather than in an equation.
 
 There is now some evidence for that, of an odd kind. A separate series of experiments
 read the site's pages as coding theory and built whatever each reading implied. Thirteen
@@ -163,7 +175,7 @@ sharper finding is that as a pattern the fold is legitimate and sub-optimal — 
 496 / 32 / 496 split separates two random errors 53% of the time where a plain three-way
 split manages 67%. The thin seam that makes it the fold is what makes it worse.
 
-So: what one *does* with the fold has now been placed. What the fold *is* has not.
+So: what one *does* with the fold was placed first, and what the fold *is* came after.
 
 Two more rounds, `eggSo-v1/` and `eggSo-v2/`, then tried the fold's *symmetry* and its
 alphabet's *slack*, every way each could be built, with predictions filed before code and
@@ -183,8 +195,20 @@ erasure model; it is the only one that decodes. And one correction to the record
 v0's refusal of same-region pairs came from where it applied its confirming residue, not
 from the partition; applied per candidate, its own search takes 97.8% of them.
 
-Three constructions, three names, one theorem about the greens — and still no name for
-the fold.
+Three constructions, three names, one theorem about the greens — and then, in a fifth
+round, a name for the fold itself. Arthur Cayley asked in 1879 where Newton's method lands
+from a given guess. Two roots give a straight line down the middle; three give a boundary
+he could describe and not solve, and it took Julia, Fatou and then computers a century
+later to see it. The site's three regions are the two-root picture exactly, and Cayley's wall
+is why this geometry never reaches three: 38% of a cubic's basin boundary touches all three
+basins at once, and no straight anti-diagonal can do that.
+
+That round corrected its own lineage twice, which is the more useful half. eggSo-v0 judged
+the fold against a fair three-way split when it is a two-basin object, and against a fair
+two-way split the fold wins at every width. And the statistic it judged on turns out to
+move no error channel at all: what the fold's geometry actually costs is burst spread, where
+its own level sets taken mod 3 hold 200 of 200 at a 31-cell burst and the fold itself
+manages 18.
 
 A fourth round, `eggSo-v3/`, then asked what those three had never varied: all of them put
 **one bit in a cell** and stopped at the square's edge. Both were inherited, not chosen. A

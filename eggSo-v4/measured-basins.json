@@ -1,0 +1,137 @@
+{
+ "coordinate": {
+  "cells": 89439,
+  "exceptions": 0
+ },
+ "quadratic": {
+  "tested": 159598,
+  "wrong": 0
+ },
+ "cubicStability": [
+  {
+   "grid": 201,
+   "samples": 39601,
+   "boundary": 3368,
+   "allThree": 1336,
+   "share": 0.39667458432304037
+  },
+  {
+   "grid": 301,
+   "samples": 89401,
+   "boundary": 5982,
+   "allThree": 2292,
+   "share": 0.3831494483450351
+  },
+  {
+   "grid": 501,
+   "samples": 249001,
+   "boundary": 12662,
+   "allThree": 4984,
+   "share": 0.3936187016269152
+  }
+ ],
+ "separation": [
+  {
+   "n": 4,
+   "fold": 0.7,
+   "fairTwoWay": 0.5333333333333333,
+   "fairThreeWay": 0.7083333333333333,
+   "foldMarginOverTwoWay": 0.16666666666666663,
+   "foldShareOfSquare": 0.25
+  },
+  {
+   "n": 8,
+   "fold": 0.6111111111111112,
+   "fairTwoWay": 0.5079365079365079,
+   "fairThreeWay": 0.6770833333333333,
+   "foldMarginOverTwoWay": 0.10317460317460325,
+   "foldShareOfSquare": 0.125
+  },
+  {
+   "n": 16,
+   "fold": 0.5588235294117647,
+   "fairTwoWay": 0.5019607843137255,
+   "fairThreeWay": 0.6692708333333333,
+   "foldMarginOverTwoWay": 0.056862745098039236,
+   "foldShareOfSquare": 0.0625
+  },
+  {
+   "n": 32,
+   "fold": 0.5303030303030303,
+   "fairTwoWay": 0.5004887585532747,
+   "fairThreeWay": 0.6673177083333333,
+   "foldMarginOverTwoWay": 0.029814271749755594,
+   "foldShareOfSquare": 0.03125
+  },
+  {
+   "n": 64,
+   "fold": 0.5153846153846153,
+   "fairTwoWay": 0.5001221001221001,
+   "fairThreeWay": 0.6668294270833333,
+   "foldMarginOverTwoWay": 0.015262515262515208,
+   "foldShareOfSquare": 0.015625
+  },
+  {
+   "n": 128,
+   "fold": 0.5077519379844961,
+   "fairTwoWay": 0.5000305194408838,
+   "fairThreeWay": 0.6667073567708333,
+   "foldMarginOverTwoWay": 0.007721418543612302,
+   "foldShareOfSquare": 0.0078125
+  }
+ ],
+ "pictureTwoRoots": [
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo.............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo.............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo.............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............",
+  "oooooooooooo ............"
+ ],
+ "pictureThreeRoots": [
+  "ooooooooooooooooo..#.....",
+  "ooooooooooooooooo.#o.....",
+  "oooooooooooooooo.##o.....",
+  "ooooooooooooooooo##......",
+  "ooooooooooooooooo#.......",
+  "ooooooooooooooo.#........",
+  "ooooooooooooooo##o.......",
+  "ooooooooooooooo##........",
+  "ooooooooooooo............",
+  "ooooooooooooo##o.........",
+  "oooooooooooo.##..........",
+  "#..o##oo###o.#...........",
+  ".........................",
+  "o.##o.o#oo.#.o...........",
+  "############.oo..........",
+  "#############oo#.........",
+  "#############............",
+  "###############o.........",
+  "###############oo#.......",
+  "###############.o........",
+  "#################o.......",
+  "#################oo......",
+  "################.oo#.....",
+  "#################.o#.....",
+  "#################..o....."
+ ]
+}

@@ -28,7 +28,7 @@ residue leaves nothing to alias. That is a two-syndrome arithmetic code, the res
 analogue of a double-error-correcting BCH code with the mirror weights playing the second
 locator power. It has a name; the fold supplied the second row of `H`.
 
-The fold itself remains unplaced. This round placed what its symmetry *does*.
+The fold itself remains unplaced. This round placed what its symmetry *does*. (Placed in [eggSo-v4](../eggSo-v4/): the Fold is the Julia set of a degree-2 map and Inner and Outer are its Fatou basins.)
 
 ## What failed, first
 

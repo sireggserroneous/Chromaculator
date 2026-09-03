@@ -61,7 +61,7 @@ three-way split puts two random cells in different regions 66.7% of the time; th
 does it 53%. The thin seam that makes the partition *the fold* is exactly what makes it a
 worse interleaver than the trivial `i mod 3`.
 
-The fold itself remains unplaced. This round placed what one *does* with it.
+The fold itself remains unplaced. This round placed what one *does* with it. (Placed in [eggSo-v4](../eggSo-v4/): the Fold is the Julia set of a degree-2 map and Inner and Outer are its Fatou basins.)
 
 ## What failed, first
 

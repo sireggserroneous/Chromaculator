@@ -237,5 +237,6 @@ It is a measured *no*: the representation's slack is a suffix of mean length one
 alphabet's redundancy is exactly what makes a green undecodable as a free variable. It is
 also two small corrections to the lineage's own record — v0's pair rate, and the reason
 one prime is enough under trits. It is not a claim that the fold is anything other than
-what the site's README says it is: unplaced, held loosely — with its partition, its map and
+what the site's README says it is: held loosely — with its partition, its map and
 its alphabet now each on the record, and each with a name.
+Placed in [eggSo-v4](../eggSo-v4/) as a basin boundary: the Julia set of a degree-2 map, with Inner and Outer as its Fatou basins.

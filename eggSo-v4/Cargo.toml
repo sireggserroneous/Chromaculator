@@ -1,0 +1,22 @@
+[package]
+name = "eggso4"
+version = "0.1.0"
+edition = "2021"
+
+# std only, deliberately, and for the same reason every Rust round in this
+# repo says so: this one is a coordinate, a complex map and a port of
+# eggSo-v0's residue code, and the build must work with no network and no
+# supply chain. JSON is hand-rolled in src/json.rs.
+[lib]
+name = "eggso4"
+path = "src/lib.rs"
+
+[[bin]]
+name = "eggso4"
+path = "src/main.rs"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true

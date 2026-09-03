@@ -399,7 +399,7 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
 
   <section id="s-the-fold">
     <h2>The fold</h2>
-    <p class="lead">Anti-diagonals, mirror symmetry, and inversion in a circle.</p>
+    <p class="lead">Anti-diagonals, mirror symmetry, inversion in a circle, and the basin boundary they turn out to be.</p>
     <div class="items">
       <div class="item">
         <span class="mine">constant along anti-diagonals</span>
@@ -415,13 +415,25 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
         <span class="theirs"><a href="https://en.wikipedia.org/wiki/Inversive_geometry">Inversion in a circle</a>
           — those three properties <i>are</i> its definition</span>
       </div>
-      <div class="item open">
+      <div class="item">
         <span class="mine">laying a digit string along the anti-diagonals and cutting it into
           Inner / Fold / Outer, so the three sum back to the number exactly</span>
-        <span class="theirs">Not placed. Anti-diagonal traversal is a stock algorithm and folding a
-          matrix over a diagonal is patented, but neither does this partition.
-          <br><span class="who">Held loosely — a few searches is thin evidence, and this sort of thing
-          hides in course notes and personal sites.</span></span>
+        <span class="theirs">Placed, in 2026, as a
+          <a href="https://en.wikipedia.org/wiki/Julia_set">Julia set</a> and its two
+          <a href="https://en.wikipedia.org/wiki/Fatou_set">Fatou basins</a>. Give a cell the coordinate
+          <code>&#961; = 2^((r+c)&minus;(n&minus;1))</code> and Inner is <code>|&#961;|&lt;1</code>, Outer
+          <code>|&#961;|&gt;1</code>, and the Fold the unit circle &mdash; which is the Julia set of
+          <code>z &#8614; z&sup2;</code>, whose two basins are exactly those two hemispheres, with the
+          anti-transpose as the inversion <code>&#961; &#8614; 1/&#961;</code> between them. 89,439 cells
+          checked, no exceptions. <a href="https://en.wikipedia.org/wiki/Arthur_Cayley">Cayley</a> asked the
+          matching question in 1879 &mdash;
+          <a href="https://en.wikipedia.org/wiki/Newton_fractal">where Newton&rsquo;s method lands from a guess</a>
+          &mdash; and for two roots the answer is this picture. For three he could state it and not solve it.
+          <br><span class="who">The geometry, not a new object: <code>z &#8614; z&sup2;</code> is the oldest
+          example there is, and the doubling map credited under Shifting is what it does <i>on</i> the circle
+          &mdash; named here for years without the circle ever being named as its invariant set. Still held
+          loosely on one point: the coordinate is an exact place value on the product rectangle and a
+          magnitude ordering on a single folded stalk.</span></span>
       </div>
       <div class="item open">
         <span class="mine">thirteen attempts to reach prior art from inside this geometry, and
@@ -446,9 +458,10 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
           <a href="https://en.wikipedia.org/wiki/Residue_number_system">residue (AN) code</a>, with the fold as the
           interleaving pattern.
           <br><span class="who">And as a pattern the fold is legitimate and sub-optimal. Its 496 / 32 / 496 split
-          separates two random errors 53% of the time; a plain three-way split manages 67%. The thin seam
-          that makes it the fold is what makes it worse. What one <i>does</i> with the fold is now placed.
-          What it <i>is</i> is not.</span></span>
+          separates two random errors 53% of the time; a plain three-way split manages 67%. <b>Corrected in
+          2026:</b> that comparison used the wrong family &mdash; against a fair <i>two-way</i> split the fold
+          wins at every width &mdash; and the statistic itself moves no error channel at all. What the geometry
+          costs is burst spread.</span></span>
       </div>
       <div class="item open">
         <span class="mine">the fifteenth and sixteenth, from further inside: the anti-transpose as the
@@ -465,8 +478,8 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.25rem; font-weight:500; m
           <a href="https://en.wikipedia.org/wiki/Signed-digit_representation">signed-digit alphabet</a> spells
           adjacent cells the same integer two ways: the identity push is built on.
           <br><span class="who">The Wub's two-valued coin is not an approximation of the erasure model; it is the
-          only one that decodes. Three constructions with names, one theorem about the greens, and still no
-          name for the fold.</span></span>
+          only one that decodes. Three constructions with names, one theorem about the greens, and then a name
+          for the fold itself &mdash; see the partition entry at the top of this section.</span></span>
       </div>
       <div class="item open">
         <span class="mine">the seventeenth, and the first to leave the square: the fold's anti-transpose

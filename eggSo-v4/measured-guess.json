@@ -1,0 +1,104 @@
+{
+ "tableSingles": {
+  "corrected": 400,
+  "of": 400
+ },
+ "gf1ByBudget": [
+  {
+   "budget": 32,
+   "corrected": 13,
+   "of": 400,
+   "geometricLaw": 0.030781564371677783,
+   "meanEvals": 32
+  },
+  {
+   "budget": 496,
+   "corrected": 152,
+   "of": 400,
+   "geometricLaw": 0.38406366023230853,
+   "meanEvals": 391
+  },
+  {
+   "budget": 1024,
+   "corrected": 252,
+   "of": 400,
+   "geometricLaw": 0.6323002605887288,
+   "meanEvals": 638
+  },
+  {
+   "budget": 4096,
+   "corrected": 391,
+   "of": 400,
+   "geometricLaw": 0.9817201221930134,
+   "meanEvals": 1090
+  },
+  {
+   "budget": 16384,
+   "corrected": 400,
+   "of": 400,
+   "geometricLaw": 0.9999998883411493,
+   "meanEvals": 1093
+  }
+ ],
+ "census": {
+  "singleMean": 1,
+  "doubleMean": 0.195,
+  "acceptingMovesReachingClean": 0,
+  "predicted": "0, called a theorem -- MISSED, the rate is |class|/p"
+ },
+ "gradient": {
+  "oneErrorTrue": 1,
+  "oneErrorWrong": 0.5161683953630263,
+  "twoErrorsTrue": 0.45625,
+  "twoErrorsWrong": 0.4788445890968267
+ },
+ "countArm": {
+  "bits": 36,
+  "residueBits": 48,
+  "countsReached": 400,
+  "fullyConsistent": 2,
+  "exact": 2,
+  "of": 400
+ },
+ "ladder": [
+  {
+   "arm": "GF-1  zero / square",
+   "exact": 0,
+   "consistentButWrong": 0,
+   "of": 400,
+   "meanEvals": 4097
+  },
+  {
+   "arm": "GF-2  zero / hurt",
+   "exact": 0,
+   "consistentButWrong": 0,
+   "of": 400,
+   "meanEvals": 4097
+  },
+  {
+   "arm": "GF-3a ring strict",
+   "exact": 2,
+   "consistentButWrong": 0,
+   "of": 400,
+   "meanEvals": 4076
+  },
+  {
+   "arm": "GF-3b ring sideways",
+   "exact": 13,
+   "consistentButWrong": 0,
+   "of": 400,
+   "meanEvals": 32376
+  },
+  {
+   "arm": "GF-3c anneal",
+   "exact": 15,
+   "consistentButWrong": 2,
+   "of": 400,
+   "meanEvals": 31785
+  }
+ ],
+ "flaggedErasure": {
+  "exact": 400,
+  "of": 400
+ }
+}

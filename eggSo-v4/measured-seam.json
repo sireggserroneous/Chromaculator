@@ -1,0 +1,1009 @@
+{
+ "arms": [
+  {
+   "arm": "fold",
+   "note": "the anti-diagonal -- eggSo-v0 exactly",
+   "classes": [
+    496,
+    32,
+    496
+   ],
+   "separation": 0.5303030303030303,
+   "checkBits": 48
+  },
+  {
+   "arm": "diag3",
+   "note": "(r+c) mod 3 -- the fold's own level sets, at the optimal split",
+   "classes": [
+    341,
+    342,
+    341
+   ],
+   "separation": 0.6673177083333333,
+   "checkBits": 48
+  },
+  {
+   "arm": "idx3",
+   "note": "j mod 3 -- shatters rows, columns and diagonals at n=32",
+   "classes": [
+    342,
+    341,
+    341
+   ],
+   "separation": 0.6673177083333333,
+   "checkBits": 48
+  },
+  {
+   "arm": "rows3",
+   "note": "r mod 3 -- shatters columns, concentrates rows",
+   "classes": [
+    352,
+    352,
+    320
+   ],
+   "separation": 0.6666666666666667,
+   "checkBits": 48
+  },
+  {
+   "arm": "cols3",
+   "note": "c mod 3 -- the mirror of rows3",
+   "classes": [
+    352,
+    352,
+    320
+   ],
+   "separation": 0.6666666666666667,
+   "checkBits": 48
+  },
+  {
+   "arm": "blocks",
+   "note": "contiguous thirds -- the control: optimal split, worst bursts",
+   "classes": [
+    341,
+    341,
+    342
+   ],
+   "separation": 0.6673177083333333,
+   "checkBits": 48
+  },
+  {
+   "arm": "seam128",
+   "note": "the fold's shape with a four-diagonal seam",
+   "classes": [
+    435,
+    124,
+    465
+   ],
+   "separation": 0.5992542613636364,
+   "checkBits": 48
+  }
+ ],
+ "channels": [
+  {
+   "channel": "1 cell",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    }
+   ]
+  },
+  {
+   "channel": "2 anywhere",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 215,
+     "classMaxMean": 1.4625
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 258,
+     "classMaxMean": 1.355
+    },
+    {
+     "arm": "idx3",
+     "corrected": 399,
+     "detected": 1,
+     "wrong": 0,
+     "direct": 261,
+     "classMaxMean": 1.3475
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 256,
+     "classMaxMean": 1.36
+    },
+    {
+     "arm": "cols3",
+     "corrected": 399,
+     "detected": 1,
+     "wrong": 0,
+     "direct": 260,
+     "classMaxMean": 1.35
+    },
+    {
+     "arm": "blocks",
+     "corrected": 397,
+     "detected": 3,
+     "wrong": 0,
+     "direct": 264,
+     "classMaxMean": 1.34
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 239,
+     "classMaxMean": 1.4025
+    }
+   ]
+  },
+  {
+   "channel": "2 same class",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    },
+    {
+     "arm": "diag3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    },
+    {
+     "arm": "idx3",
+     "corrected": 387,
+     "detected": 13,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    },
+    {
+     "arm": "rows3",
+     "corrected": 394,
+     "detected": 6,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    },
+    {
+     "arm": "cols3",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    },
+    {
+     "arm": "blocks",
+     "corrected": 393,
+     "detected": 7,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    },
+    {
+     "arm": "seam128",
+     "corrected": 392,
+     "detected": 8,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 2
+    }
+   ]
+  },
+  {
+   "channel": "2 different classes",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    }
+   ]
+  },
+  {
+   "channel": "3 one per class",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 1
+    }
+   ]
+  },
+  {
+   "channel": "12-cell row burst, flagged",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 10.6075
+    },
+    {
+     "arm": "diag3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 12
+    },
+    {
+     "arm": "cols3",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 11.88
+    },
+    {
+     "arm": "seam128",
+     "corrected": 400,
+     "detected": 0,
+     "wrong": 0,
+     "direct": 400,
+     "classMaxMean": 9.885
+    }
+   ]
+  },
+  {
+   "channel": "12-cell row burst, blind",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 390,
+     "wrong": 10,
+     "direct": 0,
+     "classMaxMean": 10.6175
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 12
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 4
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "direct": 0,
+     "classMaxMean": 11.8925
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "direct": 0,
+     "classMaxMean": 9.92
+    }
+   ]
+  },
+  {
+   "channel": "one full anti-diagonal",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 394,
+     "wrong": 6,
+     "direct": 0,
+     "classMaxMean": 32
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "direct": 0,
+     "classMaxMean": 11
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 11
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 11
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 11
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 32
+    }
+   ]
+  },
+  {
+   "channel": "the thinnest class filled",
+   "arms": [
+    {
+     "arm": "fold",
+     "corrected": 0,
+     "detected": 399,
+     "wrong": 1,
+     "direct": 0,
+     "classMaxMean": 32
+    },
+    {
+     "arm": "diag3",
+     "corrected": 0,
+     "detected": 398,
+     "wrong": 2,
+     "direct": 0,
+     "classMaxMean": 341
+    },
+    {
+     "arm": "idx3",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "direct": 0,
+     "classMaxMean": 341
+    },
+    {
+     "arm": "rows3",
+     "corrected": 0,
+     "detected": 391,
+     "wrong": 9,
+     "direct": 0,
+     "classMaxMean": 320
+    },
+    {
+     "arm": "cols3",
+     "corrected": 0,
+     "detected": 395,
+     "wrong": 5,
+     "direct": 0,
+     "classMaxMean": 320
+    },
+    {
+     "arm": "blocks",
+     "corrected": 0,
+     "detected": 397,
+     "wrong": 3,
+     "direct": 0,
+     "classMaxMean": 341
+    },
+    {
+     "arm": "seam128",
+     "corrected": 0,
+     "detected": 400,
+     "wrong": 0,
+     "direct": 0,
+     "classMaxMean": 124
+    }
+   ]
+  }
+ ],
+ "burstSweep": [
+  {
+   "arm": "fold",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 10.585,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 13.195,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 116,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 14.65,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 84
+      }
+     ]
+    },
+    {
+     "burst": 24,
+     "corrected": 70,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 18.97,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 130
+      }
+     ]
+    },
+    {
+     "burst": 31,
+     "corrected": 18,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 22.58,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 182
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "arm": "diag3",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 4,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 5,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 6,
+     "notes": []
+    },
+    {
+     "burst": 24,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 8,
+     "notes": []
+    },
+    {
+     "burst": 31,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 11,
+     "notes": []
+    }
+   ]
+  },
+  {
+   "arm": "idx3",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 4,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 5,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 6,
+     "notes": []
+    },
+    {
+     "burst": 24,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 8,
+     "notes": []
+    },
+    {
+     "burst": 31,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 11,
+     "notes": []
+    }
+   ]
+  },
+  {
+   "arm": "rows3",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 12,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 15,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 0,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 18,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 200
+      }
+     ]
+    },
+    {
+     "burst": 24,
+     "corrected": 0,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 24,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 200
+      }
+     ]
+    },
+    {
+     "burst": 31,
+     "corrected": 0,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 31,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 200
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "arm": "cols3",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 4,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 5,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 6,
+     "notes": []
+    },
+    {
+     "burst": 24,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 8,
+     "notes": []
+    },
+    {
+     "burst": 31,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 11,
+     "notes": []
+    }
+   ]
+  },
+  {
+   "arm": "blocks",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 11.93,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 14.855,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 10,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 17.735,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 190
+      }
+     ]
+    },
+    {
+     "burst": 24,
+     "corrected": 9,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 23.37,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 191
+      }
+     ]
+    },
+    {
+     "burst": 31,
+     "corrected": 0,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 30.5,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 200
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "arm": "seam128",
+   "lengths": [
+    {
+     "burst": 12,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 9.97,
+     "notes": []
+    },
+    {
+     "burst": 15,
+     "corrected": 200,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 12.495,
+     "notes": []
+    },
+    {
+     "burst": 18,
+     "corrected": 133,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 13.585,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 67
+      }
+     ]
+    },
+    {
+     "burst": 24,
+     "corrected": 82,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 17.72,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 118
+      }
+     ]
+    },
+    {
+     "burst": 31,
+     "corrected": 39,
+     "of": 200,
+     "wrong": 0,
+     "classMaxMean": 21.09,
+     "notes": [
+      {
+       "note": "too many erasures",
+       "count": 161
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

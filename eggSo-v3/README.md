@@ -272,5 +272,6 @@ It is the round that found the variable nobody in this lineage had changed, and 
 capability the fold's own involution supplies for nothing. It is also the round that had
 to report that the code three previous rounds shipped will silently corrupt a file that
 loses a single byte. It is not a claim that the fold is anything other than what the
-site's README says it is: unplaced, held loosely — with its partition, its map, its
+site's README says it is: held loosely — with its partition, its map, its
 alphabet, its radix and now its scale each on the record, and each with a name.
+Placed in [eggSo-v4](../eggSo-v4/) as a basin boundary: the Julia set of a degree-2 map, with Inner and Outer as its Fatou basins.
