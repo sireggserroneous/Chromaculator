@@ -1,0 +1,22 @@
+[package]
+name = "eggso6"
+version = "0.1.0"
+edition = "2021"
+
+# std only, deliberately, and for the same reason every Rust round in this
+# repo says so: this one is a complex coordinate, a cubic Newton map and a
+# combinatorial search, and the build must work with no network and no supply
+# chain. JSON is hand-rolled in src/json.rs.
+[lib]
+name = "eggso6"
+path = "src/lib.rs"
+
+[[bin]]
+name = "eggso6"
+path = "src/main.rs"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true

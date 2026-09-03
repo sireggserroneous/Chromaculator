@@ -1,0 +1,424 @@
+{
+ "derivation": {
+  "spread": "F <= 3*log2(p) + log2(q) = check_bits",
+  "concentrated": "F <= log2(p) + log2(q)",
+  "spreadBoundAt32": 44.02108184221229,
+  "concentratedBoundAt32": 22.014046017995085,
+  "checkBitsAt32": 48
+ },
+ "sweep": [
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 3,
+   "perClass": [
+    1,
+    1,
+    1
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 5,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 6,
+   "perClass": [
+    2,
+    2,
+    2
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 5,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 9,
+   "perClass": [
+    3,
+    3,
+    3
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 5,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 12,
+   "perClass": [
+    4,
+    4,
+    4
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 6,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 15,
+   "perClass": [
+    5,
+    5,
+    5
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 6,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 18,
+   "perClass": [
+    6,
+    6,
+    6
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 7,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 21,
+   "perClass": [
+    7,
+    7,
+    7
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 8,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 24,
+   "perClass": [
+    8,
+    8,
+    8
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 12,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 27,
+   "perClass": [
+    9,
+    9,
+    9
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 19,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 30,
+   "perClass": [
+    10,
+    10,
+    10
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 43,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 33,
+   "perClass": [
+    11,
+    11,
+    11
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 135,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 36,
+   "perClass": [
+    12,
+    12,
+    12
+   ],
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 330,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 39,
+   "perClass": [
+    13,
+    13,
+    13
+   ],
+   "corrected": 28,
+   "ambiguous": 2,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 764,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 40,
+   "perClass": [
+    14,
+    13,
+    13
+   ],
+   "corrected": 27,
+   "ambiguous": 3,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 1047,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 42,
+   "perClass": [
+    14,
+    14,
+    14
+   ],
+   "corrected": 22,
+   "ambiguous": 8,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 1566,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 44,
+   "perClass": [
+    15,
+    15,
+    14
+   ],
+   "corrected": 11,
+   "ambiguous": 19,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 2906,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 45,
+   "perClass": [
+    15,
+    15,
+    15
+   ],
+   "corrected": 9,
+   "ambiguous": 21,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 3514,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 46,
+   "perClass": [
+    16,
+    15,
+    15
+   ],
+   "corrected": 0,
+   "ambiguous": 15,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 4863,
+   "of": 15
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 48,
+   "perClass": [
+    16,
+    16,
+    16
+   ],
+   "corrected": 0,
+   "ambiguous": 15,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 7411,
+   "of": 15
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 51,
+   "perClass": [
+    17,
+    17,
+    17
+   ],
+   "corrected": 0,
+   "ambiguous": 15,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 15134,
+   "of": 15
+  },
+  {
+   "n": 32,
+   "distribution": "spread",
+   "F": 54,
+   "perClass": [
+    18,
+    18,
+    18
+   ],
+   "corrected": 0,
+   "ambiguous": 15,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 31377,
+   "of": 15
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 6,
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 6,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 12,
+   "corrected": 60,
+   "ambiguous": 0,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 121,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 16,
+   "corrected": 59,
+   "ambiguous": 1,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 2372,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 18,
+   "corrected": 56,
+   "ambiguous": 4,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 10684,
+   "of": 60
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 20,
+   "corrected": 23,
+   "ambiguous": 7,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 43773,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 22,
+   "corrected": 14,
+   "ambiguous": 16,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 178003,
+   "of": 30
+  },
+  {
+   "n": 32,
+   "distribution": "concentrated",
+   "F": 24,
+   "corrected": 0,
+   "ambiguous": 16,
+   "refused": 0,
+   "wrong": 0,
+   "microsEach": 743426,
+   "of": 16
+  }
+ ]
+}

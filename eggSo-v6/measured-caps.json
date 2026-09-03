@@ -1,0 +1,203 @@
+{
+ "v0": {
+  "erasuresPerClass": 16,
+  "erasureHits": 64,
+  "erasureReadings": 8192,
+  "pairCandidates": 4096,
+  "pcCombos": 20000
+ },
+ "isolated": [
+  {
+   "experiment": "18 erasures in one class, n=32",
+   "caps": "v0, untouched",
+   "hitsSufficient": true,
+   "erasuresPerClass": 16,
+   "erasureHits": 64,
+   "erasureReadings": 8192,
+   "corrected": 0,
+   "ambiguous": 0,
+   "refused": 100,
+   "wrong": 0,
+   "of": 100,
+   "microsEach": 6
+  },
+  {
+   "experiment": "18 erasures in one class, n=32",
+   "caps": "per-class 16 -> 20, hits still 64   UNSAFE",
+   "hitsSufficient": false,
+   "erasuresPerClass": 20,
+   "erasureHits": 64,
+   "erasureReadings": 8192,
+   "corrected": 46,
+   "ambiguous": 3,
+   "refused": 49,
+   "wrong": 2,
+   "of": 100,
+   "microsEach": 6026
+  },
+  {
+   "experiment": "18 erasures in one class, n=32",
+   "caps": "hits 64 -> 4096, per-class still 16",
+   "hitsSufficient": true,
+   "erasuresPerClass": 16,
+   "erasureHits": 4096,
+   "erasureReadings": 8192,
+   "corrected": 0,
+   "ambiguous": 0,
+   "refused": 100,
+   "wrong": 0,
+   "of": 100,
+   "microsEach": 6
+  },
+  {
+   "experiment": "18 erasures in one class, n=32",
+   "caps": "both: per-class 20, hits 4096",
+   "hitsSufficient": true,
+   "erasuresPerClass": 20,
+   "erasureHits": 4096,
+   "erasureReadings": 8192,
+   "corrected": 95,
+   "ambiguous": 5,
+   "refused": 0,
+   "wrong": 0,
+   "of": 100,
+   "microsEach": 11957
+  },
+  {
+   "experiment": "18 erasures in one class, n=32",
+   "caps": "Caps::raised(20) -- the coupled raise",
+   "hitsSufficient": true,
+   "erasuresPerClass": 20,
+   "erasureHits": 1022,
+   "erasureReadings": 8192,
+   "corrected": 95,
+   "ambiguous": 5,
+   "refused": 0,
+   "wrong": 0,
+   "of": 100,
+   "microsEach": 12008
+  },
+  {
+   "experiment": "18 erasures in one class, n=32",
+   "caps": "Caps::raised(22) -- the coupled raise",
+   "hitsSufficient": true,
+   "erasuresPerClass": 22,
+   "erasureHits": 4087,
+   "erasureReadings": 32696,
+   "corrected": 95,
+   "ambiguous": 5,
+   "refused": 0,
+   "wrong": 0,
+   "of": 100,
+   "microsEach": 11954
+  },
+  {
+   "experiment": "cost of the per-class enumeration",
+   "f": 12,
+   "corrected": 29,
+   "of": 30,
+   "microsEach": 162
+  },
+  {
+   "experiment": "cost of the per-class enumeration",
+   "f": 16,
+   "corrected": 30,
+   "of": 30,
+   "microsEach": 2803
+  },
+  {
+   "experiment": "cost of the per-class enumeration",
+   "f": 18,
+   "corrected": 29,
+   "of": 30,
+   "microsEach": 11917
+  },
+  {
+   "experiment": "cost of the per-class enumeration",
+   "f": 20,
+   "corrected": 21,
+   "of": 30,
+   "microsEach": 48971
+  },
+  {
+   "experiment": "cost of the per-class enumeration",
+   "f": 22,
+   "corrected": 11,
+   "of": 30,
+   "microsEach": 199371
+  },
+  {
+   "experiment": "pair cap at n=512",
+   "pairCandidates": 4096,
+   "corrected": 70,
+   "of": 120,
+   "wrong": 0,
+   "msPerSquare": 7.55
+  },
+  {
+   "experiment": "pair cap at n=512",
+   "pairCandidates": 16384,
+   "corrected": 118,
+   "of": 120,
+   "wrong": 0,
+   "msPerSquare": 13.466666666666667
+  },
+  {
+   "experiment": "pair cap at n=512",
+   "pairCandidates": 65536,
+   "corrected": 118,
+   "of": 120,
+   "wrong": 0,
+   "msPerSquare": 13.933333333333334
+  },
+  {
+   "experiment": "pair cap at n=512",
+   "pairCandidates": 262144,
+   "corrected": 118,
+   "of": 120,
+   "wrong": 0,
+   "msPerSquare": 13.175
+  }
+ ],
+ "walls": [
+  {
+   "n": 33,
+   "burst": 12,
+   "spreadBound": 44.43540047863985,
+   "v0Corrected": 50,
+   "generousPerClass": [
+    4,
+    4,
+    4
+   ],
+   "generousCorrected": 50,
+   "verdict": "no wall here"
+  },
+  {
+   "n": 128,
+   "burst": 48,
+   "spreadBound": 60.0010564921587,
+   "v0Corrected": 50,
+   "generousPerClass": [
+    16,
+    16,
+    16
+   ],
+   "generousCorrected": 50,
+   "verdict": "no wall here"
+  },
+  {
+   "n": 256,
+   "burst": 96,
+   "spreadBound": 68.0020688921173,
+   "v0Corrected": 0,
+   "generousPerClass": [
+    32,
+    32,
+    32
+   ],
+   "generousCorrected": "absent",
+   "verdict": "INFORMATION"
+  }
+ ]
+}
