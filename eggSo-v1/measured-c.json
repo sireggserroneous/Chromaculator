@@ -1,0 +1,251 @@
+{
+ "involution": 500,
+ "1 flip": {
+  "v0": {
+   "T": 3000,
+   "corrected": 3000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 1456,
+    "fold": 91,
+    "outer": 1453
+   }
+  },
+  "c": {
+   "T": 3000,
+   "corrected": 3000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 1453,
+    "fold": 91,
+    "outer": 1456
+   }
+  },
+  "z": 0
+ },
+ "2 cross-region": {
+  "v0": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 2000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 958,
+    "fold": 94,
+    "outer": 948
+   }
+  },
+  "c": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 2000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 948,
+    "fold": 94,
+    "outer": 958
+   }
+  },
+  "z": 0
+ },
+ "3 one-per-region": {
+  "v0": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 1000,
+    "fold": 1000,
+    "outer": 1000
+   }
+  },
+  "c": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 1000,
+    "fold": 1000,
+    "outer": 1000
+   }
+  },
+  "z": 0
+ },
+ "2 same-region": {
+  "v0": {
+   "T": 2000,
+   "corrected": 527,
+   "detected": 1473,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 1054,
+   "fires": {
+    "inner": 690,
+    "fold": 666,
+    "outer": 644
+   }
+  },
+  "c": {
+   "T": 2000,
+   "corrected": 527,
+   "detected": 1473,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 1054,
+   "fires": {
+    "inner": 644,
+    "fold": 666,
+    "outer": 690
+   }
+  },
+  "z": 0
+ },
+ "2 anywhere": {
+  "v0": {
+   "T": 2000,
+   "corrected": 1074,
+   "detected": 926,
+   "wrong": 0,
+   "direct": 2142,
+   "lookup": 0,
+   "searched": 6,
+   "fires": {
+    "inner": 1484,
+    "fold": 130,
+    "outer": 1457
+   }
+  },
+  "c": {
+   "T": 2000,
+   "corrected": 1074,
+   "detected": 926,
+   "wrong": 0,
+   "direct": 2142,
+   "lookup": 0,
+   "searched": 6,
+   "fires": {
+    "inner": 1457,
+    "fold": 130,
+    "outer": 1484
+   }
+  },
+  "z": 0
+ },
+ "12 flagged burst": {
+  "v0": {
+   "T": 800,
+   "corrected": 800,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 9600,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 0,
+    "outer": 0
+   }
+  },
+  "c": {
+   "T": 800,
+   "corrected": 800,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 9600,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 0,
+    "outer": 0
+   }
+  },
+  "z": 0
+ },
+ "Fold filled": {
+  "v0": {
+   "T": 300,
+   "corrected": 0,
+   "detected": 300,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 300,
+    "outer": 0
+   }
+  },
+  "c": {
+   "T": 300,
+   "corrected": 0,
+   "detected": 300,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 300,
+    "outer": 0
+   }
+  },
+  "z": 0
+ },
+ "12-cell unflagged row burst": {
+  "v0": {
+   "T": 400,
+   "corrected": 0,
+   "detected": 400,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 264,
+    "fold": 149,
+    "outer": 254
+   }
+  },
+  "c": {
+   "T": 400,
+   "corrected": 0,
+   "detected": 400,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 254,
+    "fold": 149,
+    "outer": 264
+   }
+  },
+  "z": 0
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "cells": 22139,
+ "fixedAll": 819,
+ "indexHtmlLine": 398,
+ "expr": "pr = n - 1 - c, pc = n - 1 - r",
+ "exponentRange": [
+  33,
+  1023
+ ],
+ "foldKernel": 32
+}

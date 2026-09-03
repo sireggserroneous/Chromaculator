@@ -1,0 +1,62 @@
+{
+ "v1a": {
+  "foldFilled": {
+   "T": 300,
+   "corrected": 0,
+   "detected": 300,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 300,
+    "outer": 0
+   }
+  },
+  "flaggedBurst": {
+   "T": 800,
+   "corrected": 800,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 9600,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 0,
+    "outer": 0
+   }
+  }
+ },
+ "v1a-replaces-q": {
+  "foldFilled": {
+   "T": 300,
+   "corrected": 0,
+   "detected": 246,
+   "wrong": 54,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 300,
+    "outer": 0
+   }
+  },
+  "flaggedBurst": {
+   "T": 800,
+   "corrected": 800,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 9600,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 0,
+    "fold": 0,
+    "outer": 0
+   }
+  }
+ }
+}

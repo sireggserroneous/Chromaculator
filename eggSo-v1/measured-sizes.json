@@ -1,0 +1,66 @@
+{
+ "a": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 60,
+  "checkBytes": 8,
+  "totalBytes": 136,
+  "overhead": 0.05859375,
+  "share": 0.055350553505535055,
+  "residuesPerSquare": 5,
+  "bitsPerSquare": 60
+ },
+ "aReplacesQ": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 48,
+  "checkBytes": 6,
+  "totalBytes": 134,
+  "overhead": 0.046875,
+  "share": 0.04477611940298507,
+  "residuesPerSquare": 4,
+  "bitsPerSquare": 48
+ },
+ "b": {
+  "squares": 1,
+  "dataBytes": 66,
+  "checkBits": 48,
+  "mirrorBits": 496,
+  "checkBytes": 6,
+  "totalBytes": 134,
+  "overhead": 1.0303030303030303,
+  "share": 0.5074626865671642,
+  "shareCells": 0.484375,
+  "residuesPerSquare": 4,
+  "bitsPerSquare": 48
+ },
+ "c": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 48,
+  "checkBytes": 6,
+  "totalBytes": 134,
+  "ratio": 1.046875,
+  "overhead": 0.046875,
+  "residuesPerSquare": 4
+ },
+ "v0": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 48,
+  "checkBytes": 6,
+  "totalBytes": 134,
+  "ratio": 1.046875,
+  "overhead": 0.046875,
+  "residuesPerSquare": 4
+ },
+ "codeggV1": {
+  "squares": 1,
+  "dataBytes": 128,
+  "checkBits": 24,
+  "checkBytes": 3,
+  "totalBytes": 131,
+  "ratio": 1.0234375,
+  "overhead": 0.0234375
+ }
+}

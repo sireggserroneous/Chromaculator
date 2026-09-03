@@ -1,0 +1,156 @@
+{
+ "1 flip": {
+  "T": 3000,
+  "corrected": 3000,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 3000,
+  "lookup": 0,
+  "searched": 0,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "2 anywhere": {
+  "T": 2000,
+  "corrected": 2000,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 2192,
+  "lookup": 0,
+  "searched": 1808,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "2 same-region": {
+  "T": 1000,
+  "corrected": 1000,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 1298,
+  "lookup": 0,
+  "searched": 702,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "2 cross-region": {
+  "T": 1000,
+  "corrected": 1000,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 180,
+  "lookup": 0,
+  "searched": 1820,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "both members of one pair": {
+  "T": 500,
+  "corrected": 500,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 1000,
+  "lookup": 0,
+  "searched": 0,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "Fold-Fold": {
+  "T": 500,
+  "corrected": 500,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 0,
+  "lookup": 0,
+  "searched": 1000,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "3 one-per-region": {
+  "T": 1000,
+  "corrected": 1000,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 1010,
+  "lookup": 0,
+  "searched": 1990,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "12 unflagged in-region row burst": {
+  "T": 800,
+  "corrected": 800,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 9588,
+  "lookup": 0,
+  "searched": 12,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "12 flagged row burst": {
+  "T": 800,
+  "corrected": 800,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 9600,
+  "lookup": 0,
+  "searched": 0,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "whole Inner erased": {
+  "T": 100,
+  "corrected": 100,
+  "detected": 0,
+  "wrong": 0,
+  "direct": 49600,
+  "lookup": 0,
+  "searched": 0,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ },
+ "Fold filled": {
+  "T": 300,
+  "corrected": 0,
+  "detected": 300,
+  "wrong": 0,
+  "direct": 0,
+  "lookup": 0,
+  "searched": 0,
+  "fires": {
+   "inner": 0,
+   "fold": 0,
+   "outer": 0
+  }
+ }
+}

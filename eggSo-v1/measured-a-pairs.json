@@ -1,0 +1,146 @@
+{
+ "v1a": {
+  "sameRegion": {
+   "T": 2000,
+   "corrected": 2000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 2732,
+   "lookup": 2732,
+   "searched": 1268,
+   "fires": {
+    "inner": 669,
+    "fold": 634,
+    "outer": 697
+   }
+  },
+  "foldFold": {
+   "T": 500,
+   "corrected": 500,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 1000,
+   "fires": {
+    "inner": 0,
+    "fold": 500,
+    "outer": 0
+   }
+  },
+  "crossRegion": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 2000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 955,
+    "fold": 106,
+    "outer": 939
+   }
+  },
+  "anywhere": {
+   "T": 2000,
+   "corrected": 2000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3994,
+   "lookup": 1902,
+   "searched": 6,
+   "fires": {
+    "inner": 1461,
+    "fold": 132,
+    "outer": 1453
+   }
+  },
+  "threeOnePerRegion": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 1000,
+    "fold": 1000,
+    "outer": 1000
+   }
+  }
+ },
+ "v1a-replaces-q": {
+  "sameRegion": {
+   "T": 2000,
+   "corrected": 1817,
+   "detected": 183,
+   "wrong": 0,
+   "direct": 2632,
+   "lookup": 2632,
+   "searched": 1002,
+   "fires": {
+    "inner": 669,
+    "fold": 634,
+    "outer": 697
+   }
+  },
+  "foldFold": {
+   "T": 500,
+   "corrected": 407,
+   "detected": 93,
+   "wrong": 0,
+   "direct": 0,
+   "lookup": 0,
+   "searched": 814,
+   "fires": {
+    "inner": 0,
+    "fold": 500,
+    "outer": 0
+   }
+  },
+  "crossRegion": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 2000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 955,
+    "fold": 106,
+    "outer": 939
+   }
+  },
+  "anywhere": {
+   "T": 2000,
+   "corrected": 1965,
+   "detected": 35,
+   "wrong": 0,
+   "direct": 3926,
+   "lookup": 1834,
+   "searched": 4,
+   "fires": {
+    "inner": 1461,
+    "fold": 132,
+    "outer": 1453
+   }
+  },
+  "threeOnePerRegion": {
+   "T": 1000,
+   "corrected": 1000,
+   "detected": 0,
+   "wrong": 0,
+   "direct": 3000,
+   "lookup": 0,
+   "searched": 0,
+   "fires": {
+    "inner": 1000,
+    "fold": 1000,
+    "outer": 1000
+   }
+  }
+ }
+}

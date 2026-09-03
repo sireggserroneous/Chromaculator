@@ -1,0 +1,13 @@
+{
+ "total": 491040,
+ "distinct": 455428,
+ "excessRate": 0.0725236233300749,
+ "entriesWithTwin": 68936,
+ "twinShare": 0.1403877484522646,
+ "regionOnlyDistinct": 2052,
+ "singleAlias": 0,
+ "peelChecked": 400,
+ "peelWithTwins": 47,
+ "p": 2053,
+ "q": 2063
+}
