@@ -1,0 +1,67 @@
+{
+ "sources": [
+  "Blaum, Bruck & Vardy, Interleaving schemes for multidimensional cluster errors, IEEE Trans. Inf. Theory 44 (1998) 730-743",
+  "Perfect colourings of the infinite square grid: coverings and twin colors -- catalogue to 9 colours",
+  "Optimal interleaving schemes for correcting two-dimensional cluster errors, Discrete Applied Mathematics"
+ ],
+ "verdict": "not novel as mathematics; the tape geometry is the only part not found in the searched literature, and it is an engineering geometry",
+ "claims": [
+  {
+   "claim": "the catalogued colouring (y-x) mod 3 equals our arm (1,2)",
+   "widthsAgreeing": 39,
+   "of": 39
+  },
+  {
+   "claim": "index-3 lattice interleavers land in the linear family",
+   "inside": 20,
+   "tried": 20
+  },
+  {
+   "claim": "spatial is width-free; the tape carries every n-dependence",
+   "rows": [
+    {
+     "a": 1,
+     "b": 2,
+     "L": 12,
+     "spatialWidthFree": true,
+     "fullWidthFree": false
+    },
+    {
+     "a": 1,
+     "b": 2,
+     "L": 13,
+     "spatialWidthFree": true,
+     "fullWidthFree": true
+    },
+    {
+     "a": 2,
+     "b": 1,
+     "L": 12,
+     "spatialWidthFree": true,
+     "fullWidthFree": false
+    },
+    {
+     "a": 2,
+     "b": 1,
+     "L": 13,
+     "spatialWidthFree": true,
+     "fullWidthFree": true
+    },
+    {
+     "a": 1,
+     "b": 1,
+     "L": 12,
+     "spatialWidthFree": true,
+     "fullWidthFree": true
+    },
+    {
+     "a": 1,
+     "b": 1,
+     "L": 13,
+     "spatialWidthFree": true,
+     "fullWidthFree": true
+    }
+   ]
+  }
+ ]
+}
