@@ -470,3 +470,23 @@ a letter, so they are a sub-level, the same shape as `base | case | accent`.
 Two savings compound: one sound is one digit where `sh`, `th`, `dh` cost two,
 and the digit is eight bits rather than twelve. `/api/ipa` serves the alphabet
 and a query's reading in it.
+
+## Alphabets as tie-breakers
+
+Stack them and each one resolves what the last could not. 20,000 English words:
+
+    1. IPA alone              19,852 distinct,   293 tied (1.47%)
+    2. + Chroma UTF reading   19,937 distinct,   124 tied (0.62%)
+    3. + the spelling itself  20,000 distinct,     0 tied (0.00%)
+
+145 homophone groups survive alphabet 1 — `sicks sics six`, `right wright writ`,
+`Toni Tony tony`. Alphabet 2 splits most of them because the *reading* differs
+even when the sound does not, and alphabet 3 is total by construction: distinct
+words have distinct spellings.
+
+Levels 2 and 3 are already the key. Level 1 is not, and leading with IPA would
+move **99.7% of positions** — because an affricate is two IPA symbols, so
+`church` sorts under **t**, from the /t/ in /tʃ/. That is defensible IPA and a
+large surprise; it is a decision, not an improvement.
+
+    churchman   2,597 -> 18,328   reads churchman, sounds /tʃuɹtʃman/

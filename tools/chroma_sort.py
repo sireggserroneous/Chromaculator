@@ -91,6 +91,27 @@ def branches(seg, i=0, segs=None, word="", use_cond=True):
         return out or [(r, "", ["und"])]
     return [(r, "", ["und"])]
 
+def _digraph_possible(g, i, n):
+    """Could ANY branch of this digraph fire at this position?
+
+    Only the position-only conditions are decidable here -- ^ and $ depend on
+    the index alone, while >set and <set depend on neighbours the segmentation
+    has not chosen yet, so those are treated as possible.
+
+    Without this, a digraph whose conditions all fail was still taken as a
+    digraph, and the no-match fallback then kept it with the wrong sound: ps is
+    /s/ only word-initially, so lapse read "lase" and dips read "dis".
+    """
+    for _ipa, _rom, _l, cond, _n in DIGRAPH[g]:
+        ok = True
+        for part in cond.split(","):
+            if part == "^" and i != 0: ok = False
+            elif part == "!^" and i == 0: ok = False
+            elif part == "$" and i + len(g) != n: ok = False
+        if ok: return True
+    return False
+
+
 def segment(s):
     """Greedy longest-match. Separators become one low-sorting break."""
     out, i = [], 0
@@ -101,7 +122,8 @@ def segment(s):
             if not out or out[-1] != SEP: out.append(SEP)
             i += 1; continue
         for n in range(min(MAXG, len(s) - i), 1, -1):
-            if s[i:i+n].lower() in DIGRAPH:
+            g = s[i:i+n].lower()
+            if g in DIGRAPH and _digraph_possible(g, i, len(s)):
                 out.append(s[i:i+n]); i += n; break
         else:
             out.append(ch); i += 1

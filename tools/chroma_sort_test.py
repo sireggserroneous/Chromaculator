@@ -76,20 +76,33 @@ check(8, not bad, "context rules    " + (", ".join(f"{w}->{g}" for w, e, g in ba
       or f"all {len(CTX)} hold: c/k by what follows, kn and gh and x and ps and "
          "wh by position, s by neighbours"))
 
-# [9] the lexical hook: th is not positional at all
+# [9] a digraph whose conditions all fail is NOT a digraph
+# ps is /s/ only word-initially. Taking it as a digraph anyway and letting the
+# no-match fallback keep it gave lapse -> "lase", apse -> "ase", dips -> "dis".
+SEG = [("psalm", ["ps","a","l","m"], "salm"), ("dips", ["d","i","p","s"], "dips"),
+       ("lapse", ["l","a","p","s","e"], "lapse"), ("apse", ["a","p","s","e"], "apse"),
+       ("ghost", ["gh","o","s","t"], "gost"), ("enough", ["e","n","o","u","gh"], "enouf"),
+       ("wright", ["wr","i","gh","t"], "rit"), ("whom", ["wh","o","m"], "wom")]
+bad = [(w, e, S.segment(w)) for w, e, _r in SEG if S.segment(w) != e]
+bad += [(w, r, S.key(w, "en")[1]) for w, _e, r in SEG if S.key(w, "en")[1] != r]
+check(9, not bad, "position segmenting  " + (", ".join(f"{w}: want {e} got {g}"
+      for w, e, g in bad[:2]) or f"all {len(SEG)} hold — a digraph is only taken "
+      "where one of its branches could actually fire"))
+
+# [10] the lexical hook: th is not positional at all
 PAIRS = [("this","dhis"), ("thin","thin"), ("mother","modher"), ("month","month"),
          ("with","widh"), ("width","width"), ("breathe","breadhe"), ("breath","breath")]
 bad = [(w, e, S.key(w, "en")[1]) for w, e in PAIRS if S.key(w, "en")[1] != e]
-check(9, not bad, "lexical hook     " + (", ".join(f"{w}->{g}" for w, e, g in bad)
+check(10, not bad, "lexical hook     " + (", ".join(f"{w}->{g}" for w, e, g in bad)
       or "all 4 minimal pairs separate: /ð/ is a word list, not a rule"))
 
-# [10] real filenames, if any are around
+# [11] real filenames, if any are around
 d = os.path.expanduser("~/Downloads")
 if os.path.isdir(d):
     names = os.listdir(d)
     got = S.chroma_sorted(names, "en")
     ks = [S.key(n, "en")[0] for n in got]
-    check(10, sorted(got) == sorted(names) and all(ks[i] <= ks[i+1] for i in range(len(ks)-1)),
+    check(11, sorted(got) == sorted(names) and all(ks[i] <= ks[i+1] for i in range(len(ks)-1)),
           f"real filenames   {len(names)} names, permutation held, keys nondecreasing")
 
 print("\n  " + ("certified." if not fails else f"FAILED: {fails}"))
