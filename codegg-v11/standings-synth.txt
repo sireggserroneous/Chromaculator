@@ -1,0 +1,22 @@
+THE TOURNAMENT -- rule: wrong-or-no data after any injury forfeits; smallest lossless survivor wins
+injuries per artifact: 1-byte flip (blind) / 4 KB scratch (addressed) / 4 KB truncation
+
+file                    orig B       gzip       zstd     brotli         xz       egg6  egg6+zstd       egg7       egg8       egg9      egg10      egg11   WINNER (size)
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+archive.zst              946623 100.0%(dq) 100.0%(dq) 100.0%LIED 100.0%(dq)     107.3%     107.3%     107.7%     102.8%     102.6%     102.6%     101.9%   egg11 (964504)
+big.xml                 4156948  12.0%(dq)  10.2%(dq)   9.9%LIED   9.7%(dq)     102.5%      10.9%      11.9%      10.9%       6.8%       6.2%       6.1%   egg11 (252704)
+corpus-1489k.bin        1489000  32.1%(dq)  28.5%(dq)  28.4%LIED  28.5%(dq)     102.6%      30.7%      31.1%      29.5%      29.4%      29.4%      29.3%   egg11 (436536)
+data.csv                4960761  27.6%(dq)  23.8%(dq)  22.2%(dq)  20.4%(dq)     102.4%      24.5%      24.3%      23.9%      16.7%      15.2%      14.9%   egg11 (741236)
+photo.bin               4194304 100.0%(dq) 100.0%(dq) 100.0%LIED 100.0%(dq)     102.5%     102.5%     103.3%     102.8%     102.6%     102.6%     101.5%   egg11 (4256176)
+program.exe              265216  49.4%(dq)  44.1%(dq)  41.7%(dq)  41.1%(dq)     108.0%      48.1%      49.7%      46.3%      44.7%      41.8%      41.0%   egg11 (108672)
+real-test.bmp          12000054  30.5%(dq)  30.2%(dq)  30.3%LIED  30.1%(dq)     102.4%      31.0%      31.2%       2.3%       2.3%       2.2%       2.2%   egg11 (268588)
+real-test.db            9551872  19.5%(dq)  17.3%(dq)  17.7%LIED  15.4%(dq)     102.4%      17.7%      16.4%      15.7%      14.8%      13.3%      13.0%   egg11 (1241376)
+repo-bundle.bin          215055  32.1%(dq)  28.3%(dq)  26.7%LIED  27.7%(dq)     108.4%      36.7%      38.2%      32.0%      31.3%      28.8%      27.9%   egg11 (59940)
+server-log.json         7549839  14.8%(dq)  12.5%(dq)  12.2%(dq)  12.7%(dq)     102.4%      13.5%      14.3%      13.6%      10.9%       9.3%       9.2%   egg11 (693608)
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+podium: egg11 x10
+victory ledger (egg11, armor ON, all injuries EXACT, of 10 files):
+  vs naked xz -9               : 6/10   (v11 bars: home >=10 of 12, big >=5 of 8)
+  vs strongest gzip -9         : 8/10
+  vs egg6+zstd hybrid          : 10/10
+  <= min(egg8,egg9,egg10)      : 10/10  (v11 bar: ALL rows)

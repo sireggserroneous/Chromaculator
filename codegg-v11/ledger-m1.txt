@@ -1,0 +1,21 @@
+M-LEDGER (eggv11 vs recorded v10 bytes) -- 19 files, 8 lanes; rustc_driver deferred to M2 (the cliff)
+alarm01.wav            v10=   274208 v11=   273196 delta=   -1012 (-0.206 pt) inj=E/E/E
+aoe4-autosave.sav      v10= 17789372 v11= 17551792 delta= -237580 (-0.358 pt) inj=E/E/E
+arial.ttf              v10=   472900 v11=   470852 delta=   -2048 (-0.196 pt) inj=E/E/E
+cbs.log                v10=   151304 v11=   151304 delta=       0 (0.000 pt) inj=E/E/E
+iconcache48.db         v10=   427320 v11=   426296 delta=   -1024 (-0.001 pt) inj=E/E/E
+kernel32.dll           v10=   300832 v11=   300832 delta=       0 (0.000 pt) inj=E/E/E
+mermaid-bundle.js      v10=  4959348 v11=  4903368 delta=  -55980 (-0.217 pt) inj=E/E/E
+msgraph.dll            v10=  4665400 v11=  4612540 delta=  -52860 (-0.122 pt) inj=E/E/E
+notepad.exe            v10=   184584 v11=   184584 delta=       0 (0.000 pt) inj=E/E/E
+ntoskrnl.exe           v10=  5096588 v11=  5038548 delta=  -58040 (-0.445 pt) inj=E/E/E
+rdr2-shaders.vkcache   v10= 42895828 v11= 42312400 delta= -583428 (-1.194 pt) inj=E/E/E
+real-test.bmp          v10=   269600 v11=   268588 delta=   -1012 (-0.008 pt) inj=E/E/E
+real-test.db           v10=  1273812 v11=  1259808 delta=  -14004 (-0.147 pt) inj=E/E/E
+ring01.wav             v10=   148744 v11=   148744 delta=       0 (0.000 pt) inj=E/E/E
+segoeui.ttf            v10=   434488 v11=   432440 delta=   -2048 (-0.213 pt) inj=E/E/E
+vim-version9.txt       v10=   326432 v11=   325420 delta=   -1012 (-0.050 pt) inj=E/E/E
+wallpaper.jpg          v10=  1550852 v11=  1533228 delta=  -17624 (-1.100 pt) inj=E/E/E
+wubbadub.html          v10=    31120 v11=    31120 delta=       0 (0.000 pt) inj=E/E/E
+zstd.exe               v10=   524100 v11=   522052 delta=   -2048 (-0.128 pt) inj=E/E/E
+net bytes saved vs v10: 1029720; rows worse >0.05pt: 0; failures: 0

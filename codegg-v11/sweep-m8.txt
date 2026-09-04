@@ -1,0 +1,9 @@
+== baseline (LR=11 ISSE=10 LIMIT=1023)
+base: notepad.exe=184584 segoeui.ttf=429368 arial.ttf=468804 kernel32.dll=300832 zstd.exe=522052 vim-version9.txt=325420 wubbadub.html=30596 real-test.db=1259808 alarm01.wav=273196 ring01.wav=146184 cbs.log=151304 iconcache48.db=426296 TOTAL=4518444
+MIX10_LR=10: notepad.exe=184584 segoeui.ttf=430392 arial.ttf=470340 kernel32.dll=302368 zstd.exe=524612 vim-version9.txt=335148 wubbadub.html=30596 real-test.db=1334572 alarm01.wav=274720 ring01.wav=146696 cbs.log=151304 iconcache48.db=425272 TOTAL=4610604
+MIX10_LR=12: notepad.exe=185096 segoeui.ttf=429880 arial.ttf=469316 kernel32.dll=302880 zstd.exe=522564 vim-version9.txt=321312 wubbadub.html=30596 real-test.db=1243424 alarm01.wav=274720 ring01.wav=146184 cbs.log=151304 iconcache48.db=426808 TOTAL=4504084
+ISSE_LR=9: notepad.exe=183060 segoeui.ttf=429368 arial.ttf=468292 kernel32.dll=301344 zstd.exe=521540 vim-version9.txt=325920 wubbadub.html=30596 real-test.db=1258784 alarm01.wav=273196 ring01.wav=146184 cbs.log=151304 iconcache48.db=424760 TOTAL=4514348
+ISSE_LR=11: notepad.exe=185096 segoeui.ttf=429880 arial.ttf=469316 kernel32.dll=302880 zstd.exe=523076 vim-version9.txt=328480 wubbadub.html=30596 real-test.db=1256736 alarm01.wav=274720 ring01.wav=146696 cbs.log=151304 iconcache48.db=426296 TOTAL=4525076
+SM_LIMIT=511: notepad.exe=184584 segoeui.ttf=429368 arial.ttf=468804 kernel32.dll=302368 zstd.exe=522564 vim-version9.txt=326944 wubbadub.html=30596 real-test.db=1259808 alarm01.wav=273196 ring01.wav=146184 cbs.log=151304 iconcache48.db=426296 TOTAL=4522016
+SM_LIMIT=2047: notepad.exe=185096 segoeui.ttf=429880 arial.ttf=470340 kernel32.dll=302880 zstd.exe=524100 vim-version9.txt=326956 wubbadub.html=30596 real-test.db=1266976 alarm01.wav=274720 ring01.wav=146184 cbs.log=151304 iconcache48.db=426296 TOTAL=4535328
+sweep done (consts restored to base)

@@ -1,0 +1,8 @@
+aoe4-autosave.sav       17553840 B  FINGERPRINT MATCH
+cbs.log                   150804 B  FINGERPRINT MATCH
+iconcache48.db            424760 B  FINGERPRINT MATCH
+mermaid-bundle.js        4891080 B  FINGERPRINT MATCH
+msgraph.dll              4617660 B  FINGERPRINT MATCH
+ntoskrnl.exe             5039572 B  FINGERPRINT MATCH
+rdr2-shaders.vkcache    42312400 B  FINGERPRINT MATCH
+rustc_driver.dll        42719952 B  FINGERPRINT MATCH

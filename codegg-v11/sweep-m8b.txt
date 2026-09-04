@@ -1,0 +1,7 @@
+ISSE8: notepad.exe=183060 segoeui.ttf=429368 arial.ttf=468804 kernel32.dll=301344 zstd.exe=521540 vim-version9.txt=325920 real-test.db=1259808 iconcache48.db=424760 TOTAL=3914604
+ISSE7: notepad.exe=183060 segoeui.ttf=430392 arial.ttf=468804 kernel32.dll=301344 zstd.exe=522052 vim-version9.txt=326944 real-test.db=1260832 iconcache48.db=425272 TOTAL=3918700
+ISSE9+LR12: notepad.exe=184584 segoeui.ttf=429880 arial.ttf=468804 kernel32.dll=300832 zstd.exe=521540 vim-version9.txt=320800 real-test.db=1245472 iconcache48.db=426296 TOTAL=3898208
+LR13: notepad.exe=186120 segoeui.ttf=431928 arial.ttf=470852 kernel32.dll=303392 zstd.exe=524612 vim-version9.txt=319276 real-test.db=1241376 iconcache48.db=427832 TOTAL=3905388
+ISSE9+SM2047: notepad.exe=184584 segoeui.ttf=430392 arial.ttf=468804 kernel32.dll=302368 zstd.exe=522564 vim-version9.txt=326944 real-test.db=1266976 iconcache48.db=426296 TOTAL=3928928
+ISSE8+LR12: notepad.exe=184584 segoeui.ttf=429880 arial.ttf=468804 kernel32.dll=300832 zstd.exe=521540 vim-version9.txt=320800 real-test.db=1246496 iconcache48.db=426296 TOTAL=3899232
+round 2 done (base restored)

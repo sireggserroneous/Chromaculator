@@ -1,0 +1,34 @@
+target/
+corpus/
+corpus*/
+*.bin
+*.dll
+*.exe
+*.sav
+*.ttf
+*.wav
+*.bmp
+*.db
+*.jpg
+*.png
+*.vkcache
+*.egg*
+*.out
+*.xz
+*.zst
+
+# artifacts the tools in this project write into their own directory
+# (tools/*.js default their scratch prefix to ".") -- derived from their
+# writeFileSync targets, not guessed
+w.hurt
+w.dec
+rec-*
+sh.*
+a.*
+a2.*
+a3.*
+v.*
+v2.*
+vd.*
+vh.*
+vhd.*

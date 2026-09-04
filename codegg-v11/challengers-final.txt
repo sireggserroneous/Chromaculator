@@ -1,0 +1,28 @@
+THE CHALLENGERS CARD -- same injuries, same rule: every wound EXACT or forfeit. 12 lanes.
+file                    orig B          rar   f/s/t        xz+par2   f/s/t
+------------------------------------------------------------------------------------------
+alarm01.wav              491516    69.0%(dq)   E/E/x           80.0%   E/E/E   
+arial.ttf               1045720    52.6%(dq)   E/E/x           50.4%   E/E/E   
+kernel32.dll             836208    43.6%(dq)   E/E/x           43.3%   E/E/E   
+notepad.exe              360448    59.1%(dq)   E/E/x           59.5%   E/E/E   
+real-test.bmp          12000054    31.9%(dq)   E/E/x           33.2%   E/E/E   
+real-test.db            9551872    18.9%(dq)   E/E/x           17.1%   E/E/E   
+ring01.wav               498420    49.0%(dq)   E/E/x           57.7%   E/E/E   
+segoeui.ttf              959752    52.0%(dq)   E/E/x           49.8%   E/E/E   
+vim-version9.txt        2035039    21.4%(dq)   E/E/x           20.7%   E/E/E   
+wallpaper.jpg           1602752   104.5%(dq)   E/E/x          108.6%   E/E/E   
+wubbadub.html             92408    31.2%(dq)   E/x/x           47.2%   E/E/E   
+zstd.exe                1601409    39.6%(dq)   E/E/x           37.6%   E/E/E   
+aoe4-autosave.sav      66417543    28.6%(dq)   E/E/x           25.9%   E/E/E   
+cbs.log                16187036     1.2%(dq)   E/E/x            1.0%   E/E/E   
+iconcache48.db         97517568     0.8%(dq)   E/E/x            0.5%   E/E/E   
+mermaid-bundle.js      25842004    22.7%(dq)   E/E/x           19.8%   E/E/E   
+msgraph.dll            43249696    13.9%(dq)   E/E/x           11.3%   E/E/E   
+ntoskrnl.exe           13047280    45.1%(dq)   E/E/x           43.5%   E/E/E   
+rdr2-shaders.vkcache   48872878    91.2%(dq)   E/E/x           88.0%   E/E/E   
+rustc_driver.dll      183111168    26.8%(dq)   E/E/x           23.4%   E/E/E   
+changelog.md            1209208    20.7%(dq)   E/E/x           17.8%   E/E/E   
+embeddings.json        15801527    39.7%(dq)   E/E/x           34.4%   E/E/E   
+msgraph-docs.xml       85479009     2.2%(dq)   E/E/x            2.6%   E/E/E   
+------------------------------------------------------------------------------------------
+E=EXACT restore, x=failed, W=wrong bytes; (dq) = forfeited at least one injury
