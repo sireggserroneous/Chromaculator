@@ -1112,3 +1112,62 @@ trading up to 0.5% of bytes against a full serial decode of the winning arm.
 `zstd.exe` it costs 2,246 B; the question is what it costs across the corpus and
 whether the decode is worth it at every size. That is a trade to measure, not a
 constant to change, and it needs its own prediction before anyone touches it.
+
+## N4 PRICED before it is built — a ZIP row costs us HALF
+
+N4 was queued as "the largest new file class" with an unpriced payoff, because
+no ZIP row exists in the corpus. Two real ZIPs off this machine, measured from
+scratch rather than added to the corpus (that is a decision to take, not to
+assume):
+
+| row | members | ours (model 16, no ZIP peel) | zpaq -m5 | precomp -cn + zpaq -m5 |
+|---|---|---|---|---|
+| `python312.zip` (FL Studio's bundled Python 3.12 stdlib) | **599 deflate**, 0 stored | 3,753,980 | 3,742,241 (-0.31%) | **1,847,299 (-50.79%)** |
+| `IPF-2.2.10205.3620.zip` (Alienware IPFCore) | 31 deflate, 3 stored | 5,653,821 | 5,642,170 (-0.21%) | **2,534,113 (-55.18%)** |
+
+**We lose 50-55% on ZIP, and the whole of it is the peel.** zpaq beats us by only
+0.2-0.3% there, because an unpeeled ZIP is incompressible to everyone -- the
+rival's entire advantage is that it opens the members and we do not.
+
+Against the board that makes N4 the largest lever by a wide margin: **half of any
+ZIP row**, against 1,962,323 B (3-5%) for the PE model gap and 265,778 B for the
+JPEG peel. And it now inherits the PREDICTED recipe rather than the stored one,
+which is exactly what N3b was sequenced first to buy: `python312.zip`'s 599
+members would each have carried a stored parse under v13's format.
+
+A third shape found and worth recording: `intellij.libraries.icu4j.jar` is 35.6
+MB of **5,826 STORED members and zero deflate** -- a ZIP that needs no peel at
+all, only member-boundary awareness. N4 should not assume every ZIP is deflate.
+
+## N6 PRICED — FLAC reproduces, and it is not the ceiling
+
+At its strongest documented setting (`-8 -e -p --keep-foreign-metadata`), both
+rows **restore EXACT**:
+
+| row | ours | FLAC | gap |
+|---|---|---|---|
+| alarm01.wav | 235,196 | 209,449 | **-10.95%** |
+| ring01.wav | 130,753 | 98,450 | **-24.71%** |
+
+v13's readings (-10.68% / -22.63%) reproduce and were slightly conservative.
+**N6 against FLAC is worth 58,050 B over two rows.** But paq8px gets
+`alarm01.wav` to 143,511 -- 38.98% under us and 31.7% under FLAC -- so LPC+Rice
+is not the ceiling on that row, it is a step toward it. The audio deficit
+against the state of the art is ~124,000 B, and a FLAC-shaped peel collects
+under half of it.
+
+## The 0.5% filter margin, PRICED and CLOSED
+
+Filed at N3c as a trade nobody had costed. Across `corpus-real`:
+
+| row | verdict | bytes |
+|---|---|---|
+| zstd.exe | discarded by the margin | **2,246 left on the table** |
+| segoeui.ttf | discarded by the margin | **1,198 left on the table** |
+| arial.ttf | discarded | the filtered form was **954 B BIGGER** -- correctly refused |
+
+**3,444 B across the whole home corpus**, and in exchange every one of those rows
+avoids setting `fid != 0` and firing the in-memory round-trip law -- a full
+serial decode of the winning arm, which N2c measured at 28% of a row. **The
+margin is a good trade and does not want changing.** Measured and closed rather
+than left as a suspicion.
