@@ -239,7 +239,9 @@ there is no side to be on. **Left** and **right** are total-order words and cann
 the Winning Ways convention: bLue is Left, Red is Right. The vocabulary did not happen to fit. It
 is the only vocabulary that can.
 
-The order, Red to Blue:
+The order, Red to Blue. The low side is corroborated by two independent sources: Winning Ways
+vol. 1 p. 126 for the tinies and for `up = tiny-zero`, and Maitzen's *Hackenbush* video for
+`tiny-on < tiny < up < over < ε`, which is exactly this chain's left half:
 
 ```
 −0 | tiny-on | tiny | up | over | +ε | ±ω | −ε | under | down | miny | miny-on | +0
@@ -268,6 +270,10 @@ report.
 The book also writes tiny-`x` as `+ₓ` and miny-`x` as `−ₓ`. The two halves of this
 structure are called plus and minus in the source, which is where the site's `+/−` address
 notation would have come from had it started here instead of at the other end.
+
+`tiny-on` being the floor is not an inference from the parameter rule — it is stated outright:
+*"It's the number tiny-on, usually just called tiny, and it's the tiniest number there is."* And
+`under = −over` is stated in the same source, so the two halves are one negation apart there too.
 
 **The rim is made of the centre.** `tiny-on` is not tiny stacked on tiny — `on` is a game, and
 `tiny-on` is tiny *parameterised by* it: the smallest thing you can build, made out of the biggest
@@ -323,6 +329,6 @@ is one green cell.
 
 ## Open questions
 
-- Whether `over > n·↑` for all `n`, which the ordering above assumes. Everything else in the chain is now cited to Winning Ways vol. 1 p. 126, but over is a loopy game and lives in ch. 11, *Games Infinite and Indefinite* — volume 2, which is not on the shelf. ONAG ch. 11 covers the same ground.
+- Whether `over > n·↑` for **every** `n`. The direction is settled: `over` is *named* for sitting over up — Maitzen's *Hackenbush* gives the whole descending chain as reals, ε, the powers of ε, over, up, tiny-1, tiny-2, and calls tiny-on the tiniest number there is. That corroborates the chain above independently. What is still uncited is the strict multiple form, which is a loopy-game fact from ch. 11, *Games Infinite and Indefinite* — volume 2, not on the shelf. ONAG ch. 11 covers the same ground.
 - Whether the horizon rings belong on the Atlas as a continuation, given that the geometry changes from hyperbolic to logarithmic at the boundary.
 - Whether the remainder should be reported in `A`'s units, as here, or as `R/B` in the quotient's.
