@@ -63,3 +63,35 @@ full accounting, with links.
 What I have not been able to place is the fold itself: laying a digit string along the
 anti-diagonals of a square and cutting it into three regions that sum back to the
 number. Held loosely.
+
+## The ordering
+
+`data/chroma-base.tsv` is the Chroma UTF base table: 306 Latin letters and
+digits ordered `base | case | accent`, generated from the real DUCET
+(`data/allkeys.txt`) with case ranked above accent. It is the one source — the
+certificate reads it rather than re-deriving it, because deriving it a second
+time with `Intl.Collator` gave a different accent order. Locale collation is
+not DUCET.
+
+    tools/fetch-ucd.sh            # allkeys.txt + Unihan, into data/ (not committed)
+    python3 tools/chroma_utf.py   # orders every assigned codepoint, certifies, writes data/
+    node tools/chroma-order.test.js   # the 8-property certificate on the base table
+
+`tools/chroma_utf.py` extends the ordering over the whole character map. Every
+assigned codepoint gets a reading and sorts as if spelled in Chroma UTF; the
+reading comes from Unicode's own data rather than a hand table.
+
+| layer | source | characters |
+|---|---|---|
+| 1 | in Chroma UTF — Latin, digits | 306 |
+| 2 | Hangul — the Unicode name *is* the romanisation | 11,172 |
+| 3 | Han — Unihan `kMandarin`, then Cantonese, on'yomi, Korean, plus `kTotalStrokes` | 47,063 |
+| 3\* | Han with no reading on file — falls back to its name | 51,619 |
+| 4 | other script — the letter core of the Unicode name | 15,033 |
+| 5 | symbol / emoji — the whole name (`TOP HAT`) | 23,660 |
+| 6 | unnamed — private use, controls; sort last by codepoint | 143,678 |
+
+Key, most significant first: `letters… | 0 | language | tone | strokes | codepoint`.
+The letter run is 0-terminated, so a reading that is a prefix of another sorts
+first. The tail levels are the tie breaks, each a sub-level of consecutive
+codes — the same shape as `e < é < è < ê < ë`.

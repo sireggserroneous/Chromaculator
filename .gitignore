@@ -4,3 +4,10 @@
 # the reference shelf. published books, hardlinked in from ~/Downloads --
 # readable locally at /refs/, never committed and never pushed.
 refs/*.pdf
+
+# Chroma UTF build inputs and the full generated ordering — all regenerable
+# with tools/fetch-ucd.sh + python3 tools/chroma_utf.py
+data/allkeys.txt
+data/unihan.json
+data/chroma-order.tsv
+tools/__pycache__/
