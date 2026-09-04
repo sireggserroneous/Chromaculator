@@ -11,3 +11,4 @@ data/allkeys.txt
 data/unihan.json
 data/chroma-order.tsv
 tools/__pycache__/
+data/chroma-phonetic.tsv

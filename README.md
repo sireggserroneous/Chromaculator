@@ -95,3 +95,41 @@ Key, most significant first: `letters… | 0 | language | tone | strokes | codep
 The letter run is 0-terminated, so a reading that is a prefix of another sorts
 first. The tail levels are the tie breaks, each a sub-level of consecutive
 codes — the same shape as `e < é < è < ê < ë`.
+
+## The phonetic index — multi-listing
+
+We read C as /k/ or /s/, so C belongs in the k path **and** the s path. Every
+character is listed in every place its sound can put it, which makes the
+phonetic ordering an **index** rather than a permutation: one entry per
+(character, reading, language).
+
+    python3 tools/chroma_phonetic.py
+
+    entries            370,571
+    multi-listed       27,732 characters sit in more than one place
+    widest             阸×16, 啐×14, 噦×13, 噲×13, 僤×13
+
+飼 sits in seven places — `si` (Mandarin), `zi` (Cantonese), `shi` and `ji`
+(on'yomi), `kau` and `yashinau` (kun'yomi), `sa` (Korean). 行 sits in ten.
+
+**Language is a filter, not a level.** Declare it and the impossible branches
+are pruned; what remains is a *subsequence* of the full order, never a
+reordering of it — that is property [4] of the certificate, checked by
+comparing sort-then-filter against filter-then-sort. Region narrows a language
+rather than siding with another region, so a request for `es-ES` accepts
+entries tagged `es` but not `es-419`.
+
+    c in Spanish (Spain)          /θ/  /k/
+    c in Spanish (Latin America)  /s/  /k/
+    c in Italian                  /tʃ/ /k/
+    c in English                  /k/  /s/
+
+Which is what rules out the impossible readings: *Cerveza* in Latin America has
+`z` = /s/, so seseo `c` can no longer pair with distinción `z`. Two branches for
+the word, not 108.
+
+**The final tie break is the spelling, and the spelling order is the spine.**
+Sound discards the accent — á, ä and ǎ all read `a` — so entries that tie on
+sound fall back to Chroma UTF's own declared order rather than to the
+codepoint. The `a` run reads `a á à ă â ǎ å ǻ ä ǟ ã ȧ ǡ ą ā ȁ ȃ` inside the
+phonetic index too.
