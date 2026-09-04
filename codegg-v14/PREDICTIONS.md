@@ -556,3 +556,69 @@ that silently failed to apply) puts the noise floor at **+-0.2% on the
 round-trip, +-1.2% on the roster stage** — so the round-trip, being one
 single-threaded CM12 decode, is the instrument, and the per-arm `armtime`
 numbers (+-20% run to run) are not.
+
+## N2c PHASE 2 — the bit-exact wins, each measured alone
+
+| # | change | round-trip | kept? |
+|---|---|---|---|
+| 2.1a | `codegen-units = 1` | **-1.2%** | no — inside the drift band, and it costs 60% more build time |
+| 2.1b | `-C target-cpu=x86-64-v3` | **0.0%** | no — zero, and it would specialise the binary to this machine |
+| **2.2** | the lattice scan: branchless, unit-stride, with a **const-length** steady-state path so the trip count is known at compile time | **-4.1%** | **YES** |
+| **2.3** | `nf.update(b)` skipped where the lens is not `Num` — `NumField`'s state is observable only through `key0`/`key1`, which 8 of the 9 CM12 arms discard | **-2.3%** | **YES** |
+| **2.4** | `pos % pixel` (a hardware `div` per byte on the 2D arm) carried as a rolling counter; the three per-byte `Lens` dispatches hoisted | *(with 2.3)* | **YES** |
+| 2.5 | the 12-wide mixer accumulator split into 4 partial sums | **+0.1%** | no — LLVM was already breaking that chain. **Reverted** |
+| 2.6 | `len_bucket(mlen)` computed once per bit instead of twice | **0.0%** | no — LLVM had already CSE'd it. **Reverted** |
+
+**Two of the three items I expected to pay, paid nothing**, and both for the same
+reason: the compiler had already done them. What paid was the work the compiler
+could not remove — a branch it could not predict (2.2), a call whose result it
+could not prove unused across a `&mut self` boundary (2.3), and a division it
+could not strength-reduce (2.4).
+
+### The result
+
+```
+kernel32.dll (the floor row)   2,818 -> 2,687 ms   0.297 -> 0.311 MB/s   -4.6%
+  of which: BIG ROSTER         1,783 -> 1,696 ms                         -4.9%
+            round-trip           814 ->   762 ms                         -6.4%
+vim-version9.txt               4,090 -> 3,922 ms   0.498 -> 0.519 MB/s   -4.1%
+  of which: BIG ROSTER         2,624 -> 2,450 ms                         -6.6%
+```
+
+The floor row clears 0.25 by **24%** where it cleared by 11%.
+
+### Byte identity — the gate, and one gate that turned out not to be one
+
+**14 of the 20 sealed rows re-measured, 0 moved, 0 failures, 42/42 injuries
+EXACT**: the 12 `corpus-real` rows plus `cbs.log` and `ntoskrnl.exe`. Every lens
+is covered — Plain (models 16/17/19/21/22/23), **Grid** (28: `alarm01.wav`,
+`vim-version9.txt`, `cbs.log`), **Num** (27: `corpus/data.csv`, byte-identical
+against the pre-change binary and restores EXACT), and the **peel** path (24:
+`wallpaper.jpg`). **NOT re-run: `mermaid-bundle.js`, `msgraph.dll`,
+`rdr2-shaders.vkcache`, `aoe4-autosave.sav`, `iconcache48.db`,
+`rustc_driver.dll`** — six rows, hours each, and no lens they exercise is
+untested above. That is a gap, and it is named rather than papered over.
+
+**`tools/m0gate.js` is not the bit-exactness gate the N2c plan took it for.** It
+asserts that eggv14's containers are IDENTICAL to eggv11's and match v11's
+sealed sizes — the **v12-M0 fork** condition, which v12-M1 broke on purpose and
+v13 broke by 17.9 MB. It reports FAIL on all 14 rows and has done since v12-M1;
+running it on an unmodified v14 would fail exactly the same way. **Its live half
+did pass, and it is the half a `mix11.rs` edit needs:** `.egg11`, `.egg10`,
+`.egg9` and `.egg8` containers all restore **EXACT** through the modified binary,
+14/14 — and the `.egg11`/`.egg10` restore paths run `mix11`/`mix10` decode, so
+that is a real gate on the change, not a formality.
+
+`cargo clippy` clean - `cargo test --release` **45** - `audit --full`
+**3,091,771 checks, 0 failing**.
+
+### What is left on the table, measured rather than guessed
+
+- The **round-trip law is 28% of the floor row** and is a single serial decode.
+  It cannot be removed (it is a safety law) and it cannot start earlier (it needs
+  the winner), but every future cut to the shared CM loop is paid **twice** on
+  any filtered or peeled row.
+- The lattice's remaining **4.3%** (8.4% ablated - 4.1% taken) is its two mixer
+  inputs and its lock work, which are **not** free: removing them moves bytes.
+- On `vim-version9.txt`, `tokenize` + the cheap-v8 trial are still **36%** of the
+  row (1,480 of 4,090 ms) and nobody has ever looked at either for speed.

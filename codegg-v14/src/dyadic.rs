@@ -2644,13 +2644,21 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>, lens
     if let Some(b) = book {
         lm.apply_book(b);
     }
+    // v14-N2c item 2.4: the lens is a `Copy` parameter and never moves inside
+    // the loop, so its three dispatches per byte are loop-invariant. `phase2d`
+    // is `pos % pixel` carried as a counter -- `pos` steps by one, so the
+    // per-byte hardware division goes and the key is the same value.
+    let plain = matches!(lens, Lens::Plain);
+    let numeric = matches!(lens, Lens::Num);
+    let grid = match lens { Lens::Grid(st, px) => Some((st, px)), _ => None };
+    let mut phase2d = 0usize;
     let mut hist: usize = 0;
     for pos in 0..src.len() {
         let b = src[pos];
-        let (kk0, kk1) = match lens {
-            Lens::Plain => (0, 0),
-            Lens::Num => (nf.key0(), nf.key1()),
-            Lens::Grid(st, px) => crate::twod::keys(src, pos, st, px),
+        let (kk0, kk1) = match grid {
+            Some((st, px)) => crate::twod::keys_phase(src, pos, st, px, phase2d),
+            None if numeric => (nf.key0(), nf.key1()),
+            None => (0, 0),
         };
         let prev4 = tail4_11(src, pos);
         let t8 = tail8_11(src, pos);
@@ -2667,7 +2675,7 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>, lens
         let cx0 = lm.ctx18(prev4, 0, 0);
         let c30 = lm.ctx20(t8, 3, 0, 0);
         let c60 = lm.ctx20(t8, 6, 0, 0);
-        let (s10, s20) = if matches!(lens, Lens::Plain) {
+        let (s10, s20) = if plain {
             (lm.ctx_sparse(t8, 0, 0, 0), lm.ctx_sparse(t8, 1, 0, 0))
         } else {
             (lm.ctx_key(kk0, 0, 0, 0), lm.ctx_key(kk1, 1, 0, 0))
@@ -2679,7 +2687,7 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>, lens
         let cx1 = lm.ctx18(prev4, 1, hi);
         let c31 = lm.ctx20(t8, 3, 1, hi);
         let c61 = lm.ctx20(t8, 6, 1, hi);
-        let (s11, s21) = if matches!(lens, Lens::Plain) {
+        let (s11, s21) = if plain {
             (lm.ctx_sparse(t8, 0, 1, hi), lm.ctx_sparse(t8, 1, 1, hi))
         } else {
             (lm.ctx_key(kk0, 0, 1, hi), lm.ctx_key(kk1, 1, 1, hi))
@@ -2688,7 +2696,18 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>, lens
         let i21c = lm.ctx_ind2((t8 & 0xffff) as usize, 1, hi);
         enc_nib12(&mut rc, &mut lm, lo, mlo, &mut still, hist, cx1, c31, c61, s11, s21, i11c, i21c, mm_pred, &mut malive, 1, am);
         hist = ((hist << 4) | lo as usize) & 0xffff;
-        nf.update(b);
+        // v14-N2c item 2.3: `nf`'s state is observable only through key0/
+        // key1, which every lens but Num throws away -- so stepping it there
+        // is unobservable work on 8 of the 9 CM12 arms.
+        if numeric {
+            nf.update(b);
+        }
+        if let Some((_, px)) = grid {
+            phase2d += 1;
+            if phase2d == px {
+                phase2d = 0;
+            }
+        }
         lm.byte_update(src, pos + 1);
     }
     if std::env::var_os("EGG_STATEHASH").is_some() {
@@ -2721,13 +2740,21 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
         lm.apply_book(b);
     }
     let mut out: Vec<u8> = Vec::with_capacity(orig_len);
+    // v14-N2c item 2.4: the lens is a `Copy` parameter and never moves inside
+    // the loop, so its three dispatches per byte are loop-invariant. `phase2d`
+    // is `pos % pixel` carried as a counter -- `pos` steps by one, so the
+    // per-byte hardware division goes and the key is the same value.
+    let plain = matches!(lens, Lens::Plain);
+    let numeric = matches!(lens, Lens::Num);
+    let grid = match lens { Lens::Grid(st, px) => Some((st, px)), _ => None };
+    let mut phase2d = 0usize;
     let mut hist: usize = 0;
     while out.len() < orig_len {
         let pos = out.len();
-        let (kk0, kk1) = match lens {
-            Lens::Plain => (0, 0),
-            Lens::Num => (nf.key0(), nf.key1()),
-            Lens::Grid(st, px) => crate::twod::keys(&out, pos, st, px),
+        let (kk0, kk1) = match grid {
+            Some((st, px)) => crate::twod::keys_phase(&out, pos, st, px, phase2d),
+            None if numeric => (nf.key0(), nf.key1()),
+            None => (0, 0),
         };
         let prev4 = tail4_11(&out, pos);
         let t8 = tail8_11(&out, pos);
@@ -2742,7 +2769,7 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
         let cx0 = lm.ctx18(prev4, 0, 0);
         let c30 = lm.ctx20(t8, 3, 0, 0);
         let c60 = lm.ctx20(t8, 6, 0, 0);
-        let (s10, s20) = if matches!(lens, Lens::Plain) {
+        let (s10, s20) = if plain {
             (lm.ctx_sparse(t8, 0, 0, 0), lm.ctx_sparse(t8, 1, 0, 0))
         } else {
             (lm.ctx_key(kk0, 0, 0, 0), lm.ctx_key(kk1, 1, 0, 0))
@@ -2754,7 +2781,7 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
         let cx1 = lm.ctx18(prev4, 1, hi);
         let c31 = lm.ctx20(t8, 3, 1, hi);
         let c61 = lm.ctx20(t8, 6, 1, hi);
-        let (s11, s21) = if matches!(lens, Lens::Plain) {
+        let (s11, s21) = if plain {
             (lm.ctx_sparse(t8, 0, 1, hi), lm.ctx_sparse(t8, 1, 1, hi))
         } else {
             (lm.ctx_key(kk0, 0, 1, hi), lm.ctx_key(kk1, 1, 1, hi))
@@ -2764,7 +2791,18 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
         let lo = dec_nib12(&mut rd, &mut lm, mlo, &mut still, hist, cx1, c31, c61, s11, s21, i11c, i21c, mm_pred, &mut malive, 1, am);
         hist = ((hist << 4) | lo as usize) & 0xffff;
         out.push(((hi << 4) | lo) as u8);
-        nf.update(((hi << 4) | lo) as u8);
+        // v14-N2c item 2.3: `nf`'s state is observable only through key0/
+        // key1, which every lens but Num throws away -- so stepping it there
+        // is unobservable work on 8 of the 9 CM12 arms.
+        if numeric {
+            nf.update(((hi << 4) | lo) as u8);
+        }
+        if let Some((_, px)) = grid {
+            phase2d += 1;
+            if phase2d == px {
+                phase2d = 0;
+            }
+        }
         lm.byte_update(&out, out.len());
     }
     if std::env::var_os("EGG_STATEHASH").is_some() {

@@ -50,7 +50,7 @@ call counts per caller, codewords read vs handed, and the locator's measured
 `m`, `k`, `m-k` and `n`. **Keep them** — they are what makes the next armor
 claim checkable.
 
-### N2 — reclaim the speed headroom. **HALF DONE. PICK UP HERE.**
+### N2 — reclaim the speed headroom. **DONE (N2/N2b/N2c).**
 
 **Done:** the 2D arm no longer runs where a dialect book already matched
 (`src/main.rs`, `let rect = if wide && dialect.is_none() { ... }`). The argument,
@@ -103,6 +103,43 @@ a loaded machine) but **no speed claim attaches to it.**
    moved, then N2's measured column in `PREDICTIONS.md`.
 
 ---
+
+### N2c — the CM inner loop. DONE. **PICK UP AT N3.**
+
+**Result: `kernel32.dll` 0.297 -> 0.311 MB/s, `vim-version9.txt` 0.498 ->
+0.519 MB/s, every byte identical.** The floor row now clears 0.25 by 24%.
+Three items paid (the lattice scan made branchless and const-length; the
+number-field tracker not stepped where its keys are discarded; `pos % pixel`
+rolled instead of divided). Three measured ZERO and were reverted -- the
+compiler had already done them.
+
+**Four things a fresh context must not re-learn the hard way:**
+
+- **This machine drifts ~4% between measurement sessions**, which is the size
+  of every effect here. Two flags were published as -3.3% and -4.7% losses
+  before the baseline was re-read and both turned out to be ZERO. **Measure
+  interleaved A/B in one shell, medians of 4-5 alternating runs.** The harness
+  is `scratchpad/ab.sh`; the noise floor is +-0.2% on the round-trip.
+- **The instrument is the round-trip, not `armtime`.** Per-arm times swing
+  +-20% run to run because ~30 arm threads share 24 cores; N2b's published
+  plateau ORDER was one sample and does not reproduce. The plateau's
+  MEMBERSHIP (8 CM arms above 6 MIX arms) is 100% stable and is arithmetic.
+- **`tools/m0gate.js` cannot pass and has not since v12-M1.** It asserts v14 ==
+  v11 byte for byte (the v12-M0 fork condition). Its ancestor-compat half is
+  live and does pass 14/14. Do not read its FAIL as a regression.
+- **The round-trip law is 28% of the floor row** and fires on `fid != 0`, not
+  only at 64 MB -- so it hits every filtered or peeled row. It is a serial
+  single-threaded decode of the winning arm, which means every future cut to
+  the shared CM loop is paid twice.
+
+**Owed:** six sealed rows were NOT re-run (`mermaid-bundle.js`, `msgraph.dll`,
+`rdr2-shaders.vkcache`, `aoe4-autosave.sav`, `iconcache48.db`,
+`rustc_driver.dll`) -- hours each, and no lens they exercise is untested. Run
+them in pairs when convenient.
+
+**Line for a future speed milestone, priced:** the lattice's remaining 4.3% and
+the ISSE/APM stages all MOVE BYTES. On text rows `tokenize` + the cheap-v8
+trial are 36% of the clock and have never been looked at.
 
 ## Then, in order: N3 · N4 · N5 · N6 · N7
 

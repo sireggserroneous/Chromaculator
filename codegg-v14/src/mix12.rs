@@ -393,9 +393,27 @@ impl Mix12 {
         let p = pos_new;
         if self.lat_state == 0 {
             let smax = LAT_SMAX.min(p.saturating_sub(1));
-            for st in 3..=smax {
-                if buf[p - 1 - st] == b {
-                    self.lat_cnt[st] += 1;
+            // v14-N2c item 2.2: the SAME 382 comparisons and the same increments,
+            // written so both sides are unit-stride and the compare is branchless --
+            // `st` ascending walks `lat_cnt` forward while the window is read in
+            // reverse, which is the pairing the index arithmetic already implied.
+            // Addition commutes, so the counters are identical byte for byte; the
+            // point is that LLVM can vectorise the compare instead of emitting 382
+            // bounds-checked loads behind an unpredictable branch. Measured against
+            // `lat_state = 2` (the detector removed entirely), which is worth 8.4%
+            // on the round-trip -- this is the bit-exact share of it.
+            if smax == LAT_SMAX {
+                // the steady state, and it is almost the whole file: both slices are
+                // exactly LAT_SMAX - 2 long at COMPILE time, so there is no bounds
+                // check and no runtime trip count left to defeat the vectoriser.
+                let win = &buf[p - 1 - LAT_SMAX..p - 3];
+                for (c, &v) in self.lat_cnt[3..=LAT_SMAX].iter_mut().zip(win.iter().rev()) {
+                    *c += (v == b) as u32;
+                }
+            } else if smax >= 3 {
+                let win = &buf[p - 1 - smax..p - 3];
+                for (st, &v) in (3..=smax).zip(win.iter().rev()) {
+                    self.lat_cnt[st] += (v == b) as u32;
                 }
             }
             if p == LAT_LOCK1 || p == LAT_LOCK2 {

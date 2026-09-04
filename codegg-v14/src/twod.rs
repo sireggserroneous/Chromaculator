@@ -101,8 +101,12 @@ pub fn nominate(src: &[u8]) -> Option<(u32, u32)> {
 /// the two 2D context keys at `pos`, read from bytes already coded. `buf` is
 /// the source when encoding and the output so far when decoding, and they are
 /// the same bytes, which is the whole reason this is legal.
+/// v14-N2c item 2.4: the two keys, with `pos % pixel` handed IN. `pos` steps
+/// by one per byte, so the coding loops carry the phase as a counter and the
+/// per-byte hardware division disappears -- the key is the same value, and
+/// alarm01.wav and vim-version9.txt (both 2D wins) prove it to the byte.
 #[inline]
-pub fn keys(buf: &[u8], pos: usize, stride: usize, pixel: usize) -> (u64, u64) {
+pub fn keys_phase(buf: &[u8], pos: usize, stride: usize, pixel: usize, phase: usize) -> (u64, u64) {
     let at = |d: usize| -> u64 {
         if d <= pos {
             buf[pos - d] as u64
@@ -114,7 +118,7 @@ pub fn keys(buf: &[u8], pos: usize, stride: usize, pixel: usize) -> (u64, u64) {
     let n = at(stride);
     let nw = at(stride + pixel);
     let ne = if stride >= pixel { at(stride - pixel) } else { 0x100 };
-    let phase = (pos % pixel) as u64;
+    let phase = phase as u64;
     let k0 = n | (w << 9) | (phase << 18) | (0xB1u64 << 56);
     let k1 = nw | (ne << 9) | (n << 18) | (phase << 27) | (0xB2u64 << 56);
     (k0, k1)
@@ -157,8 +161,8 @@ mod tests {
     fn the_keys_are_causal() {
         let buf: Vec<u8> = (0..1000u32).map(|i| (i * 7) as u8).collect();
         for pos in 0..buf.len() {
-            let (k0, k1) = keys(&buf, pos, 192, 4);
-            let (j0, j1) = keys(&buf[..pos + 1], pos, 192, 4);
+            let (k0, k1) = keys_phase(&buf, pos, 192, 4, pos % 4);
+            let (j0, j1) = keys_phase(&buf[..pos + 1], pos, 192, 4, pos % 4);
             assert_eq!(k0, j0, "pos {}", pos);
             assert_eq!(k1, j1, "pos {}", pos);
         }
