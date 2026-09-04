@@ -1204,3 +1204,43 @@ the blob needs to carry N recipes plus the inter-member bytes verbatim.
 `intellij.libraries.icu4j.jar`, 35.6 MB of **5,826 STORED members, zero
 deflate**. Nothing to peel; only the member boundaries matter. A ZIP peel that
 assumes deflate would refuse it, or worse, expand it.
+
+## N5 — CANNOT be priced from this machine, and the reason is itself a finding
+
+The corpus holds exactly **8 progressive (SOF2) files of 60**, which matches the
+handoff's account of packJPG's 51/60 against our 43 to the file. Our JPEG peel
+refuses them, so they ride the ordinary ladder (models 5 and 17 -- no JPEG model
+at all).
+
+Measured against the only JPEG-capable rival installed, on 5 of the 8:
+
+| file | ours | paq8px | gap |
+|---|---|---|---|
+| Dark000 | 409,508 | 398,628 | -2.7% |
+| Dark001 | 95,354 | 85,651 | -10.2% |
+| Dark002 | 182,821 | 173,093 | -5.3% |
+| Dark003 | 80,798 | 71,288 | -11.8% |
+| Light000 | 559,554 | 547,577 | -2.1% |
+
+**paq8px is 2-12% ahead on progressive, against 23.69% on baseline
+`wallpaper.jpg`.** The obvious reading is that paq8px does not model progressive
+JPEG either, and on these files both of us are running a general model. So the
+gap above is NOT the size of N5's prize -- it is the size of our general-model
+deficit on JPEG-shaped bytes, and it says nothing about what a progressive peel
+would buy.
+
+**N5 stays named-and-deferred, and now for a stated reason rather than by
+inheritance: its only real rival is packJPG, which is not installed, and no
+tool on this machine can price it.** Anyone picking N5 up should install packJPG
+first and measure, exactly as N4 was priced before it was built.
+
+## The audio ceiling is far above FLAC
+
+paq8px on `ring01.wav`: **53,567 against our 130,753 -- we are 59.03% over**, and
+paq8px is **45.6% under FLAC's 98,450**. With `alarm01.wav` (143,511 against our
+235,196) the audio deficit against the ceiling is **168,871 B over two rows**,
+where a FLAC-shaped LPC+Rice peel collects 58,050 of it -- about a third.
+
+That reframes N6: it was scoped as "build FLAC's mechanism as a WAV-gated peel",
+and that remains a real 58 KB, but it is not the row's ceiling and should not be
+sold as one.
