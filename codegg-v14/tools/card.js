@@ -33,3 +33,31 @@ console.log(`bytes on measured rows: ours ${n(sumOurs)}  best-rival ${n(sumBest)
 console.log(`measured rows are ${(100 * sumOurs / allOurs).toFixed(1)}% of the ${n(allOurs)} B sealed corpus (inner)`);
 const unmeasured = rows.filter(r => r.best == null);
 if (unmeasured.length) console.log(`NOT YET CONTESTED: ${unmeasured.map(r => `${r.f} (${n(r.ours)})`).join(', ')}`);
+
+// ---- the deficit, grouped by MECHANISM. A row's gap is only worth chasing as
+// part of the mechanism it shares with its neighbours; six PE rows losing
+// 0.3-5.0% each is one shortfall, not six.
+const GROUPS = {
+  'deflate recipe':   ['aoe4-autosave.sav'],
+  'PE / binary model':['rustc_driver.dll','ntoskrnl.exe','kernel32.dll','msgraph.dll','zstd.exe','notepad.exe'],
+  'JPEG peel':        ['wallpaper.jpg'],
+  'JS / text model':  ['mermaid-bundle.js','vim-version9.txt','wubbadub.html'],
+  'audio':            ['alarm01.wav'],
+  'other':            ['real-test.db','arial.ttf'],
+};
+const byRow = Object.fromEntries(rows.map(r => [r.f, r]));
+console.log('
+deficit by mechanism (only rows where a rival is ahead):');
+let lost = 0;
+for (const [k, fs] of Object.entries(GROUPS)) {
+  const s = fs.reduce((a, f) => { const r = byRow[f]; return a + (r && r.best != null && r.best < r.ours ? r.ours - r.best : 0); }, 0);
+  lost += s;
+  console.log(`  ${k.padEnd(20)} -${n(s).padStart(11)} B`);
+}
+const won = rows.reduce((a, r) => a + (r.best != null && r.best > r.ours ? r.best - r.ours : 0), 0);
+console.log(`  ${'TOTAL LOST'.padEnd(20)} -${n(lost).padStart(11)} B`);
+console.log(`  ${'TOTAL WON'.padEnd(20)} +${n(won).padStart(11)} B`);
+console.log(`  ${'NET'.padEnd(20)}  ${n(won - lost).padStart(12)} B`);
+const rec = byRow['aoe4-autosave.sav'];
+if (rec && rec.best != null) console.log(`
+fix the recipe alone and the corpus-wide net goes ${n(won - lost)} -> ${n(won - lost + (rec.ours - rec.best))} B`);
