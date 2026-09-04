@@ -141,45 +141,65 @@ them in pairs when convenient.
 the ISSE/APM stages all MOVE BYTES. On text rows `tokenize` + the cheap-v8
 trial are 36% of the clock and have never been looked at.
 
-### N3 the card · N3b the recipe. BOTH DONE. **PICK UP AT N4.**
+### N3 the card · N3b the recipe · N3c the PE question. ALL DONE.
+### **PICK UP AT N4, AND IT IS PRICED.**
 
-**N3b banked 3,464,635 B on one row.** `aoe4-autosave.sav` 8,759,079 ->
-5,294,444 armored (-39.6%), 90 seconds FASTER, every other row unmoved. The
-deflate recipe is now PREDICTED rather than stored: `src/zmatch.rs` infers the
-zlib matcher (level 4 memLevel 9 on that file) and 38,340,574 tokens ride as two
-parameter bytes and **20 corrections**. Blob version 2; version 1 still reads.
+**N3b banked 3,464,635 B.** `aoe4-autosave.sav` 8,759,079 -> 5,294,444 (-39.6%),
+90 s faster, every other row unmoved. The deflate recipe is PREDICTED now:
+`src/zmatch.rs` infers the zlib matcher and 38,340,574 tokens ride as two
+parameter bytes and **20 corrections**. Blob v2; v1 still reads.
 
 Corpus-wide against the best pipeline anyone can actually run, a 1.33% LOSS
-became a **2.02% WIN** (101,901,149 against 103,964,248).
+became a **2.02% WIN**. Against zpaq -m5 alone we are **14.85% ahead**.
 
-**What N3's card says to do next, ranked by measured bytes** -- run
-`node tools/card.js`, it regenerates from `tools/card.json`:
+#### Every milestone is now PRICED. Run `node tools/card.js`.
 
-- **PE / binary model, 1,962,323 B** across rustc_driver.dll, ntoskrnl.exe,
-  kernel32.dll, msgraph.dll, zstd.exe, notepad.exe. We lose to zpaq -m5 on ALL
-  SIX by 0.3-5.0%. One mechanism, not six shortfalls. Now the largest deficit.
-- **JPEG peel, 265,778 B** -- paq8px beats wallpaper.jpg by 23.69%.
-- **JS / text, 188,813 B** · **audio, 91,685 B** (FLAC -10.68/-22.63%, paq8px
-  -38.98% on alarm01.wav) -- N6 was already scoped for the audio one.
+| next | worth | state |
+|---|---|---|
+| **N4 ZIP peel** | **~50% of any ZIP row** (python312.zip 3,753,980 -> forecast <2,000,000) | **DO THIS.** Cost is known |
+| PE / binary model | 1,991,562 B over 6 rows | a model-architecture project, not a fix |
+| JPEG baseline peel | 265,778 B | vs paq8px on wallpaper.jpg |
+| font / TTF model | 222,450 B | both TTF rows ~26% under paq8px |
+| JS / text model | 188,813 B | |
+| N6 audio | 168,871 B to the ceiling; **FLAC reaches only 58,050** | LPC+Rice is a third of it |
+| N5 progressive JPEG | **UNPRICEABLE HERE** | needs packJPG installed; paq8px does not model progressive either |
 
-**Things a fresh context must not re-learn:**
+#### N4, everything already known
 
-- **The card is a tool, not prose.** `tools/card.js` + `card.json`. Add a
+- `peel::members` (`peel.rs:83`) **already reads the ZIP central directory**,
+  tested against a `tiny_zip` fixture and a hostile bad-offset case.
+  `deflate::peel` already handles one member. THE CHAIN reaches depth 2.
+- The gap is exactly: `Peeled` holds `deflate: Option<Deflate>` -- **one**
+  member -- and the blob must carry N recipes plus the inter-member bytes.
+- **Our coder is within 1.0% of precomp+zpaq's WHOLE number on the payload**
+  (1,865,974 vs 1,847,299 on python312.zip) before its own recipe. Filed:
+  the row lands under 2,000,000; above 2,100,000 and per-member meta is the
+  thing to look at.
+- **`intellij.libraries.icu4j.jar` is 35.6 MB of 5,826 STORED members, zero
+  deflate.** A ZIP peel that assumes deflate breaks on it.
+- Test rows are NOT in the corpus: `python312.zip` (FL Studio's bundled Python
+  3.12) and `IPF-2.2.10205.3620.zip` (Alienware). Adding a corpus row is a
+  decision, so they were measured from scratch.
+
+#### Things a fresh context must not re-learn
+
+- **The card is a TOOL.** `tools/card.js` over `tools/card.json`. Add a
   measurement to the json and re-run; never hand-edit a table.
-- **zmatch's two known holes, both measured:** `deflate_fast` (levels 1..=3) is
-  wrong (gz-l1.gz predicts at 64.6% where the file IS level 1) and `windowBits`
-  is not modelled (smallwindow.gz 64.0%). Neither costs anything today -- the
-  format falls back per file -- but both cap N4.
-- **N4's ZIP peel now inherits a GOOD recipe.** That was the argument for doing
-  N3b first and it held.
+- **zmatch's two measured holes:** `deflate_fast` (levels 1..=3) is wrong
+  (gz-l1.gz predicts at 64.6% where the file IS level 1) and `windowBits` is
+  unmodelled (smallwindow.gz 64.0%). They cost nothing today -- the format
+  falls back per file -- but they cap N4.
+- **The PE gap is the MODEL.** `FILTER_BCJ` is already taken on ntoskrnl.exe
+  (worth -5.9% there) and notepad.exe. Do not go filter-hunting.
+- **The 0.5% filter margin is a GOOD trade**, measured: it leaves 3,444 B on
+  the table across corpus-real and buys not firing the round-trip law, which
+  is 28% of a row. Closed; do not 'fix' it.
 - **This machine drifts ~4% between measurement sessions.** Interleave A/B in
   one shell (`scratchpad/ab.sh`); the round-trip is the low-noise instrument.
-- **`tools/m0gate.js` cannot pass** and has not since v12-M1: it asserts v14 ==
-  v11 byte for byte. Its ancestor-compat half is live and does pass 14/14.
-
-**Still owed:** five sealed rows have not been re-run since N2c
-(`mermaid-bundle.js`, `msgraph.dll`, `rdr2-shaders.vkcache`, `iconcache48.db`,
-`rustc_driver.dll`) -- hours each, no lens they exercise is untested.
+- **`tools/m0gate.js` cannot pass** and has not since v12-M1: it asserts
+  v14 == v11 byte for byte. Its ancestor-compat half is live and passes 14/14.
+- The card binaries live in the scratchpad, never on PATH: precomp v0.4.7,
+  paq8px v216, zpaqfranz v64.8, plus FLAC 1.5.0 and 7-Zip already installed.
 
 ## Then, in order: N3 · N4 · N5 · N6 · N7
 
