@@ -55,7 +55,8 @@
     "notepad.exe": 141596,
     "ring01.wav": 53567,
     "segoeui.ttf": 300382,
-    "arial.ttf": 323581
+    "arial.ttf": 323581,
+    "zstd.exe": 315331
   },
   "precomp_best": {
     "aoe4-autosave.sav": 5197337
