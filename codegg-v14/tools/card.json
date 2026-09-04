@@ -56,7 +56,9 @@
     "ring01.wav": 53567,
     "segoeui.ttf": 300382,
     "arial.ttf": 323581,
-    "zstd.exe": 315331
+    "zstd.exe": 315331,
+    "real-test.db": 765939,
+    "cbs.log": 12255
   },
   "precomp_best": {
     "aoe4-autosave.sav": 5197337

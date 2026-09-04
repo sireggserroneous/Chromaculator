@@ -44,7 +44,7 @@ const GROUPS = {
   'PE / binary model':['rustc_driver.dll','ntoskrnl.exe','kernel32.dll','msgraph.dll','zstd.exe','notepad.exe'],
   'JPEG peel':        ['wallpaper.jpg'],
   'font / TTF model': ['arial.ttf','segoeui.ttf'],
-  'JS / text model':  ['mermaid-bundle.js','vim-version9.txt','wubbadub.html'],
+  'JS / text model':  ['mermaid-bundle.js','vim-version9.txt','wubbadub.html','cbs.log'],
   'audio':            ['alarm01.wav','ring01.wav'],
   'other':            ['real-test.db'],
 };
