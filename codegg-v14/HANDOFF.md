@@ -132,10 +132,12 @@ compiler had already done them.
   single-threaded decode of the winning arm, which means every future cut to
   the shared CM loop is paid twice.
 
-**Owed:** six sealed rows were NOT re-run (`mermaid-bundle.js`, `msgraph.dll`,
-`rdr2-shaders.vkcache`, `aoe4-autosave.sav`, `iconcache48.db`,
-`rustc_driver.dll`) -- hours each, and no lens they exercise is untested. Run
-them in pairs when convenient.
+**Nothing owed on verification.** All twenty sealed rows have been re-run after
+N2c and N3b. The twelve home rows plus `mermaid-bundle.js`, `msgraph.dll`,
+`rdr2-shaders.vkcache`, `iconcache48.db` and `rustc_driver.dll` are all **SAME**
+with injuries E/E/E; `aoe4-autosave.sav` moved by exactly the intended -39.6%
+and restores EXACT read back from disk. `ROWS MOVED vs SEALED v13: 0` now means
+all twenty rather than fifteen.
 
 **Line for a future speed milestone, priced:** the lattice's remaining 4.3% and
 the ISSE/APM stages all MOVE BYTES. On text rows `tokenize` + the cheap-v8
