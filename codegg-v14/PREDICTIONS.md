@@ -622,3 +622,158 @@ that is a real gate on the change, not a formality.
   inputs and its lock work, which are **not** free: removing them moves bytes.
 - On `vim-version9.txt`, `tokenize` + the cheap-v8 trial are still **36%** of the
   row (1,480 of 4,090 ms) and nobody has ever looked at either for speed.
+
+---
+
+## N3 — THE CARD, and the save row is a LOSS on our own headline
+
+The card was installed for real this time: **precomp v0.4.7** (with preflate
+0.3.5), **paq8px v216**, **zpaqfranz v64.8** — GitHub release binaries, run from
+a scratch directory, never put on PATH. FLAC 1.5.0 and 7-Zip were already here.
+Every rival below **restores the original byte for byte** and was checked doing
+it; a number from a tool that cannot restore does not count.
+
+### The row: `aoe4-autosave.sav`, 66,417,543 B — our largest win
+
+Re-measured on this build first, so the comparison is against a number this
+binary actually produces, not against the v13 record: **8,759,079 armored,
+identical to sealed v13**, round-trip verified in memory, in 9m22s (v13 recorded
+55–110 minutes for this row; N2c and the machine account for the rest).
+
+Our own instrument breaks it down:
+
+```
+peel id 2 -- recipe 82,088,840 B raw -> 3,505,440 B (model 26)
+             values 296,540,843 B raw -> 5,248,812 B (model 17)
+             + 15 B preamble          = 8,754,267 B inner
+```
+
+The file is ONE gzip member at offset 0, zero trailing bytes, 4.465x; the inner
+is Relic Chunky with no nested gzip.
+
+### The card, on that row
+
+| form | bytes | vs our inner | time |
+|---|---|---|---|
+| **precomp -cn + zpaq -m5** | **5,197,337** | **-40.6%** | 1m14s |
+| precomp -cn + 7-Zip LZMA2 -mx9 | 5,443,648 | -37.8% | 20 s |
+| precomp, its own default lzma2 | 6,028,745 | -31.1% | 5 s |
+| **ours (peel + CM)** | **8,754,267** | — | 9m22s |
+| zpaq -m5, no peeling | 18,262,092 | +108.6% | 2m24s |
+
+**This is the largest loss the card has ever produced, and it is on the row this
+project treats as its headline.** Precomp carries no shield — our 4,812 B of
+armor is not in its number — but 3.3 MB is not an armor argument.
+
+### WHERE the loss is: 97.9% of it is the recipe, 2.1% is the model
+
+Both tools split the same file the same way, so the payload is directly
+comparable. On the identical 296,540,843-byte values stream:
+
+| coder on the values stream | bytes | vs ours |
+|---|---|---|
+| **zpaq -m5** | **5,172,122** | **-1.46%** |
+| ours (model 17) | 5,248,812 | — |
+| 7-Zip LZMA2 -mx9 | 5,420,208 | +3.26% |
+| xz -9e | 5,453,332 | +3.90% |
+| xz -9 | 5,525,752 | +5.28% |
+
+**CORRECTION, filed against my own first reading of this row.** The first pass
+measured only the LZMA rivals, saw us 3.2% ahead of the best of them, and
+published "the loss is not the model". Then `precomp -cn + zpaq -m5` came back
+at **5,197,337** — smaller than our values coding ALONE while also carrying the
+recipe — and zpaq on the bare values stream is **5,172,122**. We are second of
+five on the payload, ahead of every LZMA and **1.46% behind zpaq**. The rival
+that mattered was the one I had not run yet, and the claim went out before it
+did.
+
+The gap decomposes cleanly:
+
+```
+our inner                                    8,754,267
+precomp -cn + zpaq -m5                       5,197,337
+                                             ---------
+gap                                          3,556,930
+  of which recipe  (3,505,440 - 24,160)      3,481,280   97.9%
+  of which payload (5,248,812 - 5,172,122)      76,690    2.1%
+```
+
+**Our recipe is 40.0% of our shipped inner. Precomp does the same job in 24 KB.**
+Give us precomp's recipe efficiency and the row lands near 5,273,000 — still
+1.5% behind precomp+zpaq, but a 39.8% improvement on where we are, and the
+argument moves from a rout to a model contest.
+
+### The mechanism, named
+
+We **store** a recipe: 82,088,840 raw bytes of it, describing how to re-emit the
+deflate stream, then code that down to 3.5 MB. Preflate **predicts** the recipe —
+it reconstructs zlib's parameters (block splits, tree choices, the match
+decisions a given level would have made) and stores only the DIFFERENCE where
+the prediction fails. On a stream produced by a stock zlib at a stock level,
+that difference is nearly nothing, which is why 24 KB covers 66 MB.
+
+That is a difference in kind, not in tuning, and it is the single largest
+byte lever this project has ever had a measurement for: **3.48 MB on one row,
+against the -17.96 MB v13 banked across all twenty.**
+
+### Not yet run
+
+zpaq and paq8px on the other rows; precomp on the remaining deflate-bearing
+rows; PAR3 and Lepton still named-and-deferred (Lepton needs a build and there
+is no gcc/cmake here). (`precomp -cn + zpaq -m5` landed: 5,197,337.)
+
+### The card on the twelve home rows — zpaq -m5, and the shape of what we own
+
+Naked against naked (our INNER, before the 4,812 B shield; zpaq carries none):
+
+| row | input | ours (inner) | zpaq -m5 | delta |
+|---|---|---|---|---|
+| real-test.bmp | 12,000,054 | **256,462** | 3,568,770 | **+1291.54%** |
+| ring01.wav | 498,420 | **130,753** | 201,932 | **+54.44%** |
+| wallpaper.jpg | 1,602,752 | **1,121,685** | 1,516,991 | **+35.24%** |
+| alarm01.wav | 491,516 | **235,196** | 288,598 | **+22.71%** |
+| segoeui.ttf | 959,752 | **404,871** | 404,987 | +0.03% |
+| notepad.exe | 360,448 | 171,352 | **170,835** | -0.30% |
+| arial.ttf | 1,045,720 | 441,542 | **437,385** | -0.94% |
+| zstd.exe | 1,601,409 | 484,103 | **474,147** | -2.06% |
+| wubbadub.html | 92,408 | 22,809 | **22,271** | -2.36% |
+| kernel32.dll | 836,208 | 278,792 | **269,792** | -3.23% |
+| real-test.db | 9,551,872 | 1,063,337 | **1,006,283** | -5.37% |
+| vim-version9.txt | 2,035,039 | 268,931 | **251,331** | -6.54% |
+
+**zpaq -m5 — free, off the shelf, ~4 MB/s — beats us on 7 of 12 home rows**,
+including the floor row (-3.23%) and `vim-version9.txt` (-6.54%). We beat it on
+5, and the split is not random: **every row we win is a row where we have a
+STRUCTURAL reading** — the RLE/2D bitmap (12.9x), the audio residue arms, the
+JPEG peel — and every row we lose is one where a general context-mixing model
+meets general bytes.
+
+### paq8px v216 -9LAET, its strongest documented posture
+
+| row | ours (inner) | paq8px | delta | paq8px time |
+|---|---|---|---|---|
+| wubbadub.html | 22,809 | **16,579** | **-27.31%** | 39 s |
+| kernel32.dll | 278,792 | **195,733** | **-29.79%** | 233 s |
+
+**~30% behind on text and on PE**, at **87x our wall clock** (paq8px does
+`kernel32.dll` at 0.0036 MB/s against our 0.311). The structural rows are still
+running.
+
+### THE CARD'S VERDICT, and it is a strategy finding rather than a bug
+
+Three rivals, three different answers, and together they say one thing:
+
+1. **Our general CM model is mid-pack.** Ahead of every LZMA (3.3-5.3% on the
+   save's payload), 1.5% behind zpaq, ~30% behind paq8px. It is not our edge and
+   no amount of tuning it will make it one.
+2. **Our structural readings ARE our edge, and they are decisive** — +1292%,
+   +54%, +35%, +23% where a reading exists, against -0.3% to -6.5% where none
+   does.
+3. **And the one place a structural reading is BROKEN, we lose worst of all.**
+   The deflate recipe is 40.0% of the save's inner and 97.9% of a 40.6% loss to
+   a tool that solved it in 24 KB.
+
+The lesson points the same way three times: **spend on structure, not on the
+model.** Which makes the deflate recipe the first thing to fix, because it is
+the one structural reading we have that a free tool beats by 145x — and N4's
+ZIP peel would ship that same recipe across an entire new file class.
