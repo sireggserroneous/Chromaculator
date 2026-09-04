@@ -163,6 +163,39 @@ def api_cards(q, lang, push="", read="sound"):
             "base": 1 << CODE_BITS, "cards": cards}
 
 
+def api_ipa(q="", lang=""):
+    """The third alphabet, and a query's reading expressed in it.
+
+    Chroma UTF is 306 in ring 9, twelve-bit digits, base 4096. This is the IPA
+    chart: 123 digits in ring 7, EIGHT-bit digits, base 256 -- two whole nibbles,
+    which the other two alphabets cannot reach. Its order is not declared, it is
+    the Chroma UTF order of each phoneme's spelling.
+    """
+    C, P, S = ordering()
+    sys.path.insert(0, str(pathlib.Path(__file__).parent / "tools"))
+    import chroma_ipa as I
+    out = {"count": len(I.ROWS), "ring": I.RING, "width": I.WIDTH, "base": I.BASE,
+           "spare": (1 << I.RING) - len(I.ROWS),
+           "alphabet": [{"sym": r["sym"], "rom": r["rom"], "rank": r["rank"],
+                         "name": r["name"]} for r in I.ROWS],
+           "diacritics": [{"mark": m, "name": n} for m, n in I.DIACRITICS]}
+    if q:
+        rows = []
+        for t in [x.strip() for x in q.split("\n") if x.strip()][:MAX_ITEMS]:
+            k, spell, r = S.key(t, lang or None)
+            ipa = "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
+            d = I.digits(ipa)
+            rows.append({"text": t, "reading": spell, "ipa": ipa,
+                         "segments": [{"sym": s2, "marks": list(m), "rank": I.RANK[s2]}
+                                      for s2, m in I.parse(ipa)],
+                         "digits": d, "int": str(I.integer(ipa)),
+                         "bits": len(d) * I.WIDTH,
+                         "chromaDigits": len(C.letters(spell)),
+                         "chromaBits": len(C.letters(spell)) * CODE_BITS})
+        out["items"] = rows
+    return out
+
+
 def api_base():
     C, P, S = ordering()
     return {"ring": C.RING, "floor": 1 << C.RING, "count": len(C.TABLE),
@@ -189,6 +222,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if u.path == "/api/read":    body = api_read(q, lang)
             elif u.path == "/api/sort":  body = api_sort(q, lang, push, read)
             elif u.path == "/api/cards": body = api_cards(q, lang, push, read)
+            elif u.path == "/api/ipa":   body = api_ipa(q, lang)
             elif u.path == "/api/base":  body = api_base()
             else:
                 self.send_error(404, "no such endpoint"); return
@@ -270,6 +304,13 @@ def demo():
                                 for i, c in enumerate(h["codes"])), h
     assert int(cd["cards"][0]["sum"]) == sum(
         int(i["int"]) for i in cd["cards"][0]["items"])
+    ip = api_ipa("shit", "en")
+    assert ip["width"] == 8 and ip["base"] == 256 and ip["count"] == 123, ip["count"]
+    it = ip["items"][0]
+    assert it["ipa"] == "\u0283it" and it["digits"] == [
+        __import__("chroma_ipa").RANK[c] for c in "\u0283it"], it
+    # the whole point of the third alphabet: fewer digits AND narrower ones
+    assert it["bits"] < it["chromaBits"], it
     b = api_base()
     assert b["count"] == 306 and b["ring"] == 9 and b["table"][0]["code"] == 512
     print("serve.py self-check ok")

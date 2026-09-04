@@ -383,3 +383,50 @@ The digits change with the reading axis; the construction never does. That is
 what keeps a spelling and its phonetic reading comparable pictures, and it is
 the polynomial `tools/chroma_poly.test.js` already certifies — the integer and
 the picture are the same object.
+
+## Three alphabets
+
+    python3 tools/chroma_ipa.py
+
+| | entries | ring | digit | base | nibbles |
+|---|---|---|---|---|---|
+| **Chroma UTF** — the base table | 306 | 9 | 12 bits | 4,096 | 3 |
+| **the phonetic index** — multi-listed | 370,571 | 19 | 20 bits | 1,048,576 | 5 |
+| **Chroma IPA** — the chart | 123 | 7 | **8 bits** | **256** | **2** |
+
+123 digits: 108 chart letters plus 15 prosody and tone marks. **Eight bits is
+two whole nibbles**, which neither of the other two can reach — 306 needs nine
+bits and 154 needs nine once the ring code's leading bit is carried, and both
+round up to twelve. Chroma IPA uses bare ranks, so eight is exact.
+
+### The order is derived, not declared
+
+Not place|manner|voice. Every phoneme already carries a Chroma UTF spelling —
+that is what the sound axis has always sorted on — so **the IPA order is those
+spellings in the order the base table already declares.** Nothing new is judged,
+and the adjacency falls out rather than being arranged:
+
+    /s/ s and /ʃ/ sh   +1   immediate
+    /d/ d and /ð/ dh   +2   retroflex /ɖ/ spells dd and sorts between them
+    /t/ t and /θ/ th   +2   the dental click /ǀ/ spells tc
+
+All ten stop/fricative pairs share a first digit; five are immediate. The ones
+that are not have a sibling phoneme sitting between, which is a fact about the
+chart rather than noise in the order.
+
+Prosody marks are spelled with digits, so they sort ahead of every letter for
+free — Chroma UTF already puts `0..9` before `a`. **Diacritics are not digits.**
+They modify a segment the way an accent modifies a letter, so they are a
+sub-level, the same shape as `base | case | accent`.
+
+### What it buys
+
+    word      chroma utf   digits  bits   ipa       digits  bits   saving
+    shit      shit              4    48   ʃit            3    24    50%
+    this      dhis              4    48   ðis            3    24    50%
+    think     think             5    60   θink           4    32    46%
+    cervezas  servezas          8    96   seɹvezas       8    64    33%
+
+Two savings compound: one sound is one digit where `sh`, `th`, `dh` cost two,
+and the digit is eight bits rather than twelve. `/api/ipa` serves the alphabet
+and a query's reading in it.
