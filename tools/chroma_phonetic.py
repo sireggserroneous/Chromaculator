@@ -184,18 +184,94 @@ def build(cps=None):
     es.sort(key=ekey)
     return es
 
-def filter_lang(es, want):
-    """The filter. Keeps a SUBSEQUENCE — never reorders.
+def lang_match(tags, want):
+    """Does any of `tags` answer the request `want`?
 
-    A request for es-ES accepts entries tagged es-ES and es, but not es-419:
-    a region narrows a language, it is not a sibling of another region.
+    Matching runs BOTH ways along the subtag chain, which it has to:
+
+      request es-ES  accepts  es-ES and es      a region narrows a language
+      request es     accepts  es, es-ES, es-419 a language covers its regions
+
+    but es-ES never accepts es-419 — regions are not siblings, which is what
+    keeps distinción c from pairing with seseo z. Requesting bare es keeps both
+    regional branches, because Spanish with no region really does admit both.
+
+    Getting only the first direction meant a request for es matched nothing at
+    all for z (whose branches are tagged es-ES and es-419), the no-match
+    fallback kept every branch, and English /z/ won a Spanish sort.
     """
-    w = set(want.split()) if isinstance(want, str) else set(want)
-    accept = set(w)
+    if "und" in tags: return True
+    for t in tags:
+        for w in want:
+            if t == w or t.startswith(w + "-") or w.startswith(t + "-"):
+                return True
+    return False
+
+
+def want_set(want):
+    if want is None: return set()
+    return set(want.split()) if isinstance(want, str) else set(want)
+
+
+# Every language tag the tables actually use. chroma_sort adds the digraph tags.
+TAGS = set(LANGS) | {t for v in LATIN.values() for _, _, l, _, _ in [v[0]] for t in []}
+for _v in LATIN.values():
+    for _ipa, _rom, _l, _c, _n in _v: TAGS |= set(_l.split())
+
+
+def candidates(want):
+    """A request expanded to COHERENT concrete languages, most specific first.
+
+    Order follows the request, because declaring "es en" means prefer Spanish.
+
+    A request has to resolve to one language per reading, not one per letter.
+    Requesting bare "es" matches both es-ES and es-419, and picking the primary
+    branch per grapheme then produced "serbetha" for cerveza — seseo c with
+    distinción z, the reading the language coupling exists to rule out. So an
+    under-specified request expands to its regional variants and each is read
+    on its own; the word's primary comes from the first of them, whole.
+
+    Each candidate accepts itself, its bare language, and und — never a sibling
+    region, which is what keeps the regions from mixing.
+    """
+    if want is None: return [None]
+    w = want.split() if isinstance(want, str) else list(want)
+    if not w: return [None]
+    # declaration order is a PRIORITY order and must survive. Sorting the
+    # request here threw it away, so "es en" and "en es" resolved identically.
+    out = []
     for x in w:
-        if "-" in x: accept.add(x.split("-")[0])          # es-ES also accepts es
-    return [e for e in es
-            if e[1] == "und" or e[1] in accept or set(e[1].split("|")) & accept]
+        regions = sorted(t for t in TAGS if t.startswith(x + "-"))
+        for t in (regions or [x]):
+            if t not in out: out.append(t)
+    return out
+
+
+def accept_for(tag):
+    """The EXACT tags one candidate reads with: itself, its bare language, und.
+
+    Matched exactly, not along the subtag chain. lang_match runs both ways,
+    which is right for the index — a request for es should surface both regions
+    as their own entries — but wrong here: the bare "es" in this set would let
+    lang_match re-admit a sibling es-ES entry to the es-419 candidate, and
+    cerveza came back "serbetha" again with seseo c and distinción z.
+    """
+    if tag is None: return None
+    a = {tag, "und"}
+    if "-" in tag: a.add(tag.split("-")[0])
+    return a
+
+
+def exact_match(tags, accept):
+    """Used by the word sorter: a tag counts only if it is literally in the set."""
+    if accept is None: return True
+    return "und" in tags or any(t in accept for t in tags)
+
+
+def filter_lang(es, want):
+    """The filter. Keeps a SUBSEQUENCE — never reorders."""
+    w = want_set(want)
+    return [e for e in es if lang_match(e[1].split("|"), w)]
 
 def ecells(e):
     """the entry as bits — the picture."""

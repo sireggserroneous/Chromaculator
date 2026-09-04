@@ -255,3 +255,60 @@ A change to the tables is a change everywhere. `tools/wubutf.test.js` tests the
 seam — the page's own logic against real API output, then the whole stack over
 a live socket, including a 404 on an unknown endpoint and a 413 on an oversized
 query.
+
+## A word is a polynomial
+
+    node tools/chroma_poly.test.js
+
+Exactly, not by analogy. A word's key is
+
+    value = SUM code_i * x^(i+1),   x = 2^-12
+
+    cerveza = 734x + 574x^2 + 722x^3 + 792x^4 + 574x^5 + 810x^6 + 522x^7
+
+and lexicographic key order equals numeric value order for the same reason the
+product rectangle is carry free: the largest coefficient is 810 and the field
+is 4096, so no field ever carries into its neighbour.
+
+The multi-listing is the rest of it. A word is a **product of per-grapheme
+sums**, and expanding that product enumerates the readings:
+
+    cerveza   branches 4 x 1 x 1 x 2 x 1 x 4 x 1 = 32 terms
+
+Declaring a language is **specialisation** — it sends terms to zero, and the
+survivors are always a subset:
+
+    cerveza  32 terms  ->  en 1 (serveza)  ->  es-ES 1 (therbetha)
+
+### Where the push analogy stops
+
+Push and the reading set share a shape — one object, many representations, one
+canonical choice — and picking the primary branch really is the analogue of
+pushing to the fixpoint. But **push conserves value and phonetic variation does
+not.** Cerveza's 32 readings hold 32 different values, so no reading is
+reachable from another by pushing. And pushing a word's own bits conserves its
+value exactly while introducing 47 negative cells; no Chroma UTF code is
+negative, so a pushed word is a value, not a spelling.
+
+## 100,000 words, three filters
+
+    python3 tools/chroma_scale.py en.txt es.txt ja.txt
+
+40,000 English, 40,000 Spanish, 20,000 Japanese, mixed. Each filter holds:
+permutation kept, keys nondecreasing, and 100,000/100,000 distinct keys — no
+two of a hundred thousand words collide.
+
+**A declared language set is a choice per word, not one rule for the list.** The
+detector is the branch set, as Pedro put it: look the word up in each declared
+language and the hits name the language. First declared wins a tie.
+
+    detection   claimed by one lexicon 98,142, by several 1,858, by none 0
+                overlaps: en+es 1,858
+
+    'en' -> 'en es'          99,889 of 100,000 positions changed, 17,701 readings
+                             median displacement 522, max 83,642
+    'en' -> 'en ja-on es'    99,895 of 100,000 positions changed, 31,136 readings
+                             median displacement 1,392, max 96,224
+
+    亜美      96,511 ->    287    yamei  -> abi
+    本文      10,385 -> 38,720    benwen -> honbun

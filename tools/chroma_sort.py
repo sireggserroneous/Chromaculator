@@ -51,6 +51,9 @@ DIGRAPH = {
  "ps": [("s","s","en","^","psalm")],
 }
 MAXG = max(len(g) for g in DIGRAPH)
+MID = "\u00b7"
+for _v in DIGRAPH.values():
+    for _ipa, _rom, _l, _c, _n in _v: P.TAGS |= set(_l.split())
 SEP = "\x01"                       # sorts below every letter, spells nothing
 
 def branches(seg, i=0, segs=None, word=""):
@@ -98,30 +101,43 @@ def segment(s):
             out.append(ch); i += 1
     return out
 
-def readings(s, lang=None):
-    """Every reading the declared language admits, as (spelling, ipa)."""
-    want = set()
-    if lang:
-        for x in lang.split():
-            want.add(x)
-            if "-" in x: want.add(x.split("-")[0])
+def _readings_one(s, segs, accept):
+    """Every reading ONE coherent language admits."""
     per = []
-    segs = segment(s)
     for i, seg in enumerate(segs):
-        if seg == SEP: per.append([(SEP, "·")]); continue
+        if seg == SEP: per.append([(SEP, MID)]); continue
         b = branches(seg, i, segs, s)
-        if want:
-            keep = [x for x in b if set(x[2]) & want or "und" in x[2]]
+        if accept:
+            keep = [x for x in b if P.exact_match(x[2], accept)]
             b = keep or b                              # never erase a segment
         seen, uniq = set(), []
         for rom, ipa, _ in b:
             if rom not in seen: seen.add(rom); uniq.append((rom, ipa))
-        per.append(uniq or [(SEP, "·")])
+        per.append(uniq or [(SEP, MID)])
     n = 1
-    for p in per: n *= len(p)
+    for q in per: n *= len(q)
     if n > 4096:                                       # ponytail: cap the product
-        return [tuple(p[0] for p in per)]              # greedy, first branch each
+        return [tuple(q[0] for q in per)]              # greedy, first branch each
     return [tuple(c) for c in itertools.product(*per)]
+
+
+def readings(s, lang=None):
+    """Every reading the declared language admits, as (spelling, ipa).
+
+    ONE coherent language at a time. The first candidate's first reading is the
+    word's primary, so a reading is never assembled from two regions at once --
+    picking the primary branch per grapheme gave cerveza as "serbetha", seseo c
+    with distincion z, which is the reading the language coupling exists to
+    rule out.
+    """
+    segs = segment(s)
+    out, seen = [], set()
+    for tag in P.candidates(lang):
+        for r in _readings_one(s, segs, P.accept_for(tag)):
+            k = tuple(x[0] for x in r)
+            if k not in seen: seen.add(k); out.append(r)
+    return out
+
 
 def _k(s, r):
     spelling = "".join(x[0] for x in r)
@@ -129,16 +145,75 @@ def _k(s, r):
             + tuple(C.letters(u.normalize("NFD", s))),   # tie break: the spelling
             spelling, r)
 
+
+# tag -> set of words. Optional: load it and a declared language set becomes a
+# choice per word instead of a single rule for the whole list.
+LEXICON = {}
+
+def load_lexicon(tag, path, limit=None):
+    """Register a word list for `tag`. Lowercased, so detection is caseless."""
+    n = 0
+    ws = LEXICON.setdefault(tag, set())
+    with open(path, encoding="utf8", errors="replace") as f:
+        for line in f:
+            w = line.strip()
+            if not w or " " in w: continue
+            ws.add(w.lower()); n += 1
+            if limit and n >= limit: break
+    return len(ws)
+
+
+def detect(s, cands):
+    """Which declared language does this word belong to?
+
+    Pedro's rule: the branch set is the detector. Look the word up in each
+    declared language and the hits name the language. First declared wins a
+    tie, which is what makes declaration order a priority order.
+
+    Returns None when no lexicon claims it -- then the first candidate reads it,
+    which is the old behaviour and the right fallback: a filter should not fail
+    on a foreign word, it should read it with the rules it has.
+    """
+    if not LEXICON: return None
+    low = s.lower()
+    for tag in cands:
+        if tag is None: continue
+        for t in (tag, tag.split("-")[0]):
+            if low in LEXICON.get(t, ()): return tag
+    return None
+
+
+def primary(s, lang=None):
+    """The one reading a string sorts at: first candidate, first branch each.
+
+    This does NOT build the branch product. key() only ever wanted the product's
+    first element, and at a hundred thousand words the difference is the whole
+    run -- a word with eight branchy graphemes has thousands of readings and
+    every one of them was being built to throw away.
+    """
+    segs = segment(s)
+    cands = P.candidates(lang)
+    accept = P.accept_for(detect(s, cands) or cands[0])
+    out = []
+    for i, seg in enumerate(segs):
+        if seg == SEP: out.append((SEP, MID)); continue
+        b = branches(seg, i, segs, s)
+        if accept:
+            keep = [x for x in b if P.exact_match(x[2], accept)]
+            b = keep or b                              # never erase a segment
+        out.append((b[0][0], b[0][1]) if b else (SEP, MID))
+    return tuple(out)
+
+
 def key(s, lang=None):
     """One key per string: the PRIMARY reading the language admits.
 
     Not the minimum. Taking the minimum over branches read "isit" as "ishit",
-    because s has a /ʃ/ branch in German and sh sorts before si — a real
-    position for the string, but a nonsense canonical for it. The primary
-    branch is the first one listed, which is the most common reading.
+    because s has a /sh/ branch and sh sorts before si -- a real position for
+    the string, a nonsense canonical for it.
     """
-    per = readings(s, lang)
-    return _k(s, per[0])
+    return _k(s, primary(s, lang))
+
 
 def positions(s, lang=None):
     """Every position the string occupies — the multi-listing, sorted."""
