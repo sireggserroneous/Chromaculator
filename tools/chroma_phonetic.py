@@ -24,51 +24,89 @@ import chroma_utf as C
 DATA = C.DATA
 
 # ---------- the Latin branches: the C case ----------
-# (ipa, chroma-utf spelling, languages, context) — context is a note, not a rule.
-# ponytail: no g2p context engine. A letter's branches are listed unconditionally
-# and the language filter prunes them; positional rules (c before e/i) are the
-# next layer and would prune further, not differently.
+# (ipa, chroma-utf spelling, languages, condition, note)
+#
+# The condition is a real rule now, not a note:
+#   ^        word-initial          $        word-final
+#   >set     next grapheme starts with one of set
+#   !>set    next grapheme does NOT
+#   <set     previous grapheme ends with one of set
+#   @a|b|c   the whole word is one of these — the exception hook
+#   ,        every part must hold
+#
+# The @ hook exists because some distinctions are not positional at all. English
+# θ vs ð is lexical: a closed list of function words takes /ð/ and everything
+# else takes /θ/, and no rule about position separates "this" from "thin".
+# Rules plus a short exception list, which is how every real g2p is built.
+#
+# The character index lists EVERY branch regardless: a character on its own has
+# no context, so c belongs in the k path and the s path both. A word supplies
+# context, so the word sorter prunes by it. Same table, two readers.
+VOW = "aeiouyáéíóúàèìòùäëïöüâêîôû"
 LATIN = {
- "c": [("k","k",  "en fr es it de la pt", "before a o u, or a consonant"),
-       ("s","s",  "en fr pt es-419",      "before e i y"),
-       ("θ","th", "es-ES",                "before e i, distinción"),
-       ("tʃ","ch","it",                   "before e i"),
-       ("ts","ts","de pl",                "")],
- "g": [("ɡ","g",  "en fr es it de la pt", "before a o u"),
-       ("dʒ","j", "en it",                "before e i y"),
-       ("ʒ","zh", "fr pt",                "before e i y"),
-       ("x","kh", "es",                   "before e i")],
- "j": [("dʒ","j", "en it",                ""),
-       ("ʒ","zh", "fr pt",                ""),
-       ("x","kh", "es",                   ""),
-       ("j","y",  "de nl sv la",          "")],
- "x": [("ks","ks","en fr es pt la",       ""),
-       ("z","z",  "en",                   "word-initial: xylophone"),
-       ("ʃ","sh", "pt ca",                ""),
-       ("x","kh", "es",                   "México, older orthography")],
- "s": [("s","s",  "en fr es it de pt la", ""),
-       ("z","z",  "en fr de pt",          "between vowels"),
-       ("ʃ","sh", "de pt",                "before t p, or syllable-final")],
- "z": [("z","z",  "en fr pt it",          ""),
-       ("ts","ts","de it",                ""),
-       ("θ","th", "es-ES",                "distinción"),
-       ("s","s",  "es-419",               "seseo")],
- "y": [("j","y",  "en de nl es",          "before a vowel"),
-       ("i","i",  "en es",                "as a vowel"),
-       ("y","u",  "fr nl",                "front rounded")],
- "h": [("h","h",  "en de nl",             ""),
-       ("",  "",  "fr es it pt",          "silent")],
- "v": [("v","v",  "en fr it pt de",       ""),
-       ("b","b",  "es",                   "betacism: v and b merge")],
- "w": [("w","w",  "en nl",                ""),
-       ("v","v",  "de pl sv",             "")],
- "r": [("ɹ","r",  "en",                   ""),
-       ("ʁ","r",  "fr de",                "uvular"),
-       ("r","r",  "es it nl la",          "trill")],
- "b": [("b","b",  "en fr es it de pt la", ""),
-       ("β","v",  "es",                   "between vowels"),
-       ("v","v",  "ga",                   "bh lenition — abhan reads Avon")],
+ "c": [("k","k",  "en fr es it de la pt", "!>eiyéèê", "before a o u, or a consonant"),
+       ("s","s",  "en fr pt es-419",      ">eiyéèê",  "before e i y"),
+       ("θ","th", "es-ES",                ">eiyéèê",  "distinción"),
+       ("tʃ","ch","it",                   ">eiéè",    "before e i"),
+       ("ts","ts","de pl",                "",         "")],
+ "g": [("ɡ","g",  "en fr es it de la pt", "!>eiyéèê", "before a o u"),
+       ("dʒ","j", "en it",                ">eiyéèê",  "before e i y"),
+       ("ʒ","zh", "fr pt",                ">eiyéèê",  "before e i y"),
+       ("x","kh", "es",                   ">eiéè",    "before e i")],
+ "j": [("dʒ","j", "en it",                "",         ""),
+       ("ʒ","zh", "fr pt",                "",         ""),
+       ("x","kh", "es",                   "",         ""),
+       ("j","y",  "de nl sv la",          "",         "")],
+ "x": [("z","z",  "en",                   "^",        "xylophone"),
+       ("ks","ks","en fr es pt la",       "!^",       ""),
+       ("ʃ","sh", "pt ca",                "",         ""),
+       ("x","kh", "es",                   "",         "México, older orthography")],
+ "s": [("z","z",  "en fr de pt",          "<" + VOW + ",>" + VOW, "between vowels"),
+       ("s","s",  "en fr es it de pt la", "",         ""),
+       ("ʃ","sh", "de pt",                ">tp",      "before t or p")],
+ "z": [("z","z",  "en fr pt it",          "",         ""),
+       ("ts","ts","de it",                "",         ""),
+       ("θ","th", "es-ES",                "",         "distinción"),
+       ("s","s",  "es-419",               "",         "seseo")],
+ "y": [("j","y",  "en de nl es",          ">" + VOW,  "before a vowel"),
+       ("i","i",  "en es",                "",         "as a vowel"),
+       ("y","u",  "fr nl",                "",         "front rounded")],
+ "h": [("h","h",  "en de nl",             "",         ""),
+       ("",  "",  "fr es it pt",          "",         "silent")],
+ "v": [("v","v",  "en fr it pt de",       "",         ""),
+       ("b","b",  "es",                   "",         "betacism: v and b merge")],
+ "w": [("w","w",  "en nl",                "",         ""),
+       ("v","v",  "de pl sv",             "",         "")],
+ "r": [("ɹ","r",  "en",                   "",         ""),
+       ("ʁ","r",  "fr de",                "",         "uvular"),
+       ("r","r",  "es it nl la",          "",         "trill")],
+ "b": [("b","b",  "en fr es it de pt la", "",         ""),
+       ("β","v",  "es",                   "<" + VOW + ",>" + VOW, "between vowels"),
+       ("v","v",  "ga",                   "",         "bh lenition — abhan reads Avon")],
 }
+
+def cond_holds(cond, i, segs, word=""):
+    """Is this branch's positional condition satisfied at segs[i]?"""
+    if not cond: return True
+    prv = segs[i-1] if i > 0 else ""
+    nxt = segs[i+1] if i + 1 < len(segs) else ""
+    for part in cond.split(","):
+        if part.startswith("@"):
+            if word.lower() not in part[1:].split("|"): return False
+            continue
+        if part == "^":
+            if i != 0: return False
+        elif part == "$":
+            if i != len(segs) - 1: return False
+        elif part == "!^":
+            if i == 0: return False
+        elif part.startswith("!>"):
+            if nxt and nxt[0].lower() in part[2:]: return False
+        elif part.startswith(">"):
+            if not nxt or nxt[0].lower() not in part[1:]: return False
+        elif part.startswith("<"):
+            if not prv or prv[-1].lower() not in part[1:]: return False
+    return True
 # The letters with one uncontroversial value. Vowels are the obvious next
 # branching set (a is /a/ /æ/ /ɑ/ /eɪ/ depending on the language) — listed with
 # their Latin value here so a word renders whole, and marked for branching.
@@ -82,11 +120,11 @@ def latin_entries(ch):
     l = u.normalize("NFD", ch)[0].lower()
     upper = ch != ch.lower()
     if l in LATIN:
-        return [((rom.upper() if upper and rom else rom), ipa, langs.split(), note)
-                for ipa, rom, langs, note in LATIN[l]]
+        return [((rom.upper() if upper and rom else rom), ipa, langs.split(), cond, note)
+                for ipa, rom, langs, cond, note in LATIN[l]]
     if l in PLAIN:
         r = l.upper() if upper else l
-        return [(r, PLAIN[l], ["und"], "single value")]
+        return [(r, PLAIN[l], ["und"], "", "single value")]
     return []
 
 # ---------- entries ----------
@@ -118,7 +156,7 @@ def entries(cps=None):
             continue
         lat = latin_entries(ch) if ch in C.UTF else []
         if lat:                                              # the C case
-            for r, ipa, langs, note in lat:
+            for r, ipa, langs, cond, note in lat:
                 out.append((r or "\x00", "|".join(langs), ipa, ch, 0, 0))
             continue
         r, tone, strokes, layer, _ = C.reading(ch)           # single branch

@@ -56,19 +56,40 @@ check(6, base != ja and set(base) == set(ja)
       f"language moves   飼 reads si undeclared, shi as ja-on; "
       f"{len(base)-len(same)} of 4 positions change")
 
-# [7] the primary branch, not the minimum. Taking the minimum read isit as ishit.
-check(7, S.key("isit", "en")[1] == "isit"
-      and any(r[1] == "ishit" for r in S.positions("isit")),
-      "primary not min  isit reads isit; ishit is still one of its "
-      f"{len(S.positions('isit'))} positions")
+# [7] the primary branch, not the minimum.
+# History: the minimum read "isit" as "ishit", because s has a /ʃ/ branch and sh
+# sorts before si. The context rule has since pruned that branch — /ʃ/ for s
+# needs a following t or p — so the original case no longer reproduces. The
+# principle stands and box still shows it: /ks/ is the primary, but Spanish
+# México /x/ spells "kh" and h sorts before s.
+check(7, S.key("box")[1] == "boks" and S.positions("box")[0][1] == "bokh",
+      f"primary not min  box reads boks; its minimum is bokh, "
+      f"one of {len(S.positions('box'))} positions")
 
-# [8] real filenames, if any are around
+# [8] positional conditions actually prune
+CTX = [("cat","kat"), ("city","siti"), ("gem","jem"), ("game","game"),
+       ("knight","nit"), ("night","nit"), ("enough","enouf"), ("ghost","gost"),
+       ("xylophone","zilofone"), ("box","boks"), ("psalm","salm"),
+       ("who","wo"), ("what","wat"), ("rose","roze")]
+bad = [(w, e, S.key(w, "en")[1]) for w, e in CTX if S.key(w, "en")[1] != e]
+check(8, not bad, "context rules    " + (", ".join(f"{w}->{g}" for w, e, g in bad)
+      or f"all {len(CTX)} hold: c/k by what follows, kn and gh and x and ps and "
+         "wh by position, s by neighbours"))
+
+# [9] the lexical hook: th is not positional at all
+PAIRS = [("this","dhis"), ("thin","thin"), ("mother","modher"), ("month","month"),
+         ("with","widh"), ("width","width"), ("breathe","breadhe"), ("breath","breath")]
+bad = [(w, e, S.key(w, "en")[1]) for w, e in PAIRS if S.key(w, "en")[1] != e]
+check(9, not bad, "lexical hook     " + (", ".join(f"{w}->{g}" for w, e, g in bad)
+      or "all 4 minimal pairs separate: /ð/ is a word list, not a rule"))
+
+# [10] real filenames, if any are around
 d = os.path.expanduser("~/Downloads")
 if os.path.isdir(d):
     names = os.listdir(d)
     got = S.chroma_sorted(names, "en")
     ks = [S.key(n, "en")[0] for n in got]
-    check(8, sorted(got) == sorted(names) and all(ks[i] <= ks[i+1] for i in range(len(ks)-1)),
+    check(10, sorted(got) == sorted(names) and all(ks[i] <= ks[i+1] for i in range(len(ks)-1)),
           f"real filenames   {len(names)} names, permutation held, keys nondecreasing")
 
 print("\n  " + ("certified." if not fails else f"FAILED: {fails}"))

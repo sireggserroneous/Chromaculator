@@ -22,47 +22,63 @@ import chroma_utf as C, chroma_phonetic as P
 
 # ---------- digraphs: one sound, two letters ----------
 # (ipa, chroma-utf spelling, languages, note)
+# (ipa, chroma-utf spelling, languages, condition, note) — same shape and same
+# condition grammar as the single-letter table in chroma_phonetic.
 DIGRAPH = {
- "sh": [("ʃ","sh","en",""),          ("sx","skh","nl","")],
- "ch": [("tʃ","ch","en es",""),      ("k","k","it de-el gr",""),
-        ("ʃ","sh","fr pt",""),       ("x","kh","de","ach-laut")],
- "th": [("θ","th","en",""),          ("ð","dh","en","this, the"),
-        ("t","t","fr de it","")],
- "ph": [("f","f","en fr de","")],
- "wh": [("w","w","en",""),           ("h","h","en","who")],
- "ng": [("ŋ","ng","en de",""),       ("nɡ","ng","it","")],
- "qu": [("kw","kw","en it",""),      ("k","k","fr es","")],
- "ck": [("k","k","en de","")],
- "gh": [("ɡ","g","en it",""),        ("f","f","en","enough"),
-        ("","","en","night — silent")],
- "kn": [("n","n","en","knee"),       ("kn","kn","de","")],
- "wr": [("ɹ","r","en","write")],
- "zh": [("ʒ","zh","en","")],
- "dh": [("ð","dh","en ga","")],
- "ll": [("j","y","es",""),           ("l","l","en fr it","")],
- "rr": [("r","r","es it","")],
- "bh": [("v","v","ga","abhan reads Avon")],
- "ts": [("ts","ts","de ja","")],
- "ss": [("s","s","en de fr","")],
+ "sh": [("ʃ","sh","en","",""),        ("sx","skh","nl","","")],
+ "ch": [("tʃ","ch","en es","",""),    ("k","k","it gr","",""),
+        ("ʃ","sh","fr pt","",""),     ("x","kh","de","","ach-laut")],
+ "th": [("ð","dh","en","@the|this|that|these|those|them|then|than|they|their|there|thence|thither|thou|thee|thy|thine|though|thus|other|another|mother|father|brother|either|neither|whether|weather|rather|gather|together|bother|leather|feather|heather|breathe|clothe|smooth|with|within|without|northern|southern|worthy|farther|further|hither|whither|lathe|scythe","lexical, not positional: a closed list of "
+                                  "function words and a few stems take /ð/"),
+        ("θ","th","en","",""),        ("t","t","fr de it","","")],
+ "ph": [("f","f","en fr de","","")],
+ "wh": [("w","w","en","^",""),        ("h","h","en","^,>o","who, whom")],
+ "ng": [("ŋ","ng","en de","",""),     ("nɡ","ng","it","","")],
+ "qu": [("kw","kw","en it","",""),    ("k","k","fr es","","")],
+ "ck": [("k","k","en de","","")],
+ "gh": [("ɡ","g","en it","^","ghost"),
+        ("f","f","en","$","enough, laugh"),
+        ("","","en","","night — silent in the middle")],
+ "kn": [("n","n","en","^","knee, knicks"), ("kn","kn","de","","")],
+ "wr": [("ɹ","r","en","^","write")],
+ "zh": [("ʒ","zh","en","","")],
+ "dh": [("ð","dh","en ga","","")],
+ "ll": [("j","y","es","",""),         ("l","l","en fr it","","")],
+ "rr": [("r","r","es it","","")],
+ "bh": [("v","v","ga","","abhan reads Avon")],
+ "ts": [("ts","ts","de ja","","")],
+ "ss": [("s","s","en de fr","","")],
+ "ps": [("s","s","en","^","psalm")],
 }
 MAXG = max(len(g) for g in DIGRAPH)
 SEP = "\x01"                       # sorts below every letter, spells nothing
 
-def branches(seg):
-    """-> [(chroma-utf spelling, ipa, [langs])] for one grapheme."""
+def branches(seg, i=0, segs=None, word=""):
+    """-> [(chroma-utf spelling, ipa, [langs])] for one grapheme IN CONTEXT.
+
+    A character alone has no context, which is why the index lists every branch.
+    A word supplies it, so branches whose positional condition fails are gone:
+    c before e is not /k/, and kn is only /n/ word-initially.
+    """
+    segs = segs if segs is not None else [seg]
     l = seg.lower()
+    src = None
     if l in DIGRAPH:
         up = seg[0] != l[0]
-        return [((rom.upper() if up and rom else rom), ipa, langs.split())
-                for ipa, rom, langs, _ in DIGRAPH[l]]
-    e = P.latin_entries(seg)
-    if e: return [(r, ipa, langs) for r, ipa, langs, _ in e]
+        src = [((rom.upper() if up and rom else rom), ipa, langs.split(), cond)
+               for ipa, rom, langs, cond, _ in DIGRAPH[l]]
+    else:
+        e = P.latin_entries(seg)
+        if e: src = [(r, ipa, langs, cond) for r, ipa, langs, cond, _ in e]
+    if src is not None:
+        keep = [(r, ipa, langs) for r, ipa, langs, cond in src
+                if P.cond_holds(cond, i, segs, word)]
+        return keep or [(r, ipa, langs) for r, ipa, langs, _ in src]
     r, tone, st, layer, _ = C.reading(seg)
     if r is None: return [(SEP, "", ["und"])]
     if layer in ("han", "han-unread"):                 # every Unihan reading
-        out = []
-        for pr, lang, ipa, ch, tone, st in P.entries([ord(seg)]):
-            out.append((pr, ipa, [lang]))
+        out = [(pr, ipa, [lang])
+               for pr, lang, ipa, ch, tone, st in P.entries([ord(seg)])]
         return out or [(r, "", ["und"])]
     return [(r, "", ["und"])]
 
@@ -90,9 +106,10 @@ def readings(s, lang=None):
             want.add(x)
             if "-" in x: want.add(x.split("-")[0])
     per = []
-    for seg in segment(s):
+    segs = segment(s)
+    for i, seg in enumerate(segs):
         if seg == SEP: per.append([(SEP, "·")]); continue
-        b = branches(seg)
+        b = branches(seg, i, segs, s)
         if want:
             keep = [x for x in b if set(x[2]) & want or "und" in x[2]]
             b = keep or b                              # never erase a segment

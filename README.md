@@ -192,6 +192,36 @@ canonical for it.
 On a real directory, 5 of 16 positions differ from alphabetical, and every
 mover is a `c` that sounds like `k` — `canvas.png` sorts under K.
 
+### Context rules
+
+A branch carries a positional condition, so a word prunes what a character
+alone cannot:
+
+    ^        word-initial          $        word-final
+    >set     next grapheme starts with one of set     !>set   does not
+    <set     previous grapheme ends with one of set
+    @a|b|c   the whole word is one of these — the exception hook
+
+    cat -> kat        city -> siti        gem -> jem       game -> game
+    knight -> nit     night -> nit        enough -> enouf  ghost -> gost
+    xylophone -> zilofone   box -> boks   psalm -> salm    who -> wo
+    rose -> roze      canvas -> kanvas    cervezas -> servezas
+
+The **character index still lists every branch** — a character on its own has
+no context, so `c` belongs in the k path and the s path both. The word sorter
+prunes by condition. Same table, two readers.
+
+The `@` hook exists because some distinctions are not positional at all.
+English θ vs ð is **lexical**: a closed list of function words and stems takes
+/ð/ and no rule about position separates `this` from `thin`. Rules plus a short
+exception list, which is how every real g2p is built. All four minimal pairs
+separate:
+
+    this -> dhis /ðis/        thin -> thin /θin/
+    mother -> modher /moðeɹ/  month -> month /monθ/
+    with -> widh /wið/        width -> width /widθ/
+    breathe -> breadhe        breath -> breath
+
 `tools/chroma_sort_test.py` carries the requirement a filename sort has that a
 character index does not: **it must be a permutation.** Drop or duplicate a
 file and the sort is worse than useless.
