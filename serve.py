@@ -111,6 +111,58 @@ def api_sort(q, lang, push="", read="sound"):
             "sorted": [r for _k, r in ent]}
 
 
+CODE_BITS = 12          # RING + 3: three whole nibbles, so a character never
+                        # straddles a nibble and 4-wide rows are whole characters
+MAX_ITEMS = 48
+
+
+def _int_of(codes):
+    """base(chroma-utf): the codes are the digits, the base is 2^12.
+
+    This IS the polynomial. n = SUM code_i * B^(len-1-i), and the stalk value is
+    n / B^len, which is the same number read as a fraction in (0,1). One
+    construction for both axes -- the reading axis changes the digits, never
+    this -- so a spelling and its phonetic reading are comparable pictures.
+    """
+    B = 1 << CODE_BITS
+    n = 0
+    for c in codes: n = n * B + c
+    return n, B ** len(codes) if codes else 1
+
+
+def api_cards(q, lang, push="", read="sound"):
+    """One card per line; commas separate the items on a card."""
+    C, P, S = ordering()
+    ipa = lambda r: "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
+    cards = []
+    for line in q.split("\n"):
+        if not line.strip(): continue
+        texts = [t.strip() for t in line.split(",")]
+        texts = [t for t in texts if t][:MAX_ITEMS]
+        items = []
+        for t in texts:
+            if read == "spell":
+                k, spell, r = S._k(t, S.spellings(t)[0])
+                alts = ["".join(x[0] for x in v) for v in S.spellings(t, True)] \
+                       if push else []
+            else:
+                k, spell, r = S.key(t, lang or None)
+                alts = ["".join(x[0] for x in v)
+                        for v in S.readings(t, lang or None, push != "all")] if push else []
+            codes = [c for c in C.letters(spell)]
+            n, den = _int_of(codes)
+            items.append({"text": t, "reading": spell, "ipa": ipa(r), "codes": codes,
+                          "int": str(n), "hex": format(n, "x"),
+                          "bits": len(codes) * CODE_BITS,
+                          "num": str(n), "den": str(den),
+                          "alts": sorted(set(alts))[:MAX_PUSH]})
+        tot = sum(int(i["int"]) for i in items)
+        cards.append({"items": items, "sum": str(tot),
+                      "sumHex": format(tot, "x")})
+    return {"lang": lang, "read": read, "push": push, "codeBits": CODE_BITS,
+            "base": 1 << CODE_BITS, "cards": cards}
+
+
 def api_base():
     C, P, S = ordering()
     return {"ring": C.RING, "floor": 1 << C.RING, "count": len(C.TABLE),
@@ -136,6 +188,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             if u.path == "/api/read":    body = api_read(q, lang)
             elif u.path == "/api/sort":  body = api_sort(q, lang, push, read)
+            elif u.path == "/api/cards": body = api_cards(q, lang, push, read)
             elif u.path == "/api/base":  body = api_base()
             else:
                 self.send_error(404, "no such endpoint"); return
@@ -207,6 +260,16 @@ def demo():
     # the shape axis is orthogonal to the sound axis, not a rival candidate
     assert api_read("c3rv3zas", "en leet")["reading"] == "servezas"
     assert api_read("c3rv3zas", "en")["reading"] == "k3rv3zas"
+    cd = api_cards("hello, 3, 45\ncerveza", "en")
+    assert len(cd["cards"]) == 2 and len(cd["cards"][0]["items"]) == 3, cd
+    h = cd["cards"][0]["items"][0]
+    assert h["text"] == "hello" and h["bits"] == len(h["codes"]) * CODE_BITS
+    # the integer must be exactly the polynomial evaluated in base 2^12
+    B = 1 << CODE_BITS
+    assert int(h["int"]) == sum(c * B ** (len(h["codes"]) - 1 - i)
+                                for i, c in enumerate(h["codes"])), h
+    assert int(cd["cards"][0]["sum"]) == sum(
+        int(i["int"]) for i in cd["cards"][0]["items"])
     b = api_base()
     assert b["count"] == 306 and b["ring"] == 9 and b["table"][0]["code"] == 512
     print("serve.py self-check ok")

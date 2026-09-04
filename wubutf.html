@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wub UTF &middot; chronochromatic.org</title>
-<meta name="description" content="Sorting by sound, drawn: every character is a Chroma UTF code in ring 9, so a word is a row of bit squares and the order is legible in the pictures.">
+<meta name="description" content="base(chroma-utf): a string is a number written with Chroma UTF digits. One card per line, each holding its bodies, its polynomial and its integer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/base.css">
 <style>
-.wrap{max-width:1120px; margin:0 auto; padding:16px 18px 64px;
+.wrap{max-width:1180px; margin:0 auto; padding:16px 18px 72px;
   display:flex; flex-direction:column; gap:14px}
 .mast{display:flex; flex-direction:column; gap:6px; padding-bottom:10px;
   border-bottom:2px solid var(--ink)}
@@ -18,7 +18,7 @@ h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.55rem;
   margin:0; letter-spacing:-.02em; line-height:1.05}
 .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.16em;
   text-transform:uppercase; color:var(--brass); font-weight:600}
-.sub{color:var(--ink2); margin:0; font-size:.75rem; line-height:1.5; max-width:66ch}
+.sub{color:var(--ink2); margin:0; font-size:.75rem; line-height:1.5; max-width:70ch}
 .panel{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
   box-shadow:var(--shadow); padding:14px}
 label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
@@ -26,9 +26,10 @@ label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.1
 textarea,select{font-family:"IBM Plex Mono",monospace; font-size:.8rem;
   background:var(--sunk); color:var(--ink); border:1px solid var(--rule2);
   border-radius:2px; padding:8px 9px; width:100%}
-textarea{min-height:104px; resize:vertical; line-height:1.55}
-.ctl{display:grid; grid-template-columns:1fr minmax(170px,230px); gap:14px; align-items:end}
-@media (max-width:760px){ .ctl{grid-template-columns:1fr} }
+textarea{min-height:96px; resize:vertical; line-height:1.6}
+select:disabled{opacity:.45}
+.ctl{display:grid; grid-template-columns:1fr minmax(190px,250px); gap:16px; align-items:start}
+@media (max-width:800px){ .ctl{grid-template-columns:1fr} }
 .field{display:flex; flex-direction:column; gap:5px; min-width:0}
 button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px;
   cursor:pointer; background:transparent; color:var(--ink2);
@@ -48,23 +49,45 @@ button.add{border-color:var(--brass); color:var(--brass)}
 .check input{width:auto; accent-color:var(--brass)}
 .check[hidden]{display:none}
 
-.rows{display:flex; flex-direction:column; gap:0}
-.row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px;
-  align-items:center; padding:11px 0}
+/* ---- cards ---- */
+.cards{display:flex; flex-direction:column; gap:12px}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  box-shadow:var(--shadow)}
+.card > .head{display:flex; align-items:center; gap:11px; padding:10px 13px;
+  border-bottom:1px solid var(--rule); flex-wrap:wrap}
+.card.shut > .head{border-bottom:none}
+.card.shut > .pages, .card.shut > .cbody{display:none}
+.no{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.title{font-family:"IBM Plex Mono",monospace; font-size:.86rem; font-weight:600;
+  overflow-wrap:anywhere; flex:1; min-width:0}
+.chev{border:none; background:transparent; color:var(--ink3); font-size:.8rem;
+  padding:2px 5px; line-height:1}
+.chev:hover{color:var(--brass)}
+.pages{display:flex; padding:8px 13px 0; flex-wrap:wrap}
+.pages button{border-radius:2px 2px 0 0; border-bottom-color:transparent;
+  margin-right:-1px; font-size:.66rem}
+.pages button.on{color:var(--brass); border-color:var(--rule2);
+  border-bottom-color:var(--panel); font-weight:600}
+.card > .cbody{padding:13px}
+
 .meta{min-width:0; display:flex; flex-direction:column; gap:3px}
-.name{font-family:"IBM Plex Mono",monospace; font-size:.86rem; font-weight:600;
+.name{font-family:"IBM Plex Mono",monospace; font-size:.82rem; font-weight:600;
   overflow-wrap:anywhere}
 .reads{font-family:"IBM Plex Mono",monospace; font-size:.7rem; color:var(--ink2)}
 .reads b{color:var(--brass); font-weight:600}
-.ipa{font-size:.7rem; color:var(--ink3)}
 .reads .of{color:var(--ink3); font-weight:400}
-.row.same .name{color:var(--ink3); font-weight:400}
+.ipa{font-size:.7rem; color:var(--ink3)}
+.num{font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink3);
+  overflow-wrap:anywhere; margin:4px 0 0}
+.num b{color:var(--ink2); font-weight:500}
 
-/* the strip: one square per Chroma UTF code, every square the same frame */
+/* the bodies: one square per Chroma UTF digit, every square the same frame */
 .strip{display:flex; gap:5px; align-items:flex-start; flex-wrap:wrap}
 .sq{display:grid; grid-template-columns:repeat(4,10px); grid-template-rows:repeat(4,10px);
   gap:1px; padding:2px; border:1px solid var(--rule2); border-radius:2px;
   background:var(--sunk)}
+.sq.big{grid-template-columns:repeat(4,15px); grid-template-rows:repeat(4,15px); gap:2px}
 .sq.sep{grid-template-columns:4px; grid-template-rows:repeat(4,10px);
   background:transparent; border:none; padding:2px 0; opacity:.55}
 .sq.sep i{background:var(--rule2); grid-column:1; border-radius:1px}
@@ -75,20 +98,49 @@ button.add{border-color:var(--brass); color:var(--brass)}
 .c.dead{background:transparent}
 .c.split{box-shadow:0 0 0 2px var(--red)}
 .sq.split{border-color:var(--red)}
+.bodies{display:flex; flex-direction:column; gap:13px}
+.body-row{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap}
+.body-lab{font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink2);
+  min-width:104px; padding-top:4px; line-height:1.5}
+.body-lab span{color:var(--brass)}
+
+/* the polynomial */
+.item{padding:11px 0; border-top:1px dashed var(--rule)}
+.item:first-child{border-top:none; padding-top:0}
+.poly{font-family:"IBM Plex Mono",monospace; font-size:.76rem; line-height:2.1;
+  overflow-wrap:anywhere; margin-top:4px}
+.poly .t{display:inline-block; padding:1px 5px; margin:0 1px 3px 0;
+  border:1px solid var(--rule2); border-radius:2px; background:var(--sunk)}
+.poly .t b{color:var(--brass); font-weight:600}
+.poly .t i{color:var(--ink3); font-style:normal; font-size:.9em}
+.poly .op{color:var(--ink3); padding:0 2px}
+table{border-collapse:collapse; width:100%; font-family:"IBM Plex Mono",monospace;
+  font-size:.7rem}
+th,td{text-align:left; padding:5px 10px 5px 0; border-bottom:1px solid var(--rule);
+  vertical-align:top; overflow-wrap:anywhere}
+th{color:var(--ink3); font-weight:600; font-size:.62rem; letter-spacing:.1em;
+  text-transform:uppercase}
+td.n{font-variant-numeric:tabular-nums}
+.wide{overflow-x:auto}
+.alts{font-family:"IBM Plex Mono",monospace; font-size:.66rem; color:var(--ink3);
+  line-height:1.9; overflow-wrap:anywhere; margin-top:4px}
+.alts b{color:var(--ink2); font-weight:500}
 
 .diverge{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   padding:3px 0 3px 2px; font-family:"IBM Plex Mono",monospace; font-size:.6rem;
   color:var(--ink3); letter-spacing:.06em; border-top:1px dashed var(--rule)}
 .diverge b{color:var(--red); font-weight:600}
 .diverge.close b{color:var(--green)}
-.diverge .far{color:var(--ink3)}
-
+.rows{display:flex; flex-direction:column}
+.row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px;
+  align-items:center; padding:10px 0}
+.row.same .name{color:var(--ink3); font-weight:400}
 .legend{display:flex; gap:16px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
   font-size:.62rem; color:var(--ink3); align-items:center}
 .legend i{display:inline-block; width:10px; height:10px; border-radius:1px;
   vertical-align:-1px; margin-right:5px}
 .err{color:var(--red); font-family:"IBM Plex Mono",monospace; font-size:.72rem}
-.note{color:var(--ink3); font-size:.72rem; max-width:68ch; margin:10px 0 0}
+.note{color:var(--ink3); font-size:.72rem; max-width:70ch; margin:10px 0 0}
 h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
   letter-spacing:-.01em}
 </style>
@@ -112,33 +164,27 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
 <div class="wrap">
   <div class="mast">
     <div class="eyebrow">Wub UTF</div>
-    <h1>Sorting by sound, drawn</h1>
-    <p class="sub">Every character is a Chroma UTF code in ring 9, so every code is
-    ten bits in the same four by four frame. A word is a row of those squares, and
-    the order is legible in the pictures: the first square where two names differ
-    holds the cell that decides which comes first. <b>Push</b> stops collapsing a
-    name to one reading and lists every one it has, each at its own position &mdash;
-    with the positional rules on, or off, which is the difference between
-    <i>cervezas</i> having no /k/ reading and having <i>kervezas</i>. The fold is
-    outlined. Ten bits
-    pad to three whole nibbles and twelve bits lay into a four by four square, so
-    four cells stay empty in every frame &mdash; which is exactly why the frames
-    line up and a row reads as a row.</p>
+    <h1>base(chroma&#8209;utf)</h1>
+    <p class="sub">A string is a number written with Chroma UTF digits. Each
+    character is one digit in base 4096 &mdash; ten bits of code padded to twelve,
+    which is three whole nibbles, so a character never straddles a nibble and four
+    cells wide it is exactly three rows. The integer and the picture are the same
+    object: the number <i>is</i> the polynomial the bodies draw. One card per line,
+    commas between the items on a card, the way Wub&nbsp;&plusmn; holds a rack.</p>
   </div>
 
   <div class="panel">
     <div class="ctl">
       <div class="field">
-        <label for="q">Names, one per line</label>
-        <textarea id="q" spellcheck="false">cervezas
-c3rv3zas
-canvas
-dis
-this
-thin
-dox
-knicks
-kicks</textarea>
+        <label for="q">One card per line, commas between items</label>
+        <textarea id="q" spellcheck="false">hello, 3, 45
+cervezas, c3rv3zas
+dis, this, thin</textarea>
+        <div class="btnrow" style="margin-top:9px">
+          <button class="add" id="go">Read</button>
+          <button id="expand">Open all</button>
+          <button id="collapse">Shut all</button>
+        </div>
       </div>
       <div class="field">
         <label>Representation</label>
@@ -152,11 +198,11 @@ kicks</textarea>
         <label class="check" id="rulesWrap" hidden>
           <input type="checkbox" id="rules"> rules off &mdash; every branch, no position
         </label>
-        <label class="check" id="leetWrap">
+        <label class="check" id="leetWrap" hidden>
           <input type="checkbox" id="leet"> shape axis &mdash; read 3 as e, 0 as o, 5 as s
         </label>
         <label for="lang" style="margin-top:8px">Language filter</label>
-        <select id="lang">
+        <select id="lang" disabled>
           <option value="">none declared</option>
           <option value="en" selected>en &mdash; English</option>
           <option value="es-ES">es-ES &mdash; Spanish, Spain</option>
@@ -170,10 +216,6 @@ kicks</textarea>
           <option value="ja-kun">ja-kun &mdash; Japanese, kun&rsquo;yomi</option>
           <option value="ko">ko &mdash; Korean</option>
         </select>
-        <div class="btnrow" style="margin-top:9px">
-          <button class="add" id="go">Sort</button>
-          <button id="alpha">Alphabetical</button>
-        </div>
       </div>
     </div>
   </div>
@@ -183,13 +225,15 @@ kicks</textarea>
       <span><i style="background:var(--blue)"></i>bit set</span>
       <span><i style="background:var(--rule)"></i>bit clear</span>
       <span><i style="background:var(--brass)"></i>on the fold</span>
-      <span><i style="background:transparent;border:1px solid var(--rule2)"></i>above the code width</span>
+      <span><i style="background:transparent;border:1px solid var(--rule2)"></i>above the digit width</span>
       <span><i style="background:var(--red)"></i>the deciding cell</span>
     </div>
   </div>
 
+  <div class="cards" id="cards"></div>
+
   <div class="panel">
-    <h2 id="mode">Ordered by sound</h2>
+    <h2 id="mode">Ordered</h2>
     <div class="rows" id="rows"></div>
     <p class="note" id="foot"></p>
   </div>
@@ -199,11 +243,13 @@ kicks</textarea>
 <script>
 const $ = s => document.querySelector(s);
 const SEP = String.fromCharCode(1);   /* separators sort below every letter */
-let RING = 9, WIDTH = 10;
+const PAGES = ["Bodies", "Polynomial", "Facts", "Rack"];
+let RING = 9, BASE = 4096, CODE_BITS = 12;
+let CARDS = [], PAGE = [], SHUT = [];
 
-/* One Chroma UTF code as the hex arrangement: pad to whole nibbles, lay MSB
+/* One Chroma UTF digit as the hex arrangement: pad to whole nibbles, lay MSB
    first row major into the smallest square. stalk.js does it; this only reads
-   the answer, so the picture here is the picture every other page draws. */
+   the answer, so the picture is the picture every other page draws. */
 const CACHE = new Map();
 function squareOf(code){
   if(CACHE.has(code)) return CACHE.get(code);
@@ -218,32 +264,39 @@ function squareOf(code){
 
 const esc = s => String(s).replace(/[&<>"]/g, c =>
   ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
+const el = (tag, cls, html) => {
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html != null) e.innerHTML = html;
+  return e;
+};
+const shown = r => esc(String(r).split(SEP).join("/"));
 
-function squareEl(code, splitCell){
+function squareEl(code, splitCell, big){
   const s = squareOf(code);
-  const el = document.createElement("div");
-  el.className = "sq" + (splitCell != null ? " split" : "");
-  el.title = "code " + code + "  " + code.toString(2);
-  for(let i = 0; i < s.cells.length; i++){
-    const c = document.createElement("div");
-    c.className = "c"
+  const e = el("div", "sq" + (big ? " big" : "") + (splitCell != null ? " split" : ""));
+  e.title = "digit " + code + "  " + code.toString(2);
+  for(let i = 0; i < s.cells.length; i++)
+    e.appendChild(el("div", "c"
       + (i < s.dead ? " dead" : "")
       + (s.cells[i] ? " on" : "")
       + (s.fold.has(i) ? " fold" : "")
-      + (splitCell === i ? " split" : "");
-    el.appendChild(c);
-  }
-  return el;
+      + (splitCell === i ? " split" : "")));
+  return e;
 }
-
 function sepEl(){
-  const el = document.createElement("div");
-  el.className = "sq sep";
-  for(let i = 0; i < 4; i++) el.appendChild(document.createElement("i"));
-  return el;
+  const e = el("div", "sq sep");
+  for(let i = 0; i < 4; i++) e.appendChild(el("i"));
+  return e;
+}
+function stripEl(codes, splitAt, big){
+  const strip = el("div", "strip");
+  codes.forEach((code, i) => strip.appendChild(code <= 2 ? sepEl()
+    : squareEl(code, splitAt && splitAt.code === i ? splitAt.cell : null, big)));
+  return strip;
 }
 
-/* Where do two code sequences first differ? The answer is a square and a cell,
+/* Where do two digit sequences first differ? The answer is a digit and a cell,
    because that is literally what decides the order. */
 function divergence(a, b){
   const n = Math.max(a.length, b.length);
@@ -257,102 +310,177 @@ function divergence(a, b){
   return null;
 }
 
-function rowEl(r, splitAt){
-  const row = document.createElement("div");
-  row.className = "row";
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  meta.innerHTML = '<div class="name">' + esc(r.name) + "</div>"
-    + '<div class="reads">reads <b>'
-    + esc(r.reading.split(SEP).join("/")) + "</b>"
-    + (r.of > 1 ? '<span class="of"> &mdash; one of ' + r.of
-        + (r.truncated ? ", first 64 shown" : "") + "</span>" : "")
-    + "</div>"
-    + (r.ipa ? '<div class="ipa">/' + esc(r.ipa) + "/</div>" : "");
-  if(r.same) row.className += " same";
-  const strip = document.createElement("div");
-  strip.className = "strip";
-  r.codes.forEach((code, i) => {
-    strip.appendChild(code <= 2 ? sepEl()
-      : squareEl(code, splitAt && splitAt.code === i ? splitAt.cell : null));
-  });
-  row.appendChild(meta);
-  row.appendChild(strip);
-  return row;
+/* ---- the card pages ---- */
+/* sup() comes from stalk.js — it already writes superscript exponents for sci() */
+
+function pageBodies(card){
+  const box = el("div", "bodies");
+  for(const it of card.items){
+    const row = el("div", "body-row");
+    row.appendChild(el("div", "body-lab", esc(it.text)
+      + (it.reading !== it.text ? "<br><span>" + shown(it.reading) + "</span>" : "")));
+    row.appendChild(stripEl(it.codes, null, true));
+    box.appendChild(row);
+  }
+  return box;
 }
 
-function render(rows, byAlpha){
+function pagePoly(card){
+  const box = el("div");
+  for(const it of card.items){
+    const wrap = el("div", "item");
+    const n = it.codes.length;
+    wrap.appendChild(el("div", "reads", "<b>" + esc(it.text) + "</b>"
+      + (it.reading !== it.text ? " reads " + shown(it.reading) : "")));
+    /* standard form: exponent 0 carries no x at all, exponent 1 carries a bare
+       x. Printing x^1, and a lone x for the constant term, was simply wrong. */
+    const term = e => e === 0 ? "" : e === 1 ? "x" : "x" + sup(e);
+    wrap.appendChild(el("div", "poly", it.codes.map((c, i) => {
+      const t = term(n - 1 - i);
+      return '<span class="t"><b>' + c + "</b>"
+        + (t ? " <i>" + t + "</i>" : "") + "</span>";
+    }).join('<span class="op">+</span>')));
+    wrap.appendChild(el("div", "num", "<b>x = " + BASE
+      + "</b> so the digits are the coefficients, and the polynomial evaluates to <b>"
+      + esc(it.int) + "</b>. Read instead as a stalk in (0,1) it is "
+      + esc(it.num) + "&#8202;/&#8202;" + BASE + sup(n) + "."));
+    if(it.alts && it.alts.length > 1)
+      wrap.appendChild(el("div", "alts", "<b>pushed &mdash; " + it.alts.length
+        + " representations:</b> " + it.alts.map(shown).join(", ")));
+    box.appendChild(wrap);
+  }
+  return box;
+}
+
+function pageFacts(card){
+  const box = el("div", "wide");
+  const t = el("table");
+  t.innerHTML = "<tr><th>item</th><th>reads</th><th>sounds</th><th>digits</th>"
+    + "<th>bits</th><th>integer</th><th>hex</th></tr>";
+  for(const it of card.items){
+    const r = el("tr");
+    r.innerHTML = "<td>" + esc(it.text) + "</td>"
+      + "<td>" + shown(it.reading) + "</td>"
+      + "<td>" + (it.ipa ? "/" + esc(it.ipa) + "/" : "&mdash;") + "</td>"
+      + '<td class="n">' + it.codes.length + "</td>"
+      + '<td class="n">' + it.bits + "</td>"
+      + '<td class="n">' + esc(it.int) + "</td>"
+      + "<td>" + esc(it.hex) + "</td>";
+    t.appendChild(r);
+  }
+  box.appendChild(t);
+  box.appendChild(el("div", "num", "base " + BASE + ", " + CODE_BITS
+    + " bits a digit, ring " + RING + " codes. Every digit is three whole nibbles, "
+    + "so no character straddles a nibble."));
+  return box;
+}
+
+function pageRack(card){
+  const box = el("div");
+  const wide = el("div", "wide");
+  const t = el("table");
+  t.innerHTML = "<tr><th>item</th><th>reads</th><th>integer</th><th>running sum</th></tr>";
+  let run = 0n;
+  for(const it of card.items){
+    run += BigInt(it.int);
+    const r = el("tr");
+    r.innerHTML = "<td>" + esc(it.text) + "</td>"
+      + "<td>" + shown(it.reading) + "</td>"
+      + '<td class="n">' + esc(it.int) + "</td>"
+      + '<td class="n">' + run.toString() + "</td>";
+    t.appendChild(r);
+  }
+  wide.appendChild(t);
+  box.appendChild(wide);
+  box.appendChild(el("div", "num", "<b>rack sum</b> " + esc(card.sum)
+    + " &nbsp;&middot;&nbsp; hex " + esc(card.sumHex)
+    + " &mdash; the same integers a Wub&nbsp;&plusmn; rack would hold, so the items "
+    + "on a card are its rack."));
+  return box;
+}
+
+const RENDER = {Bodies: pageBodies, Polynomial: pagePoly, Facts: pageFacts, Rack: pageRack};
+
+function cardEl(card, idx){
+  const c = el("div", "card" + (SHUT[idx] ? " shut" : ""));
+  const head = el("div", "head");
+  head.appendChild(el("div", "no", "card " + (idx + 1)));
+  head.appendChild(el("div", "title", card.items.map(i => esc(i.text)).join(", ")));
+  const chev = el("button", "chev", SHUT[idx] ? "&#9656;" : "&#9662;");
+  chev.title = SHUT[idx] ? "open" : "tuck away";
+  chev.addEventListener("click", () => { SHUT[idx] = !SHUT[idx]; paint(); });
+  head.appendChild(chev);
+  c.appendChild(head);
+
+  const nav = el("div", "pages");
+  for(const p of PAGES){
+    const b = el("button", PAGE[idx] === p ? "on" : "", p);
+    b.addEventListener("click", () => { PAGE[idx] = p; paint(); });
+    nav.appendChild(b);
+  }
+  c.appendChild(nav);
+
+  const body = el("div", "cbody");
+  try{ body.appendChild(RENDER[PAGE[idx] || PAGES[0]](card)); }
+  catch(e){ body.appendChild(el("p", "err", esc(e.message))); }
+  c.appendChild(body);
+  return c;
+}
+
+function paint(){
+  const host = $("#cards");
+  host.textContent = "";
+  CARDS.forEach((c, i) => host.appendChild(cardEl(c, i)));
+}
+
+/* ---- the ordered list, over every item on every card ---- */
+function renderOrder(rows){
   const host = $("#rows");
   host.textContent = "";
   const st = state();
-  $("#mode").textContent = (byAlpha ? "Ordered alphabetically"
-      : st.phonetic ? "Ordered by sound" : "Ordered by spelling")
+  $("#mode").textContent = (st.phonetic ? "Ordered by sound" : "Ordered by spelling")
     + (!st.push ? ""
        : st.phonetic
-         ? (st.push === "all" ? " \u00b7 pushed, rules off \u2014 every branch"
-                              : " \u00b7 pushed \u2014 every reading the rules allow")
-         : " \u00b7 pushed \u2014 every shape variant");
+         ? (st.push === "all" ? " · pushed, rules off — every branch"
+                              : " · pushed — every reading the rules allow")
+         : " · pushed — every shape variant");
   rows.forEach((r, i) => {
-    /* in a pushed list a name repeats, once per reading. Dim the repeats so the
-       eye still finds where a new name starts. */
-    r.same = i > 0 && rows[i - 1].name === r.name;
-    host.appendChild(rowEl(r, i > 0 ? divergence(rows[i - 1].codes, r.codes) : null));
+    const same = i > 0 && rows[i - 1].name === r.name;
+    const row = el("div", "row" + (same ? " same" : ""));
+    const meta = el("div", "meta");
+    meta.innerHTML = '<div class="name">' + esc(r.name) + "</div>"
+      + '<div class="reads">reads <b>' + shown(r.reading) + "</b>"
+      + (r.of > 1 ? '<span class="of"> &mdash; one of ' + r.of
+          + (r.truncated ? ", first 64 shown" : "") + "</span>" : "") + "</div>"
+      + (r.ipa ? '<div class="ipa">/' + esc(r.ipa) + "/</div>" : "");
+    row.appendChild(meta);
+    row.appendChild(stripEl(r.codes,
+      i > 0 ? divergence(rows[i - 1].codes, r.codes) : null, false));
+    host.appendChild(row);
     if(i === rows.length - 1) return;
     const d = divergence(r.codes, rows[i + 1].codes);
-    const m = document.createElement("div");
-    m.className = "diverge" + (d && d.code === 0 ? " close" : "");
-    m.innerHTML = !d
-      ? "<span>identical keys</span>"
+    const m = el("div", "diverge" + (d && d.code === 0 ? " close" : ""));
+    m.innerHTML = !d ? "<span>identical keys</span>"
       : d.prefix
-        ? "<span>one reading is a prefix of the other &mdash; <b>every shared square is equal</b></span>"
+        ? "<span>one reading is a prefix of the other &mdash; <b>every shared digit is equal</b></span>"
         : d.cell === null
-          ? "<span>decided at square <b>" + (d.code + 1) + "</b></span>"
-          : "<span>decided at square <b>" + (d.code + 1) + "</b>, cell <b>"
-            + d.cell + "</b></span>"
-            + '<span class="far">' + (d.code === 0
-                ? "same first sound &mdash; they sit together"
-                : "first " + d.code + " square" + (d.code > 1 ? "s" : "") + " identical")
+          ? "<span>decided at digit <b>" + (d.code + 1) + "</b></span>"
+          : "<span>decided at digit <b>" + (d.code + 1) + "</b>, cell <b>" + d.cell
+            + "</b></span><span>" + (d.code === 0
+                ? "same first digit &mdash; they sit together"
+                : "first " + d.code + " digit" + (d.code > 1 ? "s" : "") + " identical")
             + "</span>";
     host.appendChild(m);
   });
   $("#foot").textContent = rows.length
-    ? rows.length + " names, ring " + RING + ", every code " + WIDTH
+    ? rows.length + " rows, base " + BASE + ", every digit " + CODE_BITS
       + " bits in a four by four frame."
     : "";
 }
 
-async function go(byAlpha){
-  const q = $("#q").value;
-  const st = state();
-  /* shape and sound are separate axes, so leet joins the request rather than
-     replacing the language in it */
-  const lang = st.phonetic ? $("#lang").value + ($("#leet").checked ? " leet" : "") : "";
-  try{
-    const [b, res] = await Promise.all([
-      fetch("/api/base"),
-      fetch("/api/sort?lang=" + encodeURIComponent(lang.trim())
-        + "&read=" + (st.phonetic ? "sound" : "spell")
-        + "&push=" + st.push + "&q=" + encodeURIComponent(q))
-    ]);
-    if(!res.ok) throw new Error(res.status + " " + res.statusText);
-    if(b.ok){ const j = await b.json(); RING = j.ring; WIDTH = j.ring + 1; }
-    const j = await res.json();
-    render(byAlpha ? [...j.sorted].sort((x, y) => x.name.localeCompare(y.name))
-                   : j.sorted, byAlpha);
-  }catch(e){
-    $("#rows").innerHTML = '<p class="err">the ordering lives in the server &mdash; '
-      + "start it with <b>python3 serve.py</b> and reload. (" + esc(e.message) + ")</p>";
-  }
-}
-
-$("#go").addEventListener("click", () => go(false));
-$("#alpha").addEventListener("click", () => go(true));
 /* Plain|Pushed and As written|Phonetic are INDEPENDENT axes, so all four
-   combinations exist: a plain phonetic reading, a pushed phonetic reading, the
-   spelling as typed, and every shape variant of the spelling. */
-/* the page holds the axes itself rather than reading them back out of the DOM.
-   Round tripping through a button's class was fragile and made the state
-   unavailable to anything that had not rendered yet. */
+   combinations exist. The page holds them itself rather than reading them back
+   out of a button's class. */
 let REP = "plain", PHONETIC = false;
 function state(){
   const push = REP === "pushed"
@@ -364,16 +492,16 @@ function chrome(){
   $("#rulesWrap").hidden = !(st.rep === "pushed" && st.phonetic);
   $("#leetWrap").hidden = !st.phonetic;
   $("#lang").disabled = !st.phonetic;
-  for(const [id, want] of [["rep", REP], ["pho", PHONETIC ? "1" : "0"]]){
-    const host = $("#" + id);
+  for(const pair of [["rep", REP], ["pho", PHONETIC ? "1" : "0"]]){
+    const host = $("#" + pair[0]);
     if(!host || !host.querySelectorAll) continue;
     for(const x of host.querySelectorAll("button"))
-      x.className = x.dataset.v === want ? "on" : "";
+      x.className = x.dataset.v === pair[1] ? "on" : "";
   }
 }
 function pick(id, v){
   if(id === "rep") REP = v; else PHONETIC = v === "1";
-  chrome(); go(false);
+  chrome(); go();
 }
 for(const id of ["rep", "pho"]){
   const host = $("#" + id);
@@ -382,14 +510,50 @@ for(const id of ["rep", "pho"]){
     if(b && b.dataset) pick(id, b.dataset.v);
   });
 }
-$("#lang").addEventListener("change", () => go(false));
-$("#rules").addEventListener("change", () => go(false));
-$("#leet").addEventListener("change", () => go(false));
-chrome();
+
+function query(){
+  const st = state();
+  const lang = st.phonetic ? $("#lang").value + ($("#leet").checked ? " leet" : "") : "";
+  return "lang=" + encodeURIComponent(lang.trim())
+    + "&read=" + (st.phonetic ? "sound" : "spell")
+    + "&push=" + st.push + "&q=" + encodeURIComponent($("#q").value);
+}
+
+async function go(){
+  const qs = query();
+  try{
+    const res = await Promise.all([fetch("/api/base"), fetch("/api/cards?" + qs),
+                                   fetch("/api/sort?" + qs)]);
+    const [b, cd, so] = res;
+    if(!cd.ok) throw new Error(cd.status + " " + cd.statusText);
+    if(b.ok){ const j = await b.json(); RING = j.ring; }
+    const j = await cd.json();
+    BASE = j.base; CODE_BITS = j.codeBits;
+    CARDS = j.cards;
+    for(let i = 0; i < CARDS.length; i++){
+      if(!PAGE[i]) PAGE[i] = PAGES[0];
+      if(SHUT[i] === undefined) SHUT[i] = false;
+    }
+    paint();
+    if(so.ok) renderOrder((await so.json()).sorted);
+  }catch(e){
+    $("#cards").innerHTML = '<p class="err">the ordering lives in the server &mdash; '
+      + "start it with <b>python3 serve.py</b> and reload. (" + esc(e.message) + ")</p>";
+    $("#rows").textContent = "";
+  }
+}
+
+$("#go").addEventListener("click", () => go());
+$("#lang").addEventListener("change", () => go());
+$("#rules").addEventListener("change", () => go());
+$("#leet").addEventListener("change", () => go());
+$("#expand").addEventListener("click", () => { SHUT = SHUT.map(() => false); paint(); });
+$("#collapse").addEventListener("click", () => { SHUT = SHUT.map(() => true); paint(); });
 $("#q").addEventListener("keydown", e => {
-  if((e.metaKey || e.ctrlKey) && e.key === "Enter") go(false);
+  if((e.metaKey || e.ctrlKey) && e.key === "Enter") go();
 });
-go(false);
+chrome();
+go();
 </script>
 </body>
 </html>

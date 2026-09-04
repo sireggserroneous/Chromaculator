@@ -349,3 +349,37 @@ literal `3` took the `!>eiy` branch and `c3rv3zas` came out `kervezas` when the
 says `c` before `e` is never `/k/`, so it is pruned before the branch set is
 built. Out of context it is, because a character on its own has no position to
 be judged by, which is exactly how the character index already reads one.
+
+## base(chroma-utf)
+
+    python3 serve.py            # then http://localhost:1338/wubutf.html
+
+A string is a number written with Chroma UTF digits. **One card per line,
+commas between the items on a card**, the way Wub ± holds a rack:
+
+    card 1 : (hello, 3, 45)
+
+      hello  digits [616, 574, 658, 658, 680]
+             616x⁴ + 574x³ + 658x² + 658x + 680      x = 4096
+             = 173428041675514536      60 bits
+      3      515
+      45     516x + 517  =  2114053
+
+      rack sum 173428041677629104 — the integers a Wub ± rack would hold
+
+Each card pages through **Bodies** (one 4×4 square per digit), **Polynomial**,
+**Facts** and **Rack**.
+
+### Why 12 bits a digit and not 10
+
+A code only needs ten bits, but **12 is three whole nibbles**. So a character
+never straddles a nibble, and laid four cells wide every character is exactly
+three rows. At ten bits nothing lines up — five characters is fifty bits, which
+is twelve and a half nibbles.
+
+### One integer construction, both axes
+
+The digits change with the reading axis; the construction never does. That is
+what keeps a spelling and its phonetic reading comparable pictures, and it is
+the polynomial `tools/chroma_poly.test.js` already certifies — the integer and
+the picture are the same object.
