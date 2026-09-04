@@ -777,3 +777,68 @@ The lesson points the same way three times: **spend on structure, not on the
 model.** Which makes the deflate recipe the first thing to fix, because it is
 the one structural reading we have that a free tool beats by 145x — and N4's
 ZIP peel would ship that same recipe across an entire new file class.
+
+### paq8px, all six rows — a harsher verdict than the zpaq column
+
+| row | ours (inner) | paq8px -9LAET | delta |
+|---|---|---|---|
+| real-test.bmp | **256,462** | 2,304,390 | **+798.53%** |
+| wallpaper.jpg | 1,121,685 | **855,907** | -23.69% |
+| vim-version9.txt | 268,931 | **199,844** | -25.69% |
+| wubbadub.html | 22,809 | **16,579** | -27.31% |
+| kernel32.dll | 278,792 | **195,733** | -29.79% |
+| alarm01.wav | 235,196 | **143,511** | -38.98% |
+
+**paq8px beats us on five of six by 24-39%, and our JPEG peel is one of them.**
+It loses only on `real-test.bmp`, where we are still 8x ahead of it. At 87x our
+wall clock (0.0036 MB/s on kernel32.dll against our 0.311), so it is a ratio
+ceiling rather than a competitor — but the earlier claim that "structure is our
+edge" holds against **zpaq's speed class**, not against the ratio state of the
+art. Against paq8px the only structural reading that survives is the RLE/2D one.
+
+### WHERE THE RECIPE GAP GENERALISES — the 29-file deflate suite under precomp
+
+precomp `-cn`, recipe overhead measured against each file's true INFLATED size
+(not against its compressed input), all 29 restored EXACT:
+
+| what it recompressed | recipe overhead |
+|---|---|
+| `gz-l1` .. `gz-l9`, 92,408 B inflated, every zlib level | **115 B each** |
+| gz-default 120 - huffonly 127 - stored-only 124 - binary 115 - smallwindow 173 | 115-173 B |
+| gz-filtered 6,147 - gz-rle 5,398 - memlevel1 10,039 | 5-10 KB |
+| **ours, aoe4-autosave.sav** | **3,505,440 B** |
+
+As a share of the stream coded: precomp **0.0081%** on the save and ~0.12% on
+the stock-zlib family; **ours 1.1821%**. The parse is not merely predictable on
+one file — **115 bytes covers 92,408 inflated bytes at EVERY zlib level from 1
+to 9**, and only an unusual strategy (Z_FILTERED, Z_RLE, memLevel=1) pushes the
+correction stream to 1-2% of the stream. The save is stock-zlib-like, which is
+exactly why precomp reaches 0.0081% on it.
+
+**And one column where WE are ahead:** precomp's default **declined**
+`bare-l6.deflate` and `zlib-l6.zz` outright (0/0 streams -- raw deflate and raw
+zlib headers need `-intense`), passing them through at +95 B. Our peel reads
+both (WRAP_RAW). The suite's hostiles are a wash: both sides restore all 29.
+
+### N3b FILED — predict the parse, do not store it
+
+`deflate.rs`'s own header says its approach "is preflate's approach (Dirk
+Steinke) and precomp's (Christian Schneider)". **It is not.** Ours stores "every
+match's length and distance" -- 38,340,574 tokens on the save, which is
+substantially all of the 82,088,840 raw recipe. Preflate re-runs a
+zlib-compatible matcher over the inflated bytes, PREDICTS the token zlib would
+have emitted at each position, and stores only the corrections.
+
+FILED, before any code:
+
+1. On `aoe4-autosave.sav`, a stock zlib-style lazy matcher agrees with the
+   stored parse on **>= 99.5% of the 38,340,574 tokens**. Under 95% and the
+   whole approach is wrong for this file and N3b stops.
+2. The row's inner falls from 8,754,267 to **under 5,400,000** -- i.e. the
+   recipe falls by at least 3.35 MB -- putting us within 4% of precomp+zpaq's
+   5,197,337 instead of 68% behind.
+3. The correction stream costs **under 2% of the stream** on gz-filtered, gz-rle
+   and memlevel1, the three suite files where preflate itself needs 5-10 KB.
+4. **No row moves except the peeled ones**, and all 29 deflate-suite files still
+   re-spell bit for bit. The peel's law is unchanged: one byte of difference and
+   the peel is discarded for that file.
