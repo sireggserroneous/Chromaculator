@@ -43,9 +43,10 @@ const GROUPS = {
   'deflate recipe':   ['aoe4-autosave.sav'],
   'PE / binary model':['rustc_driver.dll','ntoskrnl.exe','kernel32.dll','msgraph.dll','zstd.exe','notepad.exe'],
   'JPEG peel':        ['wallpaper.jpg'],
+  'font / TTF model': ['arial.ttf','segoeui.ttf'],
   'JS / text model':  ['mermaid-bundle.js','vim-version9.txt','wubbadub.html'],
-  'audio':            ['alarm01.wav'],
-  'other':            ['real-test.db','arial.ttf'],
+  'audio':            ['alarm01.wav','ring01.wav'],
+  'other':            ['real-test.db'],
 };
 const byRow = Object.fromEntries(rows.map(r => [r.f, r]));
 console.log('\ndeficit by mechanism (only rows where a rival is ahead):');
