@@ -1,0 +1,26 @@
+{
+  "_note": "v14-N3 the challengers card. `ours` is the INNER (sealed armored total minus the 4,812 B shield); no rival carries a shield, so this is the ratio ring and armored-vs-naked stays an exhibit. null = not yet measured.",
+  "sealed_v13": {
+    "alarm01.wav":240008,"aoe4-autosave.sav":8759079,"arial.ttf":446354,"cbs.log":71385,
+    "iconcache48.db":418323,"kernel32.dll":283604,"mermaid-bundle.js":4090425,"msgraph.dll":3211880,
+    "notepad.exe":176164,"ntoskrnl.exe":4675387,"rdr2-shaders.vkcache":41860990,"real-test.bmp":261274,
+    "real-test.db":1068149,"ring01.wav":135565,"segoeui.ttf":409683,"vim-version9.txt":273743,
+    "wallpaper.jpg":1126497,"wubbadub.html":27621,"zstd.exe":488915,"rustc_driver.dll":37436978
+  },
+  "armor_price": 4812,
+  "zpaq_m5": {
+    "alarm01.wav":288598,"arial.ttf":437385,"kernel32.dll":269792,"notepad.exe":170835,
+    "real-test.bmp":3568770,"real-test.db":1006283,"ring01.wav":201932,"segoeui.ttf":404987,
+    "vim-version9.txt":251331,"wallpaper.jpg":1516991,"wubbadub.html":22271,"zstd.exe":474147,
+    "ntoskrnl.exe":4437863,"msgraph.dll":3145272,"aoe4-autosave.sav":18262092
+  },
+  "paq8px_9LAET": {
+    "wubbadub.html":16579,"kernel32.dll":195733,"vim-version9.txt":199844,
+    "alarm01.wav":143511,"real-test.bmp":2304390,"wallpaper.jpg":855907
+  },
+  "precomp_best": { "aoe4-autosave.sav":5197337 },
+  "notes": {
+    "aoe4-autosave.sav":"precomp -cn + zpaq -m5; zpaq alone (no peel) is 18,262,092",
+    "real-test.bmp":"zpaq -m5 has no image model; paq8px does and still loses 8x"
+  }
+}
