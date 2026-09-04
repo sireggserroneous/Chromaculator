@@ -332,18 +332,24 @@ function pagePoly(card){
     const n = it.codes.length;
     wrap.appendChild(el("div", "reads", "<b>" + esc(it.text) + "</b>"
       + (it.reading !== it.text ? " reads " + shown(it.reading) : "")));
-    /* standard form: exponent 0 carries no x at all, exponent 1 carries a bare
-       x. Printing x^1, and a lone x for the constant term, was simply wrong. */
-    const term = e => e === 0 ? "" : e === 1 ? "x" : "x" + sup(e);
-    wrap.appendChild(el("div", "poly", it.codes.map((c, i) => {
-      const t = term(n - 1 - i);
-      return '<span class="t"><b>' + c + "</b>"
-        + (t ? " <i>" + t + "</i>" : "") + "</span>";
-    }).join('<span class="op">+</span>')));
-    wrap.appendChild(el("div", "num", "<b>x = " + BASE
-      + "</b> so the digits are the coefficients, and the polynomial evaluates to <b>"
-      + esc(it.int) + "</b>. Read instead as a stalk in (0,1) it is "
-      + esc(it.num) + "&#8202;/&#8202;" + BASE + sup(n) + "."));
+    /* The value is the FRACTION: 0.d1 d2 d3 ... in base 4096, which is
+       SUM code_i * x^(i+1) with x = 1/4096, and it lands in (0,1) like every
+       other stalk on the site. Leading with the integer was wrong — more digits
+       always makes a bigger integer, so it sorted short words first whatever
+       they said, and it disagreed with the actual key. */
+    const term = e => e === 1 ? "x" : "x" + sup(e);
+    wrap.appendChild(el("div", "poly", it.codes.map((c, i) =>
+      '<span class="t"><b>' + c + "</b> <i>" + term(i + 1) + "</i></span>")
+      .join('<span class="op">+</span>')));
+    wrap.appendChild(el("div", "num", "<b>x = 1/" + BASE
+      + "</b>, so the digits are the coefficients and the value is the fraction "
+      + "<b>0." + it.codes.join(" ") + "</b> written in base " + BASE
+      + " &mdash; that is <b>" + esc(it.approx) + "</b>, in (0,1) like every other "
+      + "stalk here. A missing digit reads as zero and zero is below every code, "
+      + "so a prefix is smaller with no rule needed: <i>hell</i> before <i>hello</i>."));
+    wrap.appendChild(el("div", "num", "as an integer for a Wub&nbsp;&plusmn; rack, "
+      + esc(it.int) + " &mdash; but that one is length dominant and does "
+      + "<i>not</i> carry the order."));
     if(it.alts && it.alts.length > 1)
       wrap.appendChild(el("div", "alts", "<b>pushed &mdash; " + it.alts.length
         + " representations:</b> " + it.alts.map(shown).join(", ")));
@@ -356,7 +362,7 @@ function pageFacts(card){
   const box = el("div", "wide");
   const t = el("table");
   t.innerHTML = "<tr><th>item</th><th>reads</th><th>sounds</th><th>digits</th>"
-    + "<th>bits</th><th>integer</th><th>hex</th></tr>";
+    + "<th>bits</th><th>value in (0,1)</th><th>integer, for a rack</th></tr>";
   for(const it of card.items){
     const r = el("tr");
     r.innerHTML = "<td>" + esc(it.text) + "</td>"
@@ -364,8 +370,8 @@ function pageFacts(card){
       + "<td>" + (it.ipa ? "/" + esc(it.ipa) + "/" : "&mdash;") + "</td>"
       + '<td class="n">' + it.codes.length + "</td>"
       + '<td class="n">' + it.bits + "</td>"
-      + '<td class="n">' + esc(it.int) + "</td>"
-      + "<td>" + esc(it.hex) + "</td>";
+      + '<td class="n">' + esc(it.approx) + "</td>"
+      + '<td class="n">' + esc(it.int) + "</td>";
     t.appendChild(r);
   }
   box.appendChild(t);

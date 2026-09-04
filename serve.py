@@ -119,10 +119,17 @@ MAX_ITEMS = 48
 def _int_of(codes):
     """base(chroma-utf): the codes are the digits, the base is 2^12.
 
-    This IS the polynomial. n = SUM code_i * B^(len-1-i), and the stalk value is
-    n / B^len, which is the same number read as a fraction in (0,1). One
-    construction for both axes -- the reading axis changes the digits, never
-    this -- so a spelling and its phonetic reading are comparable pictures.
+    The VALUE is the fraction: 0.d1 d2 d3 ... in base 4096, which is
+    SUM code_i * B^-(i+1) and lands in (0,1) like every other stalk on the site.
+
+    Leading with the integer was wrong. The integer is SUM code_i * B^(n-1-i),
+    so more digits always means a bigger number and it sorts short words first
+    whatever they say -- "he" beats "hell" on length alone. The fraction does
+    not: a missing digit reads as zero, zero is below every code, so a prefix is
+    automatically smaller and no terminator rule is needed. Measured against the
+    real key, the fraction agrees and the integer does not.
+
+    The integer is kept because Wub +- takes integers, not because it orders.
     """
     B = 1 << CODE_BITS
     n = 0
@@ -152,9 +159,12 @@ def api_cards(q, lang, push="", read="sound"):
             codes = [c for c in C.letters(spell)]
             n, den = _int_of(codes)
             items.append({"text": t, "reading": spell, "ipa": ipa(r), "codes": codes,
+                          # the value, in (0,1): 0.d1 d2 d3 ... base 4096
+                          "num": str(n), "den": str(den),
+                          "approx": f"{n / den:.18f}" if den else "0",
+                          # and the integer, for Wub +- which takes integers
                           "int": str(n), "hex": format(n, "x"),
                           "bits": len(codes) * CODE_BITS,
-                          "num": str(n), "den": str(den),
                           "alts": sorted(set(alts))[:MAX_PUSH]})
         tot = sum(int(i["int"]) for i in items)
         cards.append({"items": items, "sum": str(tot),
@@ -304,6 +314,19 @@ def demo():
                                 for i, c in enumerate(h["codes"])), h
     assert int(cd["cards"][0]["sum"]) == sum(
         int(i["int"]) for i in cd["cards"][0]["items"])
+    # the VALUE is the fraction, and it is the one that agrees with the order
+    from fractions import Fraction
+    C0, P0, S0 = ordering()
+    ws = ["he", "hell", "hello", "helllo", "helo"]
+    cs = {w: C0.letters("".join(x[0] for x in S0.spellings(w)[0])) for w in ws}
+    def frac(w):
+        n, d = _int_of(cs[w]); return Fraction(n, d)
+    def whole(w):
+        n, _d = _int_of(cs[w]); return n
+    real = sorted(ws, key=lambda w: S0._k(w, S0.spellings(w)[0])[0])
+    assert sorted(ws, key=frac) == real, "the fraction must agree with the key"
+    assert sorted(ws, key=whole) != real, \
+        "the integer is length-dominant; if this ever matches, the control is dead"
     ip = api_ipa("shit", "en")
     assert ip["width"] == 8 and ip["base"] == 256 and ip["count"] == 123, ip["count"]
     it = ip["items"][0]

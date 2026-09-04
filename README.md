@@ -360,12 +360,24 @@ commas between the items on a card**, the way Wub ± holds a rack:
     card 1 : (hello, 3, 45)
 
       hello  digits [616, 574, 658, 658, 680]
-             616x⁴ + 574x³ + 658x² + 658x + 680      x = 4096
-             = 173428041675514536      60 bits
-      3      515
-      45     516x + 517  =  2114053
+             616x + 574x² + 658x³ + 658x⁴ + 680x⁵      x = 1/4096
+             = 0.616 574 658 658 680 in base 4096
 
-      rack sum 173428041677629104 — the integers a Wub ± rack would hold
+### The value is the fraction, not the integer
+
+`0.hello`, in (0,1) like every other stalk on the site. Leading with the
+integer was wrong: `SUM code_i · B^(n-1-i)` grows with the digit count, so **it
+sorts short words first whatever they say** — `he` beats `hell` on length alone.
+Measured against the real key:
+
+    0.word    he hell helllo hello helo   == the sort
+    integer   he hell helo hello helllo   != the sort
+
+The fraction also gets prefix ordering **for free**: a missing digit reads as
+zero, zero is below every code, so `hell` is smaller than `hello` with no
+terminator rule at all. The integer is kept because Wub ± takes integers, and
+`tools/wubutf.test.js` keeps it as a live control — if it ever starts agreeing
+with the key, the check has stopped meaning anything.
 
 Each card pages through **Bodies** (one 4×4 square per digit), **Polynomial**,
 **Facts** and **Rack**.

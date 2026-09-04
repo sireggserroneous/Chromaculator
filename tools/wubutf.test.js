@@ -83,8 +83,29 @@ function seeded(q, lang, push, read){
   }
   const sum = s.cards.cards[0].items.reduce((a, i) => a + BigInt(i.int), 0n);
   ok(sum === BigInt(s.cards.cards[0].sum), "rack sum is not the sum of the items");
+  /* the VALUE is the fraction 0.d1 d2 d3..., and it is the one that carries the
+     order. The integer is length dominant — more digits is always a bigger
+     number — so it sorts short words first whatever they say. Kept as a live
+     control: if it ever starts agreeing, this check has stopped meaning anything. */
+  const W2 = ["he", "hell", "hello", "helllo", "helo"];
+  const c2 = api("api_cards", W2.join("\n"), "", "", "spell").cards.map(c => c.items[0]);
+  const frac = it => [BigInt(it.num), BigInt(it.den)];
+  const cmpF = (a, b) => { const [an, ad] = frac(a), [bn, bd] = frac(b);
+    const l = an * bd, r = bn * ad; return l < r ? -1 : l > r ? 1 : 0; };
+  const byFrac = [...c2].sort(cmpF).map(x => x.text);
+  const byInt = [...c2].sort((a, b) =>
+    BigInt(a.int) < BigInt(b.int) ? -1 : BigInt(a.int) > BigInt(b.int) ? 1 : 0)
+    .map(x => x.text);
+  const real = api("api_sort", W2.join("\n"), "", "", "spell").sorted.map(x => x.name);
+  ok(String(byFrac) === String(real),
+     `the fraction must agree with the key: ${byFrac} vs ${real}`);
+  ok(String(byInt) !== String(real),
+     "the integer agreed with the key — the length-dominance control is dead");
+  console.log(`  [3] value order    0.word ${byFrac.join(" ")}  == the sort`);
+  console.log(`                     integer ${byInt.join(" ")}  != the sort `
+    + "(length dominant, kept as a control)");
   const h = s.cards.cards[0].items[0];
-  console.log(`  [3] base(chroma-utf)  ${h.text} reads ${h.reading}, digits `
+  console.log(`  [4] base(chroma-utf)  ${h.text} reads ${h.reading}, digits `
     + `[${h.codes}] -> ${h.int} in base ${s.cards.base}, ${h.bits} bits`);
   console.log(`                     rack sum ${s.cards.cards[0].sum} = the integers a `
     + "Wub +- rack would hold");
@@ -104,7 +125,7 @@ function seeded(q, lang, push, read){
      "dis vs this should be decided inside the second digit: " + JSON.stringify(dt));
   ok(dn && dn.code === 0,
      "this vs thin should be decided in the first digit: " + JSON.stringify(dn));
-  console.log(`  [4] divergence     dis|this at digit ${dt.code + 1} cell ${dt.cell}; `
+  console.log(`  [5] divergence     dis|this at digit ${dt.code + 1} cell ${dt.cell}; `
     + `this|thin at digit ${dn.code + 1} cell ${dn.cell} — dis is the closer of the two`);
 }
 
@@ -121,7 +142,7 @@ function seeded(q, lang, push, read){
   }
   ok(shapes.size === 1 && deads.size === 1,
      `frames differ: ${[...shapes].join(",")} dead ${[...deads].join(",")}`);
-  console.log(`  [5] one frame      all ${base.count} digits draw ${[...shapes][0]} `
+  console.log(`  [6] one frame      all ${base.count} digits draw ${[...shapes][0]} `
     + `with ${[...deads][0]} padding cells`);
 }
 
@@ -142,7 +163,7 @@ function seeded(q, lang, push, read){
   ok(!ctxRows.some(r => r.reading === "kervezas"),
      "in context, c before e is never /k/");
   ok(allRows.some(r => r.reading === "kervezas"), "rules off, kervezas must appear");
-  console.log(`  [6] four combos    as written: plain "${plainSpell[0].reading}", `
+  console.log(`  [7] four combos    as written: plain "${plainSpell[0].reading}", `
     + `pushed ${pushSpell.length} shape variants`);
   console.log(`                     phonetic:   plain "${plainSound[0].reading}", `
     + `pushed ${ctxRows[0].of} in context (no kervezas), `
@@ -156,7 +177,7 @@ function seeded(q, lang, push, read){
   const target = api("api_read", "cervezas", "en").reading;
   ok(leet === target && plain !== target,
      `shape axis: ${plain} plain, ${leet} with leet, cervezas is ${target}`);
-  console.log(`  [7] shape axis     c3rv3zas -> ${plain} plain, ${leet} with leet `
+  console.log(`  [8] shape axis     c3rv3zas -> ${plain} plain, ${leet} with leet `
     + `— the same key as cervezas`);
 }
 
@@ -191,7 +212,7 @@ function seeded(q, lang, push, read){
     ok((await get("/api/nope")).status === 404, "unknown endpoint should 404");
     ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413,
        "oversized query should 413");
-    console.log(`  [8] live stack     page 200, 3 cards, sort ${names.join(" ")}, `
+    console.log(`  [9] live stack     page 200, 3 cards, sort ${names.join(" ")}, `
       + "飼 as ja-on -> shi, /api/nope 404, 5000 chars 413");
   } finally { srv.kill("SIGTERM"); }
 }
