@@ -1080,3 +1080,35 @@ precomp on the save + zpaq      103,964,248   +2.02%   we WIN
 **The corpus-wide comparison against the best pipeline anyone can actually run
 flips from a 1.33% LOSS to a 2.02% WIN**, and the projection filed before the
 format was built (101,911,517) lands within 0.01% of the measurement.
+
+## N3c — the PE gap is the MODEL, and the 0.5% margin has a price nobody had costed
+
+The card's second-largest deficit is **1,962,323 B across six PE rows**, all
+losing to `zpaq -m5` by 0.3-5.0%. Six rows failing the same way is one mechanism,
+so the cheap question came first: is `FILTER_BCJ` (x86 rel32 -> absolute, LZMA's
+Bra86) even firing on the rows that matter?
+
+| row | filtered | plain | outcome |
+|---|---|---|---|
+| notepad.exe | 171,352 | 174,329 | **TAKEN** |
+| ntoskrnl.exe | 4,670,575 | 4,964,397 | **TAKEN**, and it is worth -5.9% |
+| zstd.exe | 481,857 | 484,103 | nominated, **discarded by the 0.5% margin** |
+
+**It is firing.** `ntoskrnl.exe` carries 232,712 B of the deficit and already has
+the transform applied, and still loses 4.98% to zpaq. **So the PE gap is a model
+gap, not a filter-selection bug** -- which is a negative result worth having
+before anyone spends a milestone on filter tuning.
+
+### The margin, now with its price attached
+
+`zstd.exe`'s filtered form is **2,246 B smaller** and is thrown away for missing
+the margin by 0.036 of a percentage point (0.464% against the 0.5% required).
+That looks like a defect and is probably not one: a filtered form sets
+`fid != 0`, which fires the in-memory round-trip law (`main.rs`), and N2c
+measured that law at **822 ms of a 2,875 ms row -- 28%**. The rule is therefore
+trading up to 0.5% of bytes against a full serial decode of the winning arm.
+
+**Filed, unbuilt:** the margin has never been priced against that decode. On
+`zstd.exe` it costs 2,246 B; the question is what it costs across the corpus and
+whether the decode is worth it at every size. That is a trade to measure, not a
+constant to change, and it needs its own prediction before anyone touches it.
