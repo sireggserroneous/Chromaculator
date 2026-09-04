@@ -1244,3 +1244,33 @@ where a FLAC-shaped LPC+Rice peel collects 58,050 of it -- about a third.
 That reframes N6: it was scoped as "build FLAC's mechanism as a WAV-gated peel",
 and that remains a real 58 KB, but it is not the row's ceiling and should not be
 sold as one.
+
+### The N4 forecast, re-grounded on MEASURED per-member cost
+
+The first forecast estimated the per-member recipe. It has now been measured:
+599 raw deflate members were extracted from `python312.zip` (reading each LOCAL
+header's own name and extra lengths, not the central directory's -- the two
+disagree, which `peel::members` already knows) and 60 of them probed.
+
+| | 60 members measured | scaled to 599 |
+|---|---|---|
+| tokens / corrections | 484,548 / 944 = **99.805% predicted** | ~9,424 corrections |
+| predicted parse | 9,560 B raw | **~95,441 B** |
+| meta (per member 337 B) | 20,195 B raw | **~201,613 B** |
+| the STORED parse this replaces | 1,034,509 B raw | **~10.3 MB** |
+| lockstep failures | **0 of 60** | |
+
+Recipe **~297 KB raw against ~10.3 MB stored**, so the row lands near
+**1,925,000** -- values 1,865,974, recipe ~39,000 coded at the save's observed
+13% of raw, ZIP wrappers ~20,000. That is inside the filed "under 2,000,000" and
+**48.7% under today's 3,753,980**.
+
+**Prediction quality is 99.805% here against 99.99995% on the save.** Small
+members are harder -- less signal for the parameter search, and 7 of 60 predict
+perfectly where the save's single 296 MB stream did. It is still 100x better
+than storing the parse, and 0 of 60 failed lockstep, so the fallback never fires
+on this file. Worth knowing before N4 is built: **the ZIP case is a
+many-small-streams case, and its recipe is dominated by META (201 KB) rather
+than by corrections (95 KB)** -- the reverse of the save, where meta was 312 KB
+and the corrections were 142 BYTES. If N4 lands above 2,100,000, per-member meta
+is the thing to attack, and this is the number to attack it against.
