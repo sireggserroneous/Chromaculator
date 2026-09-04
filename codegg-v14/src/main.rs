@@ -46,6 +46,7 @@ mod sites; // M3b's two instruments (S1b the gcd, S1c the bit period)
 mod squash_tab;
 mod structure;
 mod token;
+mod zmatch; // N3b's WS-P: the PREDICTED parse (a zlib-compatible matcher)
 
 use armor::{armor, dearmor, fnv64, geom, offsets, price, promise, rib_no_armor, rib_search, rib_search_with, scratch_guaranteed, square_off, CtMode, Extras, Rib, SURVIVE_DEFAULT};
 use std::env;
@@ -933,6 +934,7 @@ fn main() -> ExitCode {
         eprintln!("       eggv13 audit [--full]   -- the geometry audit, counts printed");
         eprintln!("       eggv13 gcdprobe <file>  -- S1b: the gcd of every 64 KB block, at 8/16/32 bits, before and after each filter");
         eprintln!("       eggv13 bitprobe <file>  -- S1c: the order-1 sequential code length per bit width, per 1 MB region");
+        eprintln!("       eggv14 zprobe <file>    -- N3b: infer the zlib matcher that produced a deflate member, and count the corrections its parse would need");
         ExitCode::from(2)
     };
     if bare.is_empty() || (bare.len() < 2 && bare[0] != "audit") {
@@ -1181,6 +1183,48 @@ fn main() -> ExitCode {
         "bitprobe" => {
             let src = fs::read(path).expect("read input");
             sites::bit_probe(path, &src);
+            ExitCode::SUCCESS
+        }
+        // v14-N3b: the measurement the recipe rewrite stands on. Peels a
+        // deflate member, INFERS the zlib matcher that produced it from a
+        // sample, then counts how many tokens of the WHOLE parse that matcher
+        // fails to predict. Those are the only tokens a predicted recipe has
+        // to store.
+        "zprobe" => {
+            let src = fs::read(path).expect("read input");
+            let d = match deflate::peel(&src) {
+                Ok(d) => d,
+                Err(e) => {
+                    eprintln!("{}: not a deflate member we can peel ({})", path, e);
+                    return ExitCode::FAILURE;
+                }
+            };
+            let actual = zmatch::from_recipe(&d);
+            let sample = (4 << 20).min(d.values.len());
+            let cut = actual.iter().scan(0usize, |p, t| { *p += t.span(); Some(*p) }).take_while(|&p| p <= sample).count();
+            let t0 = Instant::now();
+            let (cfg, _) = zmatch::infer(&d.values[..sample], &actual[..cut]);
+            let infer_ms = t0.elapsed().as_millis();
+            let t1 = Instant::now();
+            let bad = zmatch::disagreements(&actual, &zmatch::parse(&d.values, cfg));
+            println!("{}: {}", path, d.describe());
+            println!(
+                "  inferred zlib level {} memLevel {} from a {} B sample in {} ms",
+                cfg.level, cfg.mem_level, sample, infer_ms
+            );
+            println!(
+                "  WHOLE stream: {} tokens, {} need correction = {:.5}% predicted exactly ({} ms)",
+                actual.len(),
+                bad,
+                100.0 * (actual.len() - bad) as f64 / actual.len().max(1) as f64,
+                t1.elapsed().as_millis()
+            );
+            let stored = d.flags.len() + d.lens.len() + d.dists.len() * 2;
+            let predicted = actual.len().div_ceil(8) + bad * 5;
+            println!(
+                "  recipe parse streams: STORED {} B -> PREDICTED {} B (a correction bit per token + 5 B per correction) = {:.2}x smaller",
+                stored, predicted, stored as f64 / predicted.max(1) as f64
+            );
             ExitCode::SUCCESS
         }
         "restore" => {

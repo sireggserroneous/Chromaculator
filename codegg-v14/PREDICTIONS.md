@@ -933,3 +933,64 @@ weight — and no rival has ever been run on either.** Every card measurement in
 this project's history has been taken on rows that together are a quarter of
 what we ship. A 5% gap on those two is 4 MB, the size of all of N3b, and it
 costs an hour to find out.
+
+## N3b step 2 MEASURED — the matcher is built, and 38,340,574 tokens reduce to 22
+
+`src/zmatch.rs`, a zlib-compatible `deflate_slow`/`deflate_fast` matcher with
+zlib's configuration table, hash chains and `longest_match`, plus `infer()`
+which reads the parameters out of the stream instead of assuming them. Wired to
+a `zprobe <file>` subcommand so nothing ships dormant.
+
+**On `aoe4-autosave.sav`, in our own code, over the WHOLE 296,540,843-byte
+stream:**
+
+```
+1,171 blocks, 38,340,574 tokens (25,661,244 matches), recipe today =
+  meta 312,466 + flags 4,792,572 + lens 25,661,244 + dists 51,322,488 B
+
+  inferred zlib level 4 memLevel 9 from a 4 MB sample      1,501 ms
+  WHOLE stream: 22 tokens need correction = 99.99994%      2,365 ms
+```
+
+**Twenty-two tokens out of 38.3 million.** The three parse streams -- 81,776,304
+raw bytes, 99.6% of the recipe -- become two parameter bytes and 22 corrections.
+This independently reproduces the Python reading (99.99994% over 12 MB) at full
+scale, in the code that will ship it.
+
+Filed prediction 1 (>= 99.5% agreement) is a **HIT** once the parameters are
+inferred. The earlier 98.52% reading stands as what a FIXED level-6 predictor
+gets; the same file at level 6 agrees on 82.7% of the whole stream. **The
+parameter search is the finding, not the matcher.**
+
+### What the matcher does NOT yet do, measured rather than assumed
+
+`zprobe` over the deflate suite says the prediction is not universal:
+
+| file | inferred | predicted exactly |
+|---|---|---|
+| gz-l9.gz / gz-default.gz / memlevel1.gz | level 9 | **100.00%** |
+| gz-l6.gz | level 6 memLevel 8 | 99.44% |
+| **gz-l1.gz** | level 1 | **54.96%** |
+| **smallwindow.gz** | level 1 | **40.18%** |
+
+Two defects, both real and both named before they are excused. `deflate_fast`
+(levels 1..=3, the greedy path) is wrong -- 54.96% where the file IS level 1.
+And `windowBits` is not modelled at all: the matcher assumes a 32 KB window, so
+`smallwindow.gz` cannot be predicted by construction.
+
+**Neither blocks the milestone, because the recipe will choose per file.** The
+format keeps the stored parse as its fallback and takes the predicted one only
+where prediction measurably wins; a file the matcher cannot predict simply ships
+as it does today. The law of the peel is unchanged and still decides: re-spell,
+compare against the original bytes, and one byte of difference discards the peel
+for that file.
+
+### The arithmetic this buys, stated before the format is built
+
+Recipe raw 82,088,840 -> ~312,600 (meta, unchanged, plus 2 parameter bytes and
+22 corrections) = **262x smaller raw**. Coded, today's 82,088,840 -> 3,505,440
+is 4.27%; meta is block structure and Huffman tables rather than a token stream,
+so it will not code that well. **Filed: the row's inner lands between 5,300,000
+and 5,450,000** (today 8,754,267), i.e. the recipe falls by at least 3.30 MB. If
+it lands above 5,600,000 the meta stream is the next thing to look at, and that
+gets written down before anything else is tried.
