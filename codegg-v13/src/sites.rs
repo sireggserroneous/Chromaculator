@@ -400,3 +400,93 @@ pub fn bit_probe(name: &str, src: &[u8]) {
         None => println!("{}: {} of {} regions read, nothing to report", name, regions, nreg_total),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn xs(state: &mut u64) -> u8 {
+        *state ^= *state << 13;
+        *state ^= *state >> 7;
+        *state ^= *state << 17;
+        (*state & 0xff) as u8
+    }
+
+    /// S1c's LOAD-BEARING CLAIM, pinned. The whole reason a wide width cannot
+    /// win by overfitting is that a symbol in a fresh context costs log2(A) = w
+    /// bits. That payment is one expression -- `(n_ctx + a_alpha) / (n_pair +
+    /// alpha)` -- and a one-token slip between `alpha` and `a_alpha` makes a
+    /// fresh context cost log2(1) = 0 instead, which would hand every wide
+    /// width a manufactured win and invert a verdict already written into
+    /// PREDICTIONS.md and a commit message.
+    #[test]
+    fn the_estimator_pays_for_its_own_alphabet() {
+        // exact and arithmetic-free: two bytes read as ONE 16-bit symbol, in a
+        // fresh context, must cost exactly log2(65536) = 16 bits
+        let one = order1_bits(&[0xAB, 0xCD], 16);
+        assert!((one - 16.0).abs() < 1e-9, "one novel 16-bit symbol must cost 16 bits, got {}", one);
+        let four = order1_bits(&[0x5A], 4);
+        // two novel 4-bit symbols: the first in the start context, the second
+        // in the context the first created -- 4 bits each
+        assert!((four - 8.0).abs() < 1e-9, "two novel 4-bit symbols must cost 8 bits, got {}", four);
+
+        // and the consequence: incompressible bytes must not compress at ANY
+        // width. Without the payment the wide widths collapse toward zero.
+        let mut st = 0x1489u64;
+        let mut r = vec![0u8; 8192];
+        for b in r.iter_mut() {
+            *b = xs(&mut st);
+        }
+        for w in [1u32, 4, 8, 12, 16] {
+            let per_bit = order1_bits(&r, w) / (r.len() as f64 * 8.0);
+            assert!(per_bit > 0.95, "random must not compress at width {}: {:.4} bits per bit", w, per_bit);
+        }
+    }
+
+    /// THE CONTROL, pinned. S1c's verdict rests on the context being the
+    /// previous SIXTEEN BITS for every width -- that is what removed the
+    /// context-length confound and took wide-width wins from 19 pairs to 1.
+    /// On data where one byte of history is ambiguous and two bytes are
+    /// decisive, the control must beat the naive reading; if it silently saw
+    /// only its own symbol, the two would agree.
+    #[test]
+    fn the_control_really_sees_sixteen_bits() {
+        let mut d = Vec::new();
+        for _ in 0..8192 {
+            d.extend_from_slice(b"ABAC"); // after 'A' the next is B or C; after "CA" it is B
+        }
+        let naive = order1_bits(&d, 8) / d.len() as f64;
+        let control = order1_bits_ctx16(&d, 8) / d.len() as f64;
+        assert!(
+            control < naive * 0.5,
+            "the 16-bit control must beat the 8-bit reading on order-2 data: naive {:.4}, control {:.4}",
+            naive,
+            control
+        );
+    }
+
+    /// S1b's finding was that a POWER-OF-TWO gcd is not a finding (it says the
+    /// low bits are constant zero, which every bitwise model already codes at
+    /// ~0) and neither is a CONSTANT RUN (its gcd is just its value). Both
+    /// discriminators live in `block_gcd`'s second return value, and both are
+    /// pinned here -- they are what took real-test.bmp from 24.32% of blocks to
+    /// 3.86%, and the corpus from 0.71% to 0.113%.
+    #[test]
+    fn the_gcd_split_tells_a_factor_from_a_constant_run() {
+        // a genuine arithmetic factor: every value a multiple of 5
+        let odd: Vec<u8> = (0..4096u32).map(|i| ((i % 51) * 5) as u8).collect();
+        let (g, distinct) = block_gcd(&odd, 1).expect("multiples of 5 have a gcd");
+        assert_eq!(g, 5, "the arithmetic factor itself");
+        assert!(distinct > 2, "and it is not a constant run: {} distinct", distinct);
+
+        // a constant run: the gcd is the value, and it is NOT a finding
+        let (g2, d2) = block_gcd(&vec![200u8; 4096], 1).expect("a constant run has a gcd");
+        assert_eq!(g2, 200);
+        assert_eq!(d2, 1, "a constant run has ONE distinct value");
+
+        // the degenerate cases refuse rather than invent a factor
+        assert!(block_gcd(&[0u8; 4096], 1).is_none(), "all zeros names no factor");
+        assert!(block_gcd(&[7u8, 3], 4).is_none(), "a block shorter than its width names no factor");
+        assert_eq!(block_gcd(&[3u8, 5, 7, 11], 1), Some((1, 0)), "coprime values name no factor");
+    }
+}
