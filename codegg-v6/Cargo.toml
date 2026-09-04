@@ -1,0 +1,12 @@
+[package]
+name = "eggv6"
+version = "0.1.0"
+edition = "2021"
+
+# std only, deliberately: the codec is number theory and a permutation,
+# and the build must work with no network and no supply chain.
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
