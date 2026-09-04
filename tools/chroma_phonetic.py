@@ -85,6 +85,60 @@ LATIN = {
        ("v","v",  "ga",                   "",         "bh lenition — abhan reads Avon")],
 }
 
+# ---------- the SHAPE axis: a glyph that looks like a letter ----------
+# Same table shape, same condition grammar, same filter as the sound branches —
+# which is the point. Sound and shape are two columns over one mechanism, so
+# leet is not a special case, it is the shape table with a language tag.
+#
+# The branch says "this glyph IS that letter", so it carries the letter as its
+# spelling and the sound pass then reads that letter normally.
+SHAPE = {
+ "3": [("e", "e", "leet", "", "capital E rotated 180 degrees")],
+ "0": [("o", "o", "leet", "", "")],
+ "1": [("i", "i", "leet", "", ""), ("l", "l", "leet", "", "")],
+ "2": [("z", "z", "leet", "", "")],
+ "4": [("a", "a", "leet", "", "")],
+ "5": [("s", "s", "leet", "", "")],
+ "6": [("g", "g", "leet", "", "")],
+ "7": [("t", "t", "leet", "", "")],
+ "8": [("b", "b", "leet", "", "")],
+ "9": [("g", "g", "leet", "", "")],
+ "@": [("a", "a", "leet", "", "")],
+ "$": [("s", "s", "leet", "", "")],
+ "!": [("i", "i", "leet", "", "")],
+ "|": [("l", "l", "leet", "", ""), ("i", "i", "leet", "", "")],
+}
+TAGS_SHAPE = {"leet"}
+
+
+# glyph <-> letter, one step only. The transitive closure would merge i and l
+# through 1, and while UTS #39 does call those confusable, collapsing two real
+# letters is a bigger claim than this table is making. Restricted to characters
+# that are in Chroma UTF, so every variant stays inside the alphabet.
+def _build_classes():
+    fwd = collections.defaultdict(set)
+    for g, alts in SHAPE.items():
+        for _ipa, rom, _l, _c, _n in alts:
+            fwd[g].add(rom); fwd[rom].add(g)
+    return {k: sorted(v) for k, v in fwd.items()}
+SHAPE_CLASS = _build_classes()
+
+
+def shape_class(ch, table):
+    """The characters that look like this one and are in the alphabet."""
+    out = [ch]
+    for a in SHAPE_CLASS.get(ch, ()):
+        if a != ch and a in table: out.append(a)
+    return out
+
+
+def shape_of(ch, accept):
+    """The letter this glyph stands for, when the shape axis is in play."""
+    for _ipa, rom, langs, _c, _n in SHAPE.get(ch, ()):
+        if accept is None or exact_match(langs.split(), accept): return rom
+    return None
+
+
 def cond_holds(cond, i, segs, word=""):
     """Is this branch's positional condition satisfied at segs[i]?"""
     if not cond: return True
@@ -214,9 +268,23 @@ def want_set(want):
 
 
 # Every language tag the tables actually use. chroma_sort adds the digraph tags.
-TAGS = set(LANGS) | {t for v in LATIN.values() for _, _, l, _, _ in [v[0]] for t in []}
+TAGS = set(LANGS) | TAGS_SHAPE
 for _v in LATIN.values():
     for _ipa, _rom, _l, _c, _n in _v: TAGS |= set(_l.split())
+
+
+def split_want(want):
+    """A request splits into SOUND languages and SHAPE tags.
+
+    They are orthogonal axes, not rivals. Treating "leet" as another candidate
+    language meant it competed with "en" for the single primary slot, "en" won
+    by being declared first, and the shape branches never got a look in. A
+    shape tag joins every candidate's accept set instead, so "en leet" means
+    English sounds over leet shapes rather than English or leet.
+    """
+    if want is None: return None, set()
+    w = want.split() if isinstance(want, str) else list(want)
+    return [x for x in w if x not in TAGS_SHAPE], {x for x in w if x in TAGS_SHAPE}
 
 
 def candidates(want):
@@ -235,7 +303,7 @@ def candidates(want):
     region, which is what keeps the regions from mixing.
     """
     if want is None: return [None]
-    w = want.split() if isinstance(want, str) else list(want)
+    w, _shapes = split_want(want)
     if not w: return [None]
     # declaration order is a PRIORITY order and must survive. Sorting the
     # request here threw it away, so "es en" and "en es" resolved identically.
@@ -247,7 +315,7 @@ def candidates(want):
     return out
 
 
-def accept_for(tag):
+def accept_for(tag, shapes=()):
     """The EXACT tags one candidate reads with: itself, its bare language, und.
 
     Matched exactly, not along the subtag chain. lang_match runs both ways,
@@ -256,8 +324,8 @@ def accept_for(tag):
     lang_match re-admit a sibling es-ES entry to the es-419 candidate, and
     cerveza came back "serbetha" again with seseo c and distinción z.
     """
-    if tag is None: return None
-    a = {tag, "und"}
+    if tag is None: return None if not shapes else {"und"} | set(shapes)
+    a = {tag, "und"} | set(shapes)
     if "-" in tag: a.add(tag.split("-")[0])
     return a
 

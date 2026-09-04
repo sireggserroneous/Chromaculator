@@ -40,6 +40,7 @@ function harness(html){
       showModal(){this._open=true}, close(){this._open=false}, ownerDocument:null,
       getBoundingClientRect:()=>({left:0,top:0,width:300,height:300}),
       closest(){return null}, querySelectorAll(){return []},
+      querySelector(sel){ return mkEl(id + ">" + sel); },
       get parentElement(){ return mkEl(id+":parent"); },
     };
     return el;

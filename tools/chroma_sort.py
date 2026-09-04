@@ -56,7 +56,7 @@ for _v in DIGRAPH.values():
     for _ipa, _rom, _l, _c, _n in _v: P.TAGS |= set(_l.split())
 SEP = "\x01"                       # sorts below every letter, spells nothing
 
-def branches(seg, i=0, segs=None, word=""):
+def branches(seg, i=0, segs=None, word="", use_cond=True):
     """-> [(chroma-utf spelling, ipa, [langs])] for one grapheme IN CONTEXT.
 
     A character alone has no context, which is why the index lists every branch.
@@ -70,12 +70,18 @@ def branches(seg, i=0, segs=None, word=""):
         up = seg[0] != l[0]
         src = [((rom.upper() if up and rom else rom), ipa, langs.split(), cond)
                for ipa, rom, langs, cond, _ in DIGRAPH[l]]
+    elif seg in P.SHAPE:
+        # letter branches first, so declaring leet makes the letter the primary
+        # and not declaring it filters them out and leaves the glyph itself
+        src = [(rom, ipa, langs.split(), cond)
+               for ipa, rom, langs, cond, _ in P.SHAPE[seg]]
+        src.append((seg, "", ["und"], ""))
     else:
         e = P.latin_entries(seg)
         if e: src = [(r, ipa, langs, cond) for r, ipa, langs, cond, _ in e]
     if src is not None:
         keep = [(r, ipa, langs) for r, ipa, langs, cond in src
-                if P.cond_holds(cond, i, segs, word)]
+                if not use_cond or P.cond_holds(cond, i, segs, word)]
         return keep or [(r, ipa, langs) for r, ipa, langs, _ in src]
     r, tone, st, layer, _ = C.reading(seg)
     if r is None: return [(SEP, "", ["und"])]
@@ -91,7 +97,7 @@ def segment(s):
     while i < len(s):
         ch = s[i]
         cat = u.category(ch)
-        if cat[0] in "PZC" or ch in "._-/ ":
+        if (cat[0] in "PZC" or ch in "._-/ ") and ch not in P.SHAPE:
             if not out or out[-1] != SEP: out.append(SEP)
             i += 1; continue
         for n in range(min(MAXG, len(s) - i), 1, -1):
@@ -101,12 +107,24 @@ def segment(s):
             out.append(ch); i += 1
     return out
 
-def _readings_one(s, segs, accept):
+def shape_view(segs, accept):
+    """segs with each glyph replaced by the letter it stands for.
+
+    Conditions test their NEIGHBOURS, and a neighbour that is a leet glyph has
+    to be read as its letter first or the rule fires on the wrong thing: c
+    before "3" took the !>eiy branch and c3rv3zas came out "kervezas" when the
+    3 plainly stands for an e. Shape is a pre-pass; sound reads what it leaves.
+    """
+    return [P.shape_of(g, accept) or g for g in segs]
+
+
+def _readings_one(s, segs, accept, use_cond=True):
     """Every reading ONE coherent language admits."""
     per = []
+    view = shape_view(segs, accept)
     for i, seg in enumerate(segs):
         if seg == SEP: per.append([(SEP, MID)]); continue
-        b = branches(seg, i, segs, s)
+        b = branches(seg, i, view, s, use_cond)
         if accept:
             keep = [x for x in b if P.exact_match(x[2], accept)]
             b = keep or b                              # never erase a segment
@@ -121,7 +139,7 @@ def _readings_one(s, segs, accept):
     return [tuple(c) for c in itertools.product(*per)]
 
 
-def readings(s, lang=None):
+def readings(s, lang=None, use_cond=True):
     """Every reading the declared language admits, as (spelling, ipa).
 
     ONE coherent language at a time. The first candidate's first reading is the
@@ -129,14 +147,38 @@ def readings(s, lang=None):
     picking the primary branch per grapheme gave cerveza as "serbetha", seseo c
     with distincion z, which is the reading the language coupling exists to
     rule out.
+
+    use_cond=False drops the positional rules, which is the difference between
+    the two push levels: in context, cervezas has no /k/ reading at all because
+    c before e is never /k/. Out of context it does -- kervezas -- because a
+    character on its own has no position to be judged by. Same table, and the
+    character index already reads it the second way.
     """
     segs = segment(s)
+    _sounds, shapes = P.split_want(lang)
     out, seen = [], set()
     for tag in P.candidates(lang):
-        for r in _readings_one(s, segs, P.accept_for(tag)):
+        for r in _readings_one(s, segs, P.accept_for(tag, shapes), use_cond):
             k = tuple(x[0] for x in r)
             if k not in seen: seen.add(k); out.append(r)
     return out
+
+
+def spellings(s, push=False):
+    """The SPELLING axis, as opposed to the sound axis.
+
+    plain   the string as typed
+    pushed  every shape variant of it -- c3rv3zas and cervezas are one thing
+            written two ways, which is the same move as pushing a lit cell to
+            (+1,-1): one object, several representations, and pushing shows
+            them all instead of collapsing to one.
+    """
+    if not push: return [tuple((c, "") for c in s)]
+    per = [P.shape_class(c, C.UTF) for c in s]
+    n = 1
+    for q in per: n *= len(q)
+    if n > 4096: return [tuple((c, "") for c in s)]
+    return [tuple((c, "") for c in combo) for combo in itertools.product(*per)]
 
 
 def _k(s, r):
@@ -192,12 +234,14 @@ def primary(s, lang=None):
     every one of them was being built to throw away.
     """
     segs = segment(s)
+    _sounds, shapes = P.split_want(lang)
     cands = P.candidates(lang)
-    accept = P.accept_for(detect(s, cands) or cands[0])
+    accept = P.accept_for(detect(s, cands) or cands[0], shapes)
     out = []
+    view = shape_view(segs, accept)
     for i, seg in enumerate(segs):
         if seg == SEP: out.append((SEP, MID)); continue
-        b = branches(seg, i, segs, s)
+        b = branches(seg, i, view, s)
         if accept:
             keep = [x for x in b if P.exact_match(x[2], accept)]
             b = keep or b                              # never erase a segment

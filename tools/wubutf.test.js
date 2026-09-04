@@ -118,11 +118,53 @@ const api = (ep, q, lang = "") => JSON.parse(execFileSync("python3", ["-c",
        "live sort wrong: " + names);
     const r = await get("/api/read?q=" + encodeURIComponent("飼") + "&lang=ja-on");
     ok(JSON.parse(r.body).reading === "shi", "live read wrong: " + r.body);
+    /* the two push levels, and the shape axis as its own switch */
+    const ps2 = async (q, lang, push, read) => JSON.parse((await get(
+      `/api/sort?lang=${encodeURIComponent(lang)}&push=${push}&read=${read || "sound"}`
+      + `&q=${encodeURIComponent(q)}`)).body).sorted;
+    const ps = (q, lang, push) => ps2(q, lang, push, "sound");
+    const plain = await ps("cervezas", "", "");
+    const ctx = await ps("cervezas", "", "ctx");
+    const all = await ps("cervezas", "", "all");
+    ok(plain.length === 1, "plain should give one row per name");
+    ok(ctx.length > 1 && !ctx.some(r => r.reading === "kervezas"),
+       "in context, c before e is never /k/ — kervezas must not appear");
+    ok(all.some(r => r.reading === "kervezas"),
+       "rules off, kervezas must appear: a character alone has no position");
+    ok(new Set(ctx.map(r => r.reading)).size === ctx.length, "pushed rows repeat a reading");
+    ok(ctx.every((r, i) => i === 0 || ctx[i - 1].reading < r.reading),
+       "pushed rows are not in order");
+    ok(ctx.every(r => r.name === "cervezas" && r.of === ctx[0].of),
+       "every pushed row should name its parent and its count");
+    /* the 2x2: representation and reading are independent */
+    const grid = {};
+    for(const rep of ["", "ctx"]) for(const rd of ["spell", "sound"])
+      grid[rep + "/" + rd] = (await ps2("cervezas", rep === "" ? "" : "en", rep, rd));
+    ok(grid["/spell"].length === 1 && grid["/spell"][0].reading === "cervezas",
+       "plain + as written should be the string itself");
+    ok(grid["ctx/spell"].some(r => r.reading === "c3rv3zas"),
+       "pushed + as written should give the shape variants");
+    ok(grid["/sound"].length === 1 && grid["/sound"][0].reading === "servezas",
+       "plain + phonetic should be the primary reading");
+    ok(grid["ctx/sound"].length >= 1, "pushed + phonetic should give the readings");
+    console.log(`  [8] four combinations  as-written plain `
+      + `${grid["/spell"][0].reading}, pushed ${grid["ctx/spell"].length} shape variants; `
+      + `phonetic plain ${grid["/sound"][0].reading}, pushed ${grid["ctx/sound"][0].of}`);
+    const leet = JSON.parse((await get("/api/read?lang=" + encodeURIComponent("en leet")
+      + "&q=" + encodeURIComponent("c3rv3zas"))).body).reading;
+    const noleet = JSON.parse((await get("/api/read?lang=en&q="
+      + encodeURIComponent("c3rv3zas"))).body).reading;
+    ok(leet === "servezas" && noleet === "k3rv3zas",
+       `shape axis: got ${leet} with leet and ${noleet} without`);
+    console.log(`  [6] push levels    plain 1 row, in-context ${ctx.length} `
+      + `(no kervezas), rules off ${all[0].of} (kervezas present)`);
+    console.log(`  [7] shape axis     c3rv3zas -> ${noleet} plain, ${leet} with leet `
+      + `— same key as cervezas`);
     const bad = await get("/api/nope");
     ok(bad.status === 404, "unknown endpoint should 404, got " + bad.status);
     const big = await get("/api/read?q=" + "a".repeat(5000));
     ok(big.status === 413, "oversized query should 413, got " + big.status);
-    console.log(`  [5] live stack     page 200, sort ${names.join(" ")}, `
+    console.log(`  [9] live stack     page 200, sort ${names.join(" ")}, `
       + `飼 as ja-on -> shi, /api/nope 404, 5000 chars 413`);
   } finally {
     srv.kill("SIGTERM");

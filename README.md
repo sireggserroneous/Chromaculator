@@ -312,3 +312,40 @@ language and the hits name the language. First declared wins a tie.
 
     亜美      96,511 ->    287    yamei  -> abi
     本文      10,385 -> 38,720    benwen -> honbun
+
+## Two axes, four combinations
+
+Plain or pushed is the **representation** axis. As written or phonetic is the
+**reading** axis. They are independent, so:
+
+| | as written | phonetic |
+|---|---|---|
+| **plain** | `cervezas` | `servezas` |
+| **pushed** | 32 shape variants — `c3rv3zas`, `c3rv32as`, … | every reading — `servezas`, `thervezas`, `chervezas`, … |
+
+Pushed stops collapsing a name to one representation and lists every one it
+has, each at its own position. On the spelling axis those are the **shape**
+variants, so `cervezas` and `c3rv3zas` are one thing written two ways and both
+produce the same 32-variant set. On the sound axis they are the readings.
+
+### The shape axis is orthogonal to the sound axis
+
+Not a rival. Declaring `leet` alongside `en` means English sounds over leet
+shapes — `c3rv3zas` reads `servezas`, the same key as `cervezas`. Treating
+`leet` as another candidate *language* made it compete with `en` for the single
+primary slot, `en` won by being declared first, and the shape branches never
+got a look in.
+
+Shape is a **pre-pass**, because conditions test their neighbours: `c` before a
+literal `3` took the `!>eiy` branch and `c3rv3zas` came out `kervezas` when the
+`3` plainly stands for an `e`. Shape resolves first; sound reads what it leaves.
+
+### Two push levels on the sound axis
+
+    in context    32 readings   servezas, thervezas, chervezas, tservezas …
+    rules off    120 readings   the same plus kervezas, kerbethas, …
+
+`kervezas` is **not** a reading of `cervezas` in context — the positional rule
+says `c` before `e` is never `/k/`, so it is pruned before the branch set is
+built. Out of context it is, because a character on its own has no position to
+be judged by, which is exactly how the character index already reads one.

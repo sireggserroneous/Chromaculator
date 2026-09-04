@@ -56,16 +56,59 @@ def api_read(q, lang):
             "positions": [x[1] for x in S.positions(q, lang or None)][:24]}
 
 
-def api_sort(q, lang):
+MAX_PUSH = 64                                # per name, so a page stays a page
+
+
+def api_sort(q, lang, push="", read="sound"):
+    """Two independent axes.
+
+    read  "spell"  the string as written, in Chroma UTF codes
+          "sound"  its phonetic reading
+
+    push  ""       one row per name
+          "ctx"    one row per representation the positional rules allow
+          "all"    the same with the rules off
+
+    So all four combinations exist. Pushed without phonetic is the SHAPE axis --
+    cervezas and c3rv3zas are one thing written two ways. Pushed with phonetic
+    is the sound axis, and there the rules matter: in context cervezas has no
+    /k/ reading, out of context it has kervezas.
+    """
     C, P, S = ordering()
     items = [l for l in q.split("\n") if l.strip()]
-    rows = []
-    for n in S.chroma_sorted(items, lang or None):
-        k, spell, r = S.key(n, lang or None)
-        rows.append({"name": n, "reading": spell,
-                     "ipa": "".join(x[1] for x in r if x[1] not in ("", "\u00b7")),
-                     "codes": [c for c in C.letters(spell)]})
-    return {"lang": lang, "sorted": rows}
+    ipa = lambda r: "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
+    spell_axis = read == "spell"
+    if not push:
+        rows = []
+        keyed = [(S._k(n, S.spellings(n)[0]) if spell_axis else S.key(n, lang or None), n)
+                 for n in items]
+        keyed.sort(key=lambda x: x[0][0])
+        for (k, spell, r), n in keyed:
+            rows.append({"name": n, "reading": spell, "ipa": ipa(r),
+                         "codes": [c for c in C.letters(spell)]})
+        return {"lang": lang, "push": "", "read": read, "sorted": rows}
+    ent = []
+    for n in items:
+        mine, seen = [], set()
+        variants = (S.spellings(n, True) if spell_axis
+                    else S.readings(n, lang or None, push == "ctx"))
+        for r in variants:
+            k, spell, rr = S._k(n, r)
+            if spell in seen: continue
+            seen.add(spell)
+            mine.append((k, {"name": n, "reading": spell, "ipa": ipa(rr),
+                             "codes": [c for c in C.letters(spell)]}))
+        # sort BEFORE capping, so the cap keeps the lowest N in order rather
+        # than whichever the branch product happened to emit first
+        mine.sort(key=lambda x: x[0])
+        total, shown = len(mine), mine[:MAX_PUSH]
+        for _k2, row in shown:
+            row["of"] = total
+            row["truncated"] = total > MAX_PUSH
+        ent += shown
+    ent.sort(key=lambda x: x[0])
+    return {"lang": lang, "push": push, "read": read,
+            "sorted": [r for _k, r in ent]}
 
 
 def api_base():
@@ -86,11 +129,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         qs = urllib.parse.parse_qs(u.query)
         q = (qs.get("q") or [""])[0]
         lang = (qs.get("lang") or [""])[0]
-        if len(q) > MAX_Q or len(lang) > 64:
+        push = (qs.get("push") or [""])[0]
+        read = (qs.get("read") or ["sound"])[0]
+        if len(q) > MAX_Q or len(lang) > 64 or len(push) > 8 or len(read) > 8:
             self.send_error(413, "too long"); return
         try:
             if u.path == "/api/read":    body = api_read(q, lang)
-            elif u.path == "/api/sort":  body = api_sort(q, lang)
+            elif u.path == "/api/sort":  body = api_sort(q, lang, push, read)
             elif u.path == "/api/base":  body = api_base()
             else:
                 self.send_error(404, "no such endpoint"); return
@@ -143,6 +188,25 @@ def demo():
     s = api_sort("canvas\nclear\ncervezas\ndox\nknicks\nkicks", "en")
     assert [x["name"] for x in s["sorted"]] == \
         ["dox", "canvas", "kicks", "clear", "knicks", "cervezas"], s
+    # the two push levels: in context cervezas has no /k/ reading, out of it it does
+    ctx = {r["reading"] for r in api_sort("cervezas", "", "ctx")["sorted"]}
+    alle = {r["reading"] for r in api_sort("cervezas", "", "all")["sorted"]}
+    assert "kervezas" not in ctx and "servezas" in ctx, sorted(ctx)[:4]
+    assert "kervezas" in alle, sorted(alle)[:4]
+    # the subset property belongs to the readings, not to a capped display
+    _C, _P, _S = ordering()
+    rd = lambda c: {"".join(x[0] for x in r) for r in _S.readings("cervezas", None, c)}
+    assert rd(True) < rd(False), "rules-on must be a strict subset of rules-off"
+    # the two axes are independent, so all four combinations exist
+    sp = api_sort("cervezas", "", "", "spell")["sorted"]
+    assert len(sp) == 1 and sp[0]["reading"] == "cervezas", sp
+    spp = {r["reading"] for r in api_sort("cervezas", "", "ctx", "spell")["sorted"]}
+    assert "c3rv3zas" in spp and "cervezas" in spp, sorted(spp)[:4]
+    sn = api_sort("cervezas", "en", "", "sound")["sorted"]
+    assert sn[0]["reading"] == "servezas", sn
+    # the shape axis is orthogonal to the sound axis, not a rival candidate
+    assert api_read("c3rv3zas", "en leet")["reading"] == "servezas"
+    assert api_read("c3rv3zas", "en")["reading"] == "k3rv3zas"
     b = api_base()
     assert b["count"] == 306 and b["ring"] == 9 and b["table"][0]["code"] == 512
     print("serve.py self-check ok")

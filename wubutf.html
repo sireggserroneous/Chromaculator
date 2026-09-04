@@ -36,6 +36,17 @@ button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px
 button:hover{border-color:var(--brass); color:var(--brass)}
 button.add{border-color:var(--brass); color:var(--brass)}
 .btnrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.seg{display:flex}
+.seg button{border-radius:0; margin-left:-1px; flex:1}
+.seg button:first-child{border-radius:2px 0 0 2px; margin-left:0}
+.seg button:last-child{border-radius:0 2px 2px 0}
+.seg button.on{background:var(--brass); border-color:var(--brass); color:var(--panel);
+  font-weight:600}
+.check{display:flex; gap:7px; align-items:center; margin-top:8px;
+  font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:.7rem;
+  text-transform:none; letter-spacing:0; color:var(--ink2)}
+.check input{width:auto; accent-color:var(--brass)}
+.check[hidden]{display:none}
 
 .rows{display:flex; flex-direction:column; gap:0}
 .row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px;
@@ -46,6 +57,8 @@ button.add{border-color:var(--brass); color:var(--brass)}
 .reads{font-family:"IBM Plex Mono",monospace; font-size:.7rem; color:var(--ink2)}
 .reads b{color:var(--brass); font-weight:600}
 .ipa{font-size:.7rem; color:var(--ink3)}
+.reads .of{color:var(--ink3); font-weight:400}
+.row.same .name{color:var(--ink3); font-weight:400}
 
 /* the strip: one square per Chroma UTF code, every square the same frame */
 .strip{display:flex; gap:5px; align-items:flex-start; flex-wrap:wrap}
@@ -103,7 +116,11 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
     <p class="sub">Every character is a Chroma UTF code in ring 9, so every code is
     ten bits in the same four by four frame. A word is a row of those squares, and
     the order is legible in the pictures: the first square where two names differ
-    holds the cell that decides which comes first. The fold is outlined. Ten bits
+    holds the cell that decides which comes first. <b>Push</b> stops collapsing a
+    name to one reading and lists every one it has, each at its own position &mdash;
+    with the positional rules on, or off, which is the difference between
+    <i>cervezas</i> having no /k/ reading and having <i>kervezas</i>. The fold is
+    outlined. Ten bits
     pad to three whole nibbles and twelve bits lay into a four by four square, so
     four cells stay empty in every frame &mdash; which is exactly why the frames
     line up and a row reads as a row.</p>
@@ -113,18 +130,32 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
     <div class="ctl">
       <div class="field">
         <label for="q">Names, one per line</label>
-        <textarea id="q" spellcheck="false">dis
+        <textarea id="q" spellcheck="false">cervezas
+c3rv3zas
+canvas
+dis
 this
 thin
-canvas
-clear
-cervezas
 dox
 knicks
 kicks</textarea>
       </div>
       <div class="field">
-        <label for="lang">Language filter</label>
+        <label>Representation</label>
+        <div class="seg" id="rep">
+          <button data-v="plain" class="on">Plain</button><button data-v="pushed">Pushed</button>
+        </div>
+        <label style="margin-top:8px">Reading</label>
+        <div class="seg" id="pho">
+          <button data-v="0" class="on">As written</button><button data-v="1">Phonetic</button>
+        </div>
+        <label class="check" id="rulesWrap" hidden>
+          <input type="checkbox" id="rules"> rules off &mdash; every branch, no position
+        </label>
+        <label class="check" id="leetWrap">
+          <input type="checkbox" id="leet"> shape axis &mdash; read 3 as e, 0 as o, 5 as s
+        </label>
+        <label for="lang" style="margin-top:8px">Language filter</label>
         <select id="lang">
           <option value="">none declared</option>
           <option value="en" selected>en &mdash; English</option>
@@ -140,7 +171,7 @@ kicks</textarea>
           <option value="ko">ko &mdash; Korean</option>
         </select>
         <div class="btnrow" style="margin-top:9px">
-          <button class="add" id="go">Sort by sound</button>
+          <button class="add" id="go">Sort</button>
           <button id="alpha">Alphabetical</button>
         </div>
       </div>
@@ -233,8 +264,12 @@ function rowEl(r, splitAt){
   meta.className = "meta";
   meta.innerHTML = '<div class="name">' + esc(r.name) + "</div>"
     + '<div class="reads">reads <b>'
-    + esc(r.reading.split(SEP).join("/")) + "</b></div>"
+    + esc(r.reading.split(SEP).join("/")) + "</b>"
+    + (r.of > 1 ? '<span class="of"> &mdash; one of ' + r.of
+        + (r.truncated ? ", first 64 shown" : "") + "</span>" : "")
+    + "</div>"
     + (r.ipa ? '<div class="ipa">/' + esc(r.ipa) + "/</div>" : "");
+  if(r.same) row.className += " same";
   const strip = document.createElement("div");
   strip.className = "strip";
   r.codes.forEach((code, i) => {
@@ -249,8 +284,18 @@ function rowEl(r, splitAt){
 function render(rows, byAlpha){
   const host = $("#rows");
   host.textContent = "";
-  $("#mode").textContent = byAlpha ? "Ordered alphabetically" : "Ordered by sound";
+  const st = state();
+  $("#mode").textContent = (byAlpha ? "Ordered alphabetically"
+      : st.phonetic ? "Ordered by sound" : "Ordered by spelling")
+    + (!st.push ? ""
+       : st.phonetic
+         ? (st.push === "all" ? " \u00b7 pushed, rules off \u2014 every branch"
+                              : " \u00b7 pushed \u2014 every reading the rules allow")
+         : " \u00b7 pushed \u2014 every shape variant");
   rows.forEach((r, i) => {
+    /* in a pushed list a name repeats, once per reading. Dim the repeats so the
+       eye still finds where a new name starts. */
+    r.same = i > 0 && rows[i - 1].name === r.name;
     host.appendChild(rowEl(r, i > 0 ? divergence(rows[i - 1].codes, r.codes) : null));
     if(i === rows.length - 1) return;
     const d = divergence(r.codes, rows[i + 1].codes);
@@ -277,11 +322,17 @@ function render(rows, byAlpha){
 }
 
 async function go(byAlpha){
-  const q = $("#q").value, lang = $("#lang").value;
+  const q = $("#q").value;
+  const st = state();
+  /* shape and sound are separate axes, so leet joins the request rather than
+     replacing the language in it */
+  const lang = st.phonetic ? $("#lang").value + ($("#leet").checked ? " leet" : "") : "";
   try{
     const [b, res] = await Promise.all([
       fetch("/api/base"),
-      fetch("/api/sort?lang=" + encodeURIComponent(lang) + "&q=" + encodeURIComponent(q))
+      fetch("/api/sort?lang=" + encodeURIComponent(lang.trim())
+        + "&read=" + (st.phonetic ? "sound" : "spell")
+        + "&push=" + st.push + "&q=" + encodeURIComponent(q))
     ]);
     if(!res.ok) throw new Error(res.status + " " + res.statusText);
     if(b.ok){ const j = await b.json(); RING = j.ring; WIDTH = j.ring + 1; }
@@ -296,7 +347,45 @@ async function go(byAlpha){
 
 $("#go").addEventListener("click", () => go(false));
 $("#alpha").addEventListener("click", () => go(true));
+/* Plain|Pushed and As written|Phonetic are INDEPENDENT axes, so all four
+   combinations exist: a plain phonetic reading, a pushed phonetic reading, the
+   spelling as typed, and every shape variant of the spelling. */
+/* the page holds the axes itself rather than reading them back out of the DOM.
+   Round tripping through a button's class was fragile and made the state
+   unavailable to anything that had not rendered yet. */
+let REP = "plain", PHONETIC = false;
+function state(){
+  const push = REP === "pushed"
+    ? (PHONETIC && $("#rules").checked ? "all" : "ctx") : "";
+  return {rep: REP, phonetic: PHONETIC, push};
+}
+function chrome(){
+  const st = state();
+  $("#rulesWrap").hidden = !(st.rep === "pushed" && st.phonetic);
+  $("#leetWrap").hidden = !st.phonetic;
+  $("#lang").disabled = !st.phonetic;
+  for(const [id, want] of [["rep", REP], ["pho", PHONETIC ? "1" : "0"]]){
+    const host = $("#" + id);
+    if(!host || !host.querySelectorAll) continue;
+    for(const x of host.querySelectorAll("button"))
+      x.className = x.dataset.v === want ? "on" : "";
+  }
+}
+function pick(id, v){
+  if(id === "rep") REP = v; else PHONETIC = v === "1";
+  chrome(); go(false);
+}
+for(const id of ["rep", "pho"]){
+  const host = $("#" + id);
+  if(host) host.addEventListener("click", e => {
+    const b = e.target && e.target.closest && e.target.closest("button");
+    if(b && b.dataset) pick(id, b.dataset.v);
+  });
+}
 $("#lang").addEventListener("change", () => go(false));
+$("#rules").addEventListener("change", () => go(false));
+$("#leet").addEventListener("change", () => go(false));
+chrome();
 $("#q").addEventListener("keydown", e => {
   if((e.metaKey || e.ctrlKey) && e.key === "Enter") go(false);
 });
