@@ -96,6 +96,38 @@ const MODEL_NUM: u8 = 27;
 // stride and pixel ride in the arm's own header, measured by `twod::nominate`.
 const MODEL_2D: u8 = 28;
 
+/// v14-N2b: per-arm WALL CLOCK. The roster runs its arms in parallel scoped
+/// threads, so the row finishes when the SLOWEST arm finishes -- N2 measured
+/// that removing a LOSING arm buys nothing, and this is the instrument that
+/// says which arm actually sets the floor. `EGG_ARMS=1` prints it. Slot order
+/// matches the spawn order below; `ARM_SLOTS` is one number both sides read.
+const ARM_SLOTS: usize = 18;
+/// THREE banks of slots, not one. `plain_transmute` runs `big_arms` on the
+/// plain form and on the chosen filtered form SIDE BY SIDE in a single thread
+/// scope, so a single bank races and both rosters print whichever finished
+/// last. The first cut of this instrument did exactly that and printed two
+/// identical lines; the bank is chosen by the caller's label.
+const ARM_BANKS: usize = 3;
+static ARM_MS: [std::sync::atomic::AtomicU64; ARM_SLOTS * ARM_BANKS] =
+    [const { std::sync::atomic::AtomicU64::new(0) }; ARM_SLOTS * ARM_BANKS];
+#[inline]
+fn arm_bank(label: &str) -> usize {
+    match label {
+        "plain" => 0,
+        "filtered" => ARM_SLOTS,
+        _ => 2 * ARM_SLOTS,
+    }
+}
+/// time one arm into its slot. Returns exactly what the closure returned, so
+/// wrapping an arm cannot change what the roster judges.
+#[inline]
+fn timed<T>(bank: usize, slot: usize, f: impl FnOnce() -> T) -> T {
+    let t0 = Instant::now();
+    let r = f();
+    ARM_MS[bank + slot].store(t0.elapsed().as_millis() as u64, std::sync::atomic::Ordering::Relaxed);
+    r
+}
+
 // ---------------------------------------------------------------- pipeline
 // the transmutation chain: bytes -> nibs -> tokens -> dyadic point. Each
 // form is a model byte in the header; restore dispatches on it, so stage
@@ -515,6 +547,7 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
                                                // <=min in the 4-16 MB gap
     let wide = std::env::var_os("EGG_NO_V12").is_none();
     let dialect = dialect_of(data);
+    let bank = arm_bank(label);
     let numeric = numtext::looks_numeric(data);
     // v14-N2: THE 2D ARM DOES NOT RUN WHERE A DIALECT BOOK ALREADY MATCHED.
     // Measured at v13-M3c: `twod::nominate` fires on PE and TrueType as well as
@@ -532,23 +565,23 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
     // alarm01's win, which lives on the order-2 W16 residue, is untouched.
     let rect = if wide && dialect.is_none() { twod::nominate(data) } else { None };
     let (v11, cm, pr, cpr, hv, chv, f10, fc10, v12, cm12, pr12, cpr12, hv12, chv12, bk12, num, two) = std::thread::scope(|s| {
-        let h1 = s.spawn(|| dyadic::encode11(data, toks));
-        let h2 = s.spawn(|| dyadic::encode_cm11(data));
-        let h3 = s.spawn(|| if prior_arms { Some(dyadic::encode11p(data, toks)) } else { None });
-        let h4 = s.spawn(|| if prior_arms { Some(dyadic::encode_cm11p(data)) } else { None });
-        let h5 = s.spawn(|| if heavy_arms { Some(dyadic::encode11h(data, toks)) } else { None });
-        let h6 = s.spawn(|| if heavy_arms { Some(dyadic::encode_cm11h(data)) } else { None });
-        let h7 = s.spawn(|| if frozen_arms { Some(dyadic::encode10(data, toks)) } else { None });
-        let w1 = s.spawn(|| if wide { Some(dyadic::encode12(data, toks)) } else { None });
-        let w2 = s.spawn(|| if wide { Some(dyadic::encode_cm12(data)) } else { None });
-        let w3 = s.spawn(|| if wide && prior_arms { Some(dyadic::encode12p(data, toks)) } else { None });
-        let w4 = s.spawn(|| if wide && prior_arms { Some(dyadic::encode_cm12p(data)) } else { None });
-        let w5 = s.spawn(|| if wide && heavy_arms { Some(dyadic::encode12h(data, toks)) } else { None });
-        let w6 = s.spawn(|| if wide && heavy_arms { Some(dyadic::encode_cm12h(data)) } else { None });
-        let w7 = s.spawn(|| if wide { dialect.map(|(b, _)| dyadic::encode_cm12_book(data, b)) } else { None });
-        let w8 = s.spawn(|| if wide && numeric { Some(dyadic::encode_num(data)) } else { None });
-        let w9 = s.spawn(|| rect.map(|(st, px)| dyadic::encode_2d(data, st, px)));
-        let f8 = if frozen_arms { Some(dyadic::encode_cm10(data)) } else { None };
+        let h1 = s.spawn(|| timed(bank, 0, || dyadic::encode11(data, toks)));
+        let h2 = s.spawn(|| timed(bank, 1, || dyadic::encode_cm11(data)));
+        let h3 = s.spawn(|| timed(bank, 2, || if prior_arms { Some(dyadic::encode11p(data, toks)) } else { None }));
+        let h4 = s.spawn(|| timed(bank, 3, || if prior_arms { Some(dyadic::encode_cm11p(data)) } else { None }));
+        let h5 = s.spawn(|| timed(bank, 4, || if heavy_arms { Some(dyadic::encode11h(data, toks)) } else { None }));
+        let h6 = s.spawn(|| timed(bank, 5, || if heavy_arms { Some(dyadic::encode_cm11h(data)) } else { None }));
+        let h7 = s.spawn(|| timed(bank, 6, || if frozen_arms { Some(dyadic::encode10(data, toks)) } else { None }));
+        let w1 = s.spawn(|| timed(bank, 7, || if wide { Some(dyadic::encode12(data, toks)) } else { None }));
+        let w2 = s.spawn(|| timed(bank, 8, || if wide { Some(dyadic::encode_cm12(data)) } else { None }));
+        let w3 = s.spawn(|| timed(bank, 9, || if wide && prior_arms { Some(dyadic::encode12p(data, toks)) } else { None }));
+        let w4 = s.spawn(|| timed(bank, 10, || if wide && prior_arms { Some(dyadic::encode_cm12p(data)) } else { None }));
+        let w5 = s.spawn(|| timed(bank, 11, || if wide && heavy_arms { Some(dyadic::encode12h(data, toks)) } else { None }));
+        let w6 = s.spawn(|| timed(bank, 12, || if wide && heavy_arms { Some(dyadic::encode_cm12h(data)) } else { None }));
+        let w7 = s.spawn(|| timed(bank, 13, || if wide { dialect.map(|(b, _)| dyadic::encode_cm12_book(data, b)) } else { None }));
+        let w8 = s.spawn(|| timed(bank, 14, || if wide && numeric { Some(dyadic::encode_num(data)) } else { None }));
+        let w9 = s.spawn(|| timed(bank, 15, || rect.map(|(st, px)| dyadic::encode_2d(data, st, px))));
+        let f8 = timed(bank, 16, || if frozen_arms { Some(dyadic::encode_cm10(data)) } else { None });
         (
             h1.join().expect("arm"),
             h2.join().expect("arm"),
@@ -571,7 +604,7 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
     });
     // the price replays, side by side (each LZ arm re-priced by its own pass)
     let (v11, v12) = std::thread::scope(|s| {
-        let h = s.spawn(|| second_pass(data, toks, v11));
+        let h = s.spawn(|| timed(bank, 17, || second_pass(data, toks, v11)));
         let v12 = v12.map(|v| second_pass12(data, toks, v));
         (h.join().expect("pass"), v12)
     });
@@ -596,6 +629,26 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
         (fc10, MODEL_CM10, "CM10"),
     ];
     let trace = std::env::var_os("EGG_ARMS").is_some();
+    if trace {
+        // v14-N2b: the arm that sets the floor. The row's clock is the MAX of
+        // these, not their sum, because they run in parallel scoped threads --
+        // so this list, slowest first, is the only place a speed lever can be.
+        use std::sync::atomic::Ordering::Relaxed;
+        const SLOT_NAMES: [&str; ARM_SLOTS] = [
+            "MIX11", "CM11", "MIX11P", "CM11P", "MIX11H", "CM11H", "MIX10",
+            "MIX12", "CM12", "MIX12P", "CM12P", "MIX12H", "CM12H", "CM12-book",
+            "NUM", "2D", "CM10", "MIX11-replay",
+        ];
+        let mut v: Vec<(u64, &str)> = SLOT_NAMES
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (ARM_MS[bank + i].load(Relaxed), *n))
+            .filter(|(ms, _)| *ms > 0)
+            .collect();
+        v.sort_by_key(|&(ms, _)| std::cmp::Reverse(ms));
+        let line: Vec<String> = v.iter().map(|(ms, n)| format!("{}={}ms", n, ms)).collect();
+        eprintln!("armtime[{} {} B] slowest first: {}", label, data.len(), line.join(" "));
+    }
     let mut line = String::new();
     let mut win: Option<(usize, Vec<u8>, u8)> = None;
     for (o, mb, name) in roster {
@@ -688,12 +741,14 @@ fn plain_transmute(src: &[u8], forced: Option<(u8, u32)>) -> (Vec<u8>, u8, u8, u
         let toks = token::tokenize(data);
         encode_best_v8(data, &toks)
     };
+    let t_stage1 = Instant::now();
     let (plain8, trials8) = std::thread::scope(|s| {
         let handles: Vec<_> = filtered_srcs.iter().map(|f| s.spawn(|| enc8(f))).collect();
         let plain = enc8(src);
         let trials: Vec<(Vec<u8>, u8)> = handles.into_iter().map(|h| h.join().expect("trial thread")).collect();
         (plain, trials)
     });
+    let stage1_ms = t_stage1.elapsed().as_millis();
     let mut best: Option<usize> = None; // index into trials8; None = plain
     for (i, t) in trials8.iter().enumerate() {
         let cur = best.map(|b| trials8[b].0.len()).unwrap_or(usize::MAX);
@@ -707,7 +762,10 @@ fn plain_transmute(src: &[u8], forced: Option<(u8, u32)>) -> (Vec<u8>, u8, u8, u
     // v11-M4, the no-carries reading (spec.md:81: "Multiply two stalks cell
     // by cell and nothing carries"): the plain and filtered forms share no
     // state, so their big arms run side by side; the sum is the same shape.
+    let t_tok = Instant::now();
     let toks_plain = token::tokenize(src);
+    let tok_ms = t_tok.elapsed().as_millis();
+    let t_stage2 = Instant::now();
     let (plain_big, filt_big) = std::thread::scope(|outer| {
         let hplain = outer.spawn(|| big_arms(src, &toks_plain, "plain"));
         let filt: Option<(Vec<u8>, u8)> = best.map(|i| {
@@ -730,6 +788,16 @@ fn plain_transmute(src: &[u8], forced: Option<(u8, u32)>) -> (Vec<u8>, u8, u8, u
         });
         (hplain.join().expect("plain forms"), filt)
     });
+    let stage2_ms = t_stage2.elapsed().as_millis();
+    if std::env::var_os("EGG_ARMS").is_some() {
+        // v14-N2b: the row's clock was 2.14x its slowest arm on kernel32.dll,
+        // so the big roster is NOT what dominates and the stages had to be
+        // timed before any speed decision could be more than a guess.
+        eprintln!(
+            "stages[{} B]: cheap-v8 trial {} ms + tokenize {} ms + BIG ROSTER {} ms (the rest of the row is the peel arm, armor and the write-time round-trip law)",
+            src.len(), stage1_ms, tok_ms, stage2_ms
+        );
+    }
     // final selection: filtered forms still need the 0.5% margin over the
     // best plain form; newest model wins ties (7, 6, then the v8 pick)
     let mut best_plain: (usize, &Vec<u8>, u8) = (armored_total(plain8.0.len()), &plain8.0, plain8.1);
@@ -935,12 +1003,16 @@ fn main() -> ExitCode {
                 }
             };
             let ex = Extras { orig_len: src.len() as u64, orig_fnv: fnv64(&src), model, filter_id: fid, filter_param: fparam };
+            let t_armor = Instant::now();
             let out = armor(&inner, rib.blk, rib.t, rib.mode, ex);
+            let armor_ms = t_armor.elapsed().as_millis();
             // the >=2^26 law (big arena, 2026-09-01): the slot wall proved a
             // transmute can write what no restore can read. Any input that
             // reaches the regime where that class of wound lives round-trips
             // in memory BEFORE the artifact is written; failure exits loudly.
-            if src.len() >= (1 << 26) || fid != 0 || model == MODEL_PEEL {
+            let t_rt = Instant::now();
+            let rt_ran = src.len() >= (1 << 26) || fid != 0 || model == MODEL_PEEL;
+            if rt_ran {
                 // the >=2^26 law, EXTENDED at v11-M6 to length-changing filters
                 // and at v13-M1 to EVERY peeled form: a peel is a bijection or
                 // it does not ship, and the container it writes must be one the
@@ -963,8 +1035,21 @@ fn main() -> ExitCode {
                     }
                 }
             }
+            let rt_ms = t_rt.elapsed().as_millis();
             let dst = get("-o").unwrap_or(format!("{}.egg14", path));
+            let t_write = Instant::now();
             fs::write(&dst, &out).expect("write output");
+            if std::env::var_os("EGG_ARMS").is_some() {
+                // v14-N2c control 0.3: the tail of the row, which no instrument
+                // has ever named. The round-trip law is a SERIAL full decode and
+                // it fires on every filtered or peeled form, not only at 64 MB.
+                eprintln!(
+                    "tail[{} B]: armor {} ms + round-trip {} ms ({}) + write {} ms",
+                    src.len(), armor_ms, rt_ms,
+                    if rt_ran { "RAN" } else { "skipped" },
+                    t_write.elapsed().as_millis()
+                );
+            }
             let ms = t0.elapsed().as_millis().max(1);
             println!(
                 "{}: {} B -> {} B transmuted -> {} B armored ({:.2}% of input) in {} ms ({:.3} MB/s)",

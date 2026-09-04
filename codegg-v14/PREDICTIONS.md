@@ -305,3 +305,224 @@ of that list.
 
 Until that exists, **the floor stands at 0.278–0.280 MB/s against 0.25 and any
 new always-on arm is still blocked**, which was N2's whole reason for existing.
+
+---
+
+## N2b FILED (2026-09-04, BEFORE the instrument) — which arm sets the clock?
+
+N2 measured that removing a losing arm does not move the wall clock, and named
+the reason: **the roster finishes when its SLOWEST arm finishes, not when the sum
+of its arms finishes.** That makes exactly one question worth asking, and this
+project has never asked it — `EGG_ARMS=1` prints every arm's SIZE and nothing
+anywhere prints an arm's TIME.
+
+### The instrument
+
+A per-arm elapsed-millis counter, printed under `EGG_ARMS=1` beside the sizes,
+sorted slowest first, with the row's own wall clock beside it. An INSTRUMENT, in
+the house sense: it prints what the roster already does and decides nothing.
+
+### FILED, and the reasoning is from the code rather than a hunch
+
+The roster is 15–17 arms. The LZ arms (`MIX*`) code TOKENS — fewer decisions
+than one per byte — while the literal-only arms (`CM*`) push every byte through
+the twelve-input mixer twice, once per nibble. That would make the CM arms
+slower per byte. But `big_arms` then runs a **price replay**: `second_pass` on
+the v11 LZ arm and `second_pass12` on the v12 one, which encodes those arms a
+SECOND time.
+
+1. **The slowest arm is an LZ arm carrying its price replay — `MIX12`, or
+   `MIX12H` on rows ≥ 512 KB.** Called at **≥ 1.6× the median arm**.
+2. **The row's wall clock lands within 1.0–1.3× of the slowest arm**, which is
+   what "max, not sum" predicts and what would make N2's negative result
+   inevitable rather than surprising.
+3. **The spread between slowest and fastest arm is > 2×.**
+4. `NUM` and `2D` cost about the same as `CM12`, since they ARE `CM12` with two
+   sparse inputs re-pointed — **within ±15% of it**, and therefore not the arms
+   that set the clock. If they are, N2's whole diagnosis is wrong and the gate
+   should have worked.
+
+**What would make this wrong:** if the times come back roughly flat, then no
+single arm sets the clock, the wall clock is a genuine sum, and the parallelism
+is not doing what the code assumes. That would be a bigger finding than the one
+being chased, and it goes first.
+
+## N2b MEASURED (2026-09-04) — the clock is set by a PLATEAU, not by an arm
+
+The first per-arm timing ever taken in this project. It says my prediction was
+wrong on the arm, wrong on the row, and it explains N2's negative result
+completely.
+
+### The filed predictions, judged
+
+| filed | measured | verdict |
+|---|---|---|
+| the slowest arm is an **LZ arm** (`MIX12`/`MIX12H`) carrying its price replay | the **CM arms** are slowest by ~2×: `CM12P` 1,433 ms against `MIX12` 718 ms | **MISS** |
+| the row's clock lands within **1.0–1.3×** of the slowest arm | the ROW is **2.07×** it (2,973 ms vs 1,433 ms); the big-roster STAGE alone is 1.34× | **MISS on the row, near on the stage** |
+| the spread slowest-to-fastest is **> 2×** | 1,433 ms against `MIX10`'s ~450 ms — **> 3×** | **HIT** |
+| `NUM`/`2D` cost about the same as `CM12`, **within ±15%** | on `vim-version9.txt`, **2D 1,699 ms against CM12 1,654 ms = +2.7%** | **HIT** |
+
+**Where my reasoning went wrong, and it is instructive:** I wrote that the CM
+arms push every byte through the twelve-input mixer twice while the LZ arms code
+tokens, then talked myself out of my own first half by over-weighting the price
+replay. The replay is real but it is **its own slot** (`MIX11-replay` 899 ms)
+and the LZ arms are still half the cost of the CM arms. The first sentence of my
+own reasoning was the answer.
+
+### `kernel32.dll` (836,208 B), row 2,973 ms
+
+```
+armtime[plain] CM12P=1433 CM12=1411 CM12H=1357 CM12-book=1337 CM11H=1278
+               CM11P=1228 CM11=1195 CM10=1099 | MIX11P=782 MIX12P=719
+               MIX12H=711 MIX11H=705 MIX12=670 ... MIX10=453
+stages         cheap-v8 trial 137 ms + tokenize 78 ms + BIG ROSTER 1917 ms
+               (the remaining 841 ms is the peel arm, armor and the
+                write-time round-trip law)
+```
+
+### `vim-version9.txt` (2,035,039 B), row 4,187 ms — the row the 2D arm WINS
+
+```
+armtime[plain] 2D=1699 CM12H=1670 CM12=1654 CM11=1526 CM11H=1516 CM10=1413
+               | MIX11-replay=899 MIX12H=356 MIX12=350 MIX11H=323 MIX11=306
+               MIX10=249
+stages         cheap-v8 trial 783 ms + tokenize 763 ms + BIG ROSTER 2623 ms
+```
+
+### THE FINDING, and it closes N2
+
+**There is no slowest arm. There is a PLATEAU.** Eight CM-class arms sit within
+1,099–1,433 ms of each other on `kernel32.dll` and six within 1,413–1,699 ms on
+`vim-version9.txt`. They run in parallel, so the stage ends when the last of
+them ends — and **removing any ONE of them moves nothing, because the next one
+is 2% behind it.**
+
+That is exactly why N2's dialect gate bought nothing, and it is a stronger
+statement than "the max, not the sum": *no single-arm change can ever move this
+clock.* The gate was never going to work, and neither would gating any other
+single arm.
+
+**And the arm that sets the clock on `vim-version9.txt` is `2D` itself, at 1,699
+ms — the arm that WINS that row.** So the one arm at the top of the list is the
+one that cannot be dropped.
+
+### What can actually move the floor, in order of measured size
+
+1. **The shared CM inner loop.** Eight to nine arms are all `CM`-class and all
+   within a few percent, so a change to the common path moves every one of them
+   at once. It is the only lever that touches the plateau rather than a member
+   of it.
+2. **A whole CLASS, not a member.** `CM11`, `CM11H`, `CM10` cost 1,099–1,526 ms
+   each and are FROZEN ancestor entrants, kept so "on every small file the
+   elders always get their say" after `kernel32.dll` once breached the
+   `<= min(ancestors)` law by one armor quantum. Dropping the class would move
+   the plateau — and would break that law. **That is a trade to price, not a
+   tuning, and it needs its own filed prediction.**
+3. **`tokenize` and the cheap-v8 trial: 37% of the row on a text file**
+   (763 + 783 of 4,187 ms), against 7% on `kernel32.dll`. Nobody has ever looked
+   at either for speed, and on text they are the second-largest cost after the
+   plateau.
+
+### The instrument, and one defect it had first
+
+`EGG_ARMS=1` now prints `armtime[...]` slowest-first and a `stages[...]` line.
+Sizes are unchanged on every row checked — `kernel32.dll` 283,604,
+`vim-version9.txt` 273,743, `alarm01.wav` 240,008, `wallpaper.jpg` 1,126,497 —
+`cargo test` 45, `audit` 0 failing.
+
+**The first cut used ONE bank of slots and raced.** `plain_transmute` runs
+`big_arms` on the plain form and on the chosen filtered form **side by side in a
+single thread scope**, so both rosters wrote the same 18 slots and both printed
+whichever finished last — two identical lines, which is how it was caught. There
+are three banks now, chosen by the caller's label. **The same lesson a third
+time: the instrument gets a control before its output becomes a finding.**
+
+---
+
+## N2c FILED (2026-09-04, BEFORE the controls ran) — three questions N2b never asked
+
+N2b concluded from one run that the clock is set by a PLATEAU of eight CM arms
+and that **the shared CM inner loop is the only lever**. Before writing a line
+of that, three things were checkable and unchecked.
+
+1. **Is the plateau arithmetic, or is it the scheduler?** The machine is an
+   Intel Core Ultra 9 285K — **24 cores, 8 P + 16 E, no SMT, 36 MB L3** — and no
+   measurement in this project has ever accounted for the P/E split. FILED: the
+   plateau's *membership and order* is stable run to run. If the membership
+   shuffles, the plateau is the scheduler and N2c stops.
+2. **How many arm threads are actually live?** `main.rs:775-788` runs `big_arms`
+   on the plain form and on the chosen filtered form in the SAME thread scope.
+   FILED: if a filter survives on `kernel32.dll`, the live count is ~30 on 24
+   cores and N2's "removing an arm buys nothing" is true only at 18.
+3. **What is the 841 ms nobody has named?** 2,973 − (137 + 78 + 1,917). FILED:
+   the largest single component is **`Vec` teardown at process exit, >= 200 ms**
+   (up to 30 models x ~71 MiB of tables). If under 50 ms, say so and move on.
+
+## N2c MEASURED (2026-09-04) — two misses, and the tail was something else entirely
+
+### The filed predictions, judged
+
+| filed | measured | verdict |
+|---|---|---|
+| the plateau's membership **and order** is stable run to run | membership **100% stable** over 5 runs and 4 affinity masks — the 8 CM arms are ALWAYS above the 6 MIX arms, no crossing. **Order inside the class is noise: +-20%**, and the top arm changes every run (CM12H, CM12P, CM12H, CM12P, CM12H) | **HIT on membership, MISS on order** |
+| the tail's largest component is **`Vec` teardown, >= 200 ms** | internal row 2,884 ms vs external wall 2,894 ms. **Process start + teardown is 10 ms.** The hypothesis is dead | **MISS** |
+| a filter survives on `kernel32.dll`, so ~30 arm threads run | `armtime[filtered]` prints; **32 slots across two banks**, and the filtered form **WINS the row** (`filter 10:0`, 278,792 -> armored 283,604) | **HIT** |
+
+### N2b's headline needs correcting, and so does one of my own numbers
+
+**"The roster's wall clock is set by its SLOWEST arm, not by the number of
+arms" is not what the data says.** Pinning the process to 8, 16 and 24 cores:
+
+```
+cores    row      BIG ROSTER   slowest arm   stage/max
+   8    4,707 ms    3,601 ms     3,084 ms      1.17
+  16    3,172 ms    2,133 ms     1,725 ms      1.24
+  24    2,894 ms    1,838 ms     1,411 ms      1.30
+```
+
+The stage **scales with core count** — 8 -> 16 buys 1.69x, 16 -> 24 buys a
+further 1.16x. So the roster is still CPU-limited at 24 cores with ~30 arms, and
+arm CPU is not free. It is not "max" and it is not "sum": it is a queue with a
+tail, and `stage/max` grows as cores are added because the queue drains.
+
+**And a number I computed and had to throw away.** Summing the 32 `armtime`
+values against the stage gave a beautifully stable **15.5x, five runs, +-0.1**,
+which looked like a throughput law. It is an artifact: `timed()` measures
+ELAPSED time, not CPU time, so an arm's number inflates when its thread is
+descheduled. The 8-core run proves it — the same arithmetic gives **17.5x on 8
+cores**, which is impossible. *Control before mechanism, a fourth time: the
+check that killed it was running the same formula at a different core count.*
+
+### THE TAIL, NAMED — and it is 29% of the floor row
+
+```
+tail[836208 B]: armor 2 ms + round-trip 822 ms (RAN) + write 0 ms
+```
+
+The 841 ms is **the in-memory round-trip law** (`main.rs:1011`), and it fires on
+`kernel32.dll` **not because of size but because `fid != 0`** — the filtered
+form wins the row, and v12-M3 extended the law to every filtered form. It is a
+**serial, single-threaded full decode**: one thread, no roster, no parallelism
+to hide behind. `armor()` is 2 ms and the write is 0.
+
+`vim-version9.txt` is the control: the plain form wins there, `fid == 0`, the
+law is **skipped**, and its tail is ~18 ms of 4,116.
+
+### What this does to the lever
+
+The round-trip decode runs the SAME `predict`/`learn`/`byte_update` as the arms.
+So on the floor row the CM inner loop owns:
+
+- the big roster, **1,823 ms** (throughput-limited across ~30 threads), plus
+- the round-trip decode, **822 ms** (one thread, at full effect),
+
+= **2,645 of a 2,875 ms row — 92%.** N2c's plan put the ceiling at "roster is
+64% of the row"; with the tail named it is 92%, and a cut in the shared loop is
+paid **twice**, once amortised and once whole. The lever is bigger than the
+plan claimed, and it is the same lever.
+
+**Not chased here, recorded for N3:** at ~30 threads on 24 cores the roster is
+CPU-limited, so dropping arm CPU *does* move the clock — N2's null result holds
+only where the roster is underloaded (`ntoskrnl.exe`, 11 slots). The arm-count
+question is a scheduling question, not a byte question, and it is not this
+milestone's.
