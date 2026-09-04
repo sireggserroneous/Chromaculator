@@ -225,3 +225,33 @@ separate:
 `tools/chroma_sort_test.py` carries the requirement a filename sort has that a
 character index does not: **it must be a permutation.** Drop or duplicate a
 file and the sort is worse than useless.
+
+## Wub UTF
+
+    python3 serve.py            # then http://localhost:1338/wubutf.html
+
+The ordering, drawn. Every character is a Chroma UTF code in ring 9, so every
+code is ten bits in the same four by four frame — ten bits pad to three whole
+nibbles, twelve bits lay into a four by four square, and the four leftover
+cells are empty in every frame. That is what makes a row read as a row.
+
+A word is a strip of those squares, and **the first square where two names
+differ holds the cell that decided the order.** The page marks it.
+
+    dis  | this     decided at square 2, cell 9
+    this | thin     decided at square 1, cell 4
+
+So `dis` is *closer* to `this` than `thin` is, which is invisible in an
+alphabetical list where d and t are far apart.
+
+The page carries no copy of the tables. The ordering has one implementation, in
+Python, and `serve.py` exposes it read-only:
+
+    /api/base            the 306 base characters and their codes, and the ring
+    /api/read?q=&lang=   every grapheme of q: its branches, reading and codes
+    /api/sort?q=&lang=   q's lines ordered by sound
+
+A change to the tables is a change everywhere. `tools/wubutf.test.js` tests the
+seam — the page's own logic against real API output, then the whole stack over
+a live socket, including a 404 on an unknown endpoint and a 413 on an oversized
+query.

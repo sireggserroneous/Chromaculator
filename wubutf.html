@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wub UTF &middot; chronochromatic.org</title>
+<meta name="description" content="Sorting by sound, drawn: every character is a Chroma UTF code in ring 9, so a word is a row of bit squares and the order is legible in the pictures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/base.css">
+<style>
+.wrap{max-width:1120px; margin:0 auto; padding:16px 18px 64px;
+  display:flex; flex-direction:column; gap:14px}
+.mast{display:flex; flex-direction:column; gap:6px; padding-bottom:10px;
+  border-bottom:2px solid var(--ink)}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.55rem;
+  margin:0; letter-spacing:-.02em; line-height:1.05}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.sub{color:var(--ink2); margin:0; font-size:.75rem; line-height:1.5; max-width:66ch}
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  box-shadow:var(--shadow); padding:14px}
+label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+textarea,select{font-family:"IBM Plex Mono",monospace; font-size:.8rem;
+  background:var(--sunk); color:var(--ink); border:1px solid var(--rule2);
+  border-radius:2px; padding:8px 9px; width:100%}
+textarea{min-height:104px; resize:vertical; line-height:1.55}
+.ctl{display:grid; grid-template-columns:1fr minmax(170px,230px); gap:14px; align-items:end}
+@media (max-width:760px){ .ctl{grid-template-columns:1fr} }
+.field{display:flex; flex-direction:column; gap:5px; min-width:0}
+button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px;
+  cursor:pointer; background:transparent; color:var(--ink2);
+  border:1px solid var(--rule2); border-radius:2px}
+button:hover{border-color:var(--brass); color:var(--brass)}
+button.add{border-color:var(--brass); color:var(--brass)}
+.btnrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+
+.rows{display:flex; flex-direction:column; gap:0}
+.row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px;
+  align-items:center; padding:11px 0}
+.meta{min-width:0; display:flex; flex-direction:column; gap:3px}
+.name{font-family:"IBM Plex Mono",monospace; font-size:.86rem; font-weight:600;
+  overflow-wrap:anywhere}
+.reads{font-family:"IBM Plex Mono",monospace; font-size:.7rem; color:var(--ink2)}
+.reads b{color:var(--brass); font-weight:600}
+.ipa{font-size:.7rem; color:var(--ink3)}
+
+/* the strip: one square per Chroma UTF code, every square the same frame */
+.strip{display:flex; gap:5px; align-items:flex-start; flex-wrap:wrap}
+.sq{display:grid; grid-template-columns:repeat(4,10px); grid-template-rows:repeat(4,10px);
+  gap:1px; padding:2px; border:1px solid var(--rule2); border-radius:2px;
+  background:var(--sunk)}
+.sq.sep{grid-template-columns:4px; grid-template-rows:repeat(4,10px);
+  background:transparent; border:none; padding:2px 0; opacity:.55}
+.sq.sep i{background:var(--rule2); grid-column:1; border-radius:1px}
+.c{background:var(--rule); border-radius:1px}
+.c.on{background:var(--blue)}
+.c.fold{outline:1px solid var(--brass-soft); outline-offset:-1px}
+.c.on.fold{background:var(--brass)}
+.c.dead{background:transparent}
+.c.split{box-shadow:0 0 0 2px var(--red)}
+.sq.split{border-color:var(--red)}
+
+.diverge{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:3px 0 3px 2px; font-family:"IBM Plex Mono",monospace; font-size:.6rem;
+  color:var(--ink3); letter-spacing:.06em; border-top:1px dashed var(--rule)}
+.diverge b{color:var(--red); font-weight:600}
+.diverge.close b{color:var(--green)}
+.diverge .far{color:var(--ink3)}
+
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
+  font-size:.62rem; color:var(--ink3); align-items:center}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:1px;
+  vertical-align:-1px; margin-right:5px}
+.err{color:var(--red); font-family:"IBM Plex Mono",monospace; font-size:.72rem}
+.note{color:var(--ink3); font-size:.72rem; max-width:68ch; margin:10px 0 0}
+h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
+  letter-spacing:-.01em}
+</style>
+</head>
+<body>
+<div class="sitebar">
+  <a class="brand" href="/">chronochromatic</a>
+  <nav aria-label="Main">
+    <a href="/spec.html">Spec</a>
+    <a href="/spectrometer.html">Spectrometer</a>
+    <a href="/atlas.html">Atlas</a>
+    <a href="/wub.html">Wub &plusmn;</a>
+    <a href="/wubx.html">Wub &times;</a>
+    <a href="/wubdiv.html">Wub &divide;</a>
+    <a href="/wubbadub.html">Wubba Dub</a>
+    <a href="/wubutf.html" aria-current="page">Wub UTF</a>
+    <a href="/inspirations.html">Inspirations</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="mast">
+    <div class="eyebrow">Wub UTF</div>
+    <h1>Sorting by sound, drawn</h1>
+    <p class="sub">Every character is a Chroma UTF code in ring 9, so every code is
+    ten bits in the same four by four frame. A word is a row of those squares, and
+    the order is legible in the pictures: the first square where two names differ
+    holds the cell that decides which comes first. The fold is outlined. Ten bits
+    pad to three whole nibbles and twelve bits lay into a four by four square, so
+    four cells stay empty in every frame &mdash; which is exactly why the frames
+    line up and a row reads as a row.</p>
+  </div>
+
+  <div class="panel">
+    <div class="ctl">
+      <div class="field">
+        <label for="q">Names, one per line</label>
+        <textarea id="q" spellcheck="false">dis
+this
+thin
+canvas
+clear
+cervezas
+dox
+knicks
+kicks</textarea>
+      </div>
+      <div class="field">
+        <label for="lang">Language filter</label>
+        <select id="lang">
+          <option value="">none declared</option>
+          <option value="en" selected>en &mdash; English</option>
+          <option value="es-ES">es-ES &mdash; Spanish, Spain</option>
+          <option value="es-419">es-419 &mdash; Spanish, Latin America</option>
+          <option value="it">it &mdash; Italian</option>
+          <option value="fr">fr &mdash; French</option>
+          <option value="de">de &mdash; German</option>
+          <option value="cmn">cmn &mdash; Mandarin</option>
+          <option value="yue">yue &mdash; Cantonese</option>
+          <option value="ja-on">ja-on &mdash; Japanese, on&rsquo;yomi</option>
+          <option value="ja-kun">ja-kun &mdash; Japanese, kun&rsquo;yomi</option>
+          <option value="ko">ko &mdash; Korean</option>
+        </select>
+        <div class="btnrow" style="margin-top:9px">
+          <button class="add" id="go">Sort by sound</button>
+          <button id="alpha">Alphabetical</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="legend">
+      <span><i style="background:var(--blue)"></i>bit set</span>
+      <span><i style="background:var(--rule)"></i>bit clear</span>
+      <span><i style="background:var(--brass)"></i>on the fold</span>
+      <span><i style="background:transparent;border:1px solid var(--rule2)"></i>above the code width</span>
+      <span><i style="background:var(--red)"></i>the deciding cell</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 id="mode">Ordered by sound</h2>
+    <div class="rows" id="rows"></div>
+    <p class="note" id="foot"></p>
+  </div>
+</div>
+
+<script src="/stalk.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const SEP = String.fromCharCode(1);   /* separators sort below every letter */
+let RING = 9, WIDTH = 10;
+
+/* One Chroma UTF code as the hex arrangement: pad to whole nibbles, lay MSB
+   first row major into the smallest square. stalk.js does it; this only reads
+   the answer, so the picture here is the picture every other page draws. */
+const CACHE = new Map();
+function squareOf(code){
+  if(CACHE.has(code)) return CACHE.get(code);
+  const h = hexSequence(BigInt(code));
+  const R = hexRegions(h.cells, h.n);
+  const s = {n: h.n, cells: h.cells,
+             fold: new Set(R.fold.map(x => x.i)),
+             dead: h.cells.length - h.raw.length};
+  CACHE.set(code, s);
+  return s;
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
+
+function squareEl(code, splitCell){
+  const s = squareOf(code);
+  const el = document.createElement("div");
+  el.className = "sq" + (splitCell != null ? " split" : "");
+  el.title = "code " + code + "  " + code.toString(2);
+  for(let i = 0; i < s.cells.length; i++){
+    const c = document.createElement("div");
+    c.className = "c"
+      + (i < s.dead ? " dead" : "")
+      + (s.cells[i] ? " on" : "")
+      + (s.fold.has(i) ? " fold" : "")
+      + (splitCell === i ? " split" : "");
+    el.appendChild(c);
+  }
+  return el;
+}
+
+function sepEl(){
+  const el = document.createElement("div");
+  el.className = "sq sep";
+  for(let i = 0; i < 4; i++) el.appendChild(document.createElement("i"));
+  return el;
+}
+
+/* Where do two code sequences first differ? The answer is a square and a cell,
+   because that is literally what decides the order. */
+function divergence(a, b){
+  const n = Math.max(a.length, b.length);
+  for(let i = 0; i < n; i++){
+    if(a[i] === b[i]) continue;
+    if(a[i] === undefined || b[i] === undefined) return {code: i, cell: null, prefix: true};
+    const A = squareOf(a[i]).cells, B = squareOf(b[i]).cells;
+    for(let c = 0; c < A.length; c++) if(A[c] !== B[c]) return {code: i, cell: c};
+    return {code: i, cell: null};
+  }
+  return null;
+}
+
+function rowEl(r, splitAt){
+  const row = document.createElement("div");
+  row.className = "row";
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.innerHTML = '<div class="name">' + esc(r.name) + "</div>"
+    + '<div class="reads">reads <b>'
+    + esc(r.reading.split(SEP).join("/")) + "</b></div>"
+    + (r.ipa ? '<div class="ipa">/' + esc(r.ipa) + "/</div>" : "");
+  const strip = document.createElement("div");
+  strip.className = "strip";
+  r.codes.forEach((code, i) => {
+    strip.appendChild(code <= 2 ? sepEl()
+      : squareEl(code, splitAt && splitAt.code === i ? splitAt.cell : null));
+  });
+  row.appendChild(meta);
+  row.appendChild(strip);
+  return row;
+}
+
+function render(rows, byAlpha){
+  const host = $("#rows");
+  host.textContent = "";
+  $("#mode").textContent = byAlpha ? "Ordered alphabetically" : "Ordered by sound";
+  rows.forEach((r, i) => {
+    host.appendChild(rowEl(r, i > 0 ? divergence(rows[i - 1].codes, r.codes) : null));
+    if(i === rows.length - 1) return;
+    const d = divergence(r.codes, rows[i + 1].codes);
+    const m = document.createElement("div");
+    m.className = "diverge" + (d && d.code === 0 ? " close" : "");
+    m.innerHTML = !d
+      ? "<span>identical keys</span>"
+      : d.prefix
+        ? "<span>one reading is a prefix of the other &mdash; <b>every shared square is equal</b></span>"
+        : d.cell === null
+          ? "<span>decided at square <b>" + (d.code + 1) + "</b></span>"
+          : "<span>decided at square <b>" + (d.code + 1) + "</b>, cell <b>"
+            + d.cell + "</b></span>"
+            + '<span class="far">' + (d.code === 0
+                ? "same first sound &mdash; they sit together"
+                : "first " + d.code + " square" + (d.code > 1 ? "s" : "") + " identical")
+            + "</span>";
+    host.appendChild(m);
+  });
+  $("#foot").textContent = rows.length
+    ? rows.length + " names, ring " + RING + ", every code " + WIDTH
+      + " bits in a four by four frame."
+    : "";
+}
+
+async function go(byAlpha){
+  const q = $("#q").value, lang = $("#lang").value;
+  try{
+    const [b, res] = await Promise.all([
+      fetch("/api/base"),
+      fetch("/api/sort?lang=" + encodeURIComponent(lang) + "&q=" + encodeURIComponent(q))
+    ]);
+    if(!res.ok) throw new Error(res.status + " " + res.statusText);
+    if(b.ok){ const j = await b.json(); RING = j.ring; WIDTH = j.ring + 1; }
+    const j = await res.json();
+    render(byAlpha ? [...j.sorted].sort((x, y) => x.name.localeCompare(y.name))
+                   : j.sorted, byAlpha);
+  }catch(e){
+    $("#rows").innerHTML = '<p class="err">the ordering lives in the server &mdash; '
+      + "start it with <b>python3 serve.py</b> and reload. (" + esc(e.message) + ")</p>";
+  }
+}
+
+$("#go").addEventListener("click", () => go(false));
+$("#alpha").addEventListener("click", () => go(true));
+$("#lang").addEventListener("change", () => go(false));
+$("#q").addEventListener("keydown", e => {
+  if((e.metaKey || e.ctrlKey) && e.key === "Enter") go(false);
+});
+go(false);
+</script>
+</body>
+</html>

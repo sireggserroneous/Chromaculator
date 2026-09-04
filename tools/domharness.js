@@ -50,6 +50,13 @@ function harness(html){
       if(!els.has(id)) els.set(id, mkEl(id));
       return els.get(id);
     },
+    /* pages address elements either way, so the harness answers both, and
+       querySelector honours the same "does the page declare this id" rule. */
+    querySelector(sel){
+      return typeof sel === "string" && sel.startsWith("#")
+        ? this.getElementById(sel.slice(1)) : mkEl("sel:" + sel);
+    },
+    querySelectorAll(){ return []; },
     createElement:()=>mkEl("new"), body:mkEl("body"), documentElement:mkEl("html"),
     addEventListener(){}, styleSheets:[],
   };
@@ -67,16 +74,23 @@ function harness(html){
     Blob: function(){}, URL:{createObjectURL:()=>"blob:x", revokeObjectURL(){}},
     navigator:{clipboard:{writeText:()=>Promise.resolve()}},
     localStorage:{_v:{}, getItem(k){return this._v[k]||null}, setItem(k,v){this._v[k]=v}},
+    encodeURIComponent, decodeURIComponent, encodeURI, decodeURI,
+    /* no network in here. A page that fetches must handle the failure, and
+       tests that want a reply overwrite this with their own. */
+    fetch:()=>Promise.reject(new Error("no network in the harness")),
   };
   g.window = g; g.globalThis = g; g.self = g;
   return {g, els, frames:()=>frames};
 }
 /* load a page's scripts into a fresh context and hand back a runner. every
    caller wants exactly this, so it lives here rather than in four copies. */
-function loadPage(pagePath){
+function loadPage(pagePath, seed){
   const fs = require("fs"), vm = require("vm"), path = require("path");
   const html = fs.readFileSync(pagePath, "utf8");
   const h = harness(html);
+  /* seeded BEFORE the scripts run. A page that fetches on load has already
+     fetched by the time loadPage returns, so overriding afterwards is too late. */
+  if(seed) Object.assign(h.g, seed);
   const ctx = vm.createContext(h.g);
   let src = "";
   for(const m of html.matchAll(/<script[^>]*\bsrc="([^"]+)"/g)){
