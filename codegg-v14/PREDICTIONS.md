@@ -526,3 +526,33 @@ CPU-limited, so dropping arm CPU *does* move the clock — N2's null result hold
 only where the roster is underloaded (`ntoskrnl.exe`, 11 slots). The arm-count
 question is a scheduling question, not a byte question, and it is not this
 milestone's.
+
+## N2c PHASE 1 — the two ablations, judged
+
+Throwaway builds, never shipped, each reverted after its reading.
+
+| filed | measured | verdict |
+|---|---|---|
+| shrinking `o3s`/`o6s`/`ind2s` from `1<<20` to `1<<17` buckets is worth **>= 15%**; **under 5% and the memory hypothesis is dead** | **-5.9%** round-trip, -5.2% row | **MISS** — 48 MiB of tables per arm cut to 6 MiB, across ~30 concurrent arms, buys 5.9%. Just past its own kill line |
+| the lattice scan is worth **4-10%**, not the top item | **-8.4%** round-trip with `lat_state = 2` (the detector removed outright) | **HIT** |
+
+**Consequence, taken as filed:** the loop is **not** memory-bound in any way worth
+chasing. Phase 2's item 2.7 (warming the seven bucket lines before `claim`)
+was **dropped unbuilt** — its ceiling is a fraction of a 5.9% that costs 48 MiB
+of context resolution to buy.
+
+## N2c — A DEFECT IN THE MEASUREMENT PROTOCOL, found the only way it could be
+
+`codegen-units = 1` measured **+3.3%** (a loss) and `target-cpu=x86-64-v3`
+measured **+4.7%** (a worse loss). Two consecutive losses of the same size from
+two unrelated flags is not a mechanism, so the baseline was re-read — and **the
+baseline itself had moved from 2,821 ms to 2,933 ms.** Interleaved A/B in one
+shell, base and candidate alternating, `target-cpu=v3` is **worth zero**.
+
+**The machine drifts ~4% between measurement sessions, which is the same size as
+every effect this milestone is chasing.** Every reading below is therefore
+INTERLEAVED A/B, medians of 4-5 alternating runs. An accidental A/A run (a patch
+that silently failed to apply) puts the noise floor at **+-0.2% on the
+round-trip, +-1.2% on the roster stage** — so the round-trip, being one
+single-threaded CM12 decode, is the instrument, and the per-arm `armtime`
+numbers (+-20% run to run) are not.
