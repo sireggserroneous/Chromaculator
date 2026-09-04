@@ -2530,7 +2530,7 @@ to win, and the row carries 4,812 B of armor that xz+par2 pays for differently.
 | gate | result |
 |---|---|
 | `cargo clippy --all-targets -- -D warnings` (rustc 1.98) | **clean** |
-| `cargo test --release` | **42 passed**, 0 failed (M3b's 35) |
+| `cargo test --release` | **45 passed**, 0 failed (M3b's 35; see the count correction below) |
 | `node tools/drills.js` | see the arm battery below |
 | `eggv13 audit --full` | **3,091,667 checks, 0 failing** (3,839 ms) |
 | the 60-file JPEG conservation suite | **60 EXACT, 0 WRONG, 0 LOST**; 40 peeled rows **-5.251%**, rows not improved **0** |
@@ -2845,3 +2845,156 @@ the armored bar. Our 240,008 and 135,565 are still the only figures on those
 rows that survive the loss of any 4 KB. That is a different currency, and it is
 the one this house competes in -- but the ratio bout on audio is lost, twice,
 and the card should say so.
+
+---
+
+## THE JPEG CARD, MEASURED (2026-09-04) -- packJPG v2.5k, and IT SHADES US
+
+The campaign's headline claim was that `wallpaper.jpg` at **29.70% off its
+entropy coding** had passed "packJPG/Lepton's 22-25%". **Both halves of that
+sentence were wrong.** packJPG has now been run, and the 22-25% figure the
+v14 card credited it with was a remembered number that understated it.
+
+Provenance, so the numbers are auditable: `packJPGx64.exe`, 179,712 B, release
+**2.5k** from `github.com/packjpg/packJPG` (Matthias Stirner's own org, the
+source already credited in v13's attribution), SHA256
+`4987cae296caa350d8b0eca66617f8ef7be9a397fd01537658073369b8765fba`. Every round
+trip below was checked with `cmp` against the original, not with packJPG's own
+`-ver`.
+
+### The single row the campaign quoted -- we win it
+
+| | bytes | % of input | off the entropy coding |
+|---|---|---|---|
+| **egg13 inner** | **1,121,685** | 69.99% | **29.99%** |
+| **egg13 armored** | **1,126,497** | 70.29% | **29.70%** |
+| packJPG | 1,136,524 | 70.91% | **29.07%** |
+
+We win `wallpaper.jpg` form-vs-form by 14,839 B (1.31%), and our ARMORED total
+beats packJPG's naked stream by 10,027 B. **This row was accidental
+cherry-picking** -- it is the one JPEG in `corpus-real`, so it is the one the
+campaign had been quoting all along.
+
+### The whole suite -- 40 comparable rows, and packJPG wins on count AND on total
+
+| total over the 40 rows both tools return byte-exactly | bytes | off the entropy coding |
+|---|---|---|
+| entropy-coded (what the JPEGs spend on Huffman) | 33,168,733 | -- |
+| **egg13 inner** | 24,432,195 | **26.34%** |
+| **egg13 armored** | 24,624,675 | **25.76%** |
+| **packJPG v2.5k** | **24,385,599** | **26.48%** |
+
+**egg13 wins 18 rows, packJPG wins 22.** On totals packJPG is **46,596 B ahead
+of our form (0.19%)**, and **239,076 B ahead of our armored total (0.98%)**. Our
+best row is +3.94%, its best is -6.43%.
+
+**Verdict: a dead heat that packJPG shades.** 0.19% on totals is inside the range
+where image content picks the winner, and the row count (22-18) points the same
+way. **It is NOT true that v13 passed packJPG.** What is true, and worth
+keeping: a GENERAL transmuter that also carries armor is now within a fifth of a
+percent of a dedicated JPEG specialist on that specialist's own format. That is
+the honest claim, and it is a better one than the false claim it replaces.
+
+### Two coverage facts that cut in opposite directions
+
+**Against us: packJPG reads PROGRESSIVE JPEGs and we refuse them.** It returned
+**51 of 60** files byte-exactly; our peel takes 43 and refuses 17. The
+difference is the 8 progressive (SOF2) files, which `jpeg.rs` refuses by design
+("Refuse, do not guess"). packJPG models them. **That is a real gap, not a
+philosophical difference, and it is the strongest single item for v14's JPEG
+line.**
+
+**For us: on the 9 hostiles we agree exactly.** packJPG refused all nine --
+12-bit, arithmetic-coded, corrupt DHT, DHT overrun, magic-only, marker-in-scan,
+scan noise, and two truncations. Our peel refuses the same nine with printed
+reasons. Neither tool guesses.
+
+### And the currency that is still ours alone
+
+packJPG **forfeits all three injuries** on `wallpaper.jpg` -- 1-byte flip, 4 KB
+scratch, 4 KB truncation. Like FLAC, it refused every time and never returned
+wrong bytes: an honest forfeit. So it does not enter the armored bar, and the
+23/23 stands untouched. It is also **6.4x faster** than us (0.77 s against 4.9 s
+on that row).
+
+### What this does to v14
+
+The JPEG line changes from "we beat the specialist, go do the ZIP" to
+**"we are level with the specialist and we cannot read progressive"**. Those are
+different milestones. The measurement cost an hour and it changed the plan --
+which is the whole argument for testing before building.
+
+---
+
+## COUNT CORRECTION AND A CONCURRENCY NOTE (2026-09-04)
+
+**`cargo test --release` is 45, not the 42 recorded above.** Both figures were
+accurate when read: a SECOND SESSION was working in `codegg-v13` at the same
+time and added **90 lines of `sites.rs` tests at 07:03** (`19419b0` — *"sites.rs
+shipped with no tests, and the claim holding up the S1c verdict was one token
+from being wrong"*), after my reading. It also landed a real fix at 06:54
+(`fde5652`, `deflate.rs`: a length table indexed before it was bounded, so a
+hostile recipe panicked where it should have refused) and checkpointed my own
+in-flight work at 07:58 (`7d04db2`). The thirteen ancestor `.gitignore` files
+stamped 20:18:48 — flagged in the M4 gate as written "from outside this session"
+— were the same session adding one per sibling project before committing
+codegg-v1..v12. **That exception is closed: nothing was unaccounted for.**
+
+**The ledger ran 21:39-23:1x, i.e. BEFORE both of that session's source
+changes.** That session's own reading of why the sealed numbers cannot have
+moved, which I agree with on the shape of the diff:
+
+- `fde5652` is **purely additive** — a guard placed immediately before an index.
+  Where the guard is false, control falls through to the identical index
+  (bit-identical). Where it is true, the old code **panicked** and the new one
+  returns `Err`. So the only inputs whose behaviour changed are inputs that
+  previously aborted the process, and every sealed row produced a size with
+  injuries E/E/E, so none of them panicked.
+- `19419b0` is **entirely inside `#[cfg(test)]`**, which `cargo build --release`
+  does not compile, so it cannot reach a sealed row by any path.
+
+**And it is being measured anyway, because "I reasoned it cannot have moved" is
+exactly the sentence that becomes tonight's third burned number.** See
+[[control-before-mechanism]]: the i32 overflow and the FLAC default both taught
+the same lesson today.
+
+### FILED before the re-verification runs
+
+**Zero rows move.** The set is chosen so a miss would be diagnosable rather than
+just alarming, and the scoping is that session's:
+
+- **`aoe4-autosave.sav` is MANDATORY** — the only sealed row whose winning form
+  IS the deflate peel;
+- the changed function is entered on far more rows than one, because
+  `looks_like_deflate` returns true with no further check on block type 1, so
+  **9 of the 20 rows take a real peel attempt that ends in a refusal path** —
+  hence non-peel controls stay in the set;
+- **the rebuilt 29-file deflate suite is the sharpest test of the fix itself**,
+  since six of its members are hostiles;
+- `wallpaper.jpg` is a control for MY S2a work, not for that fix — it goes
+  through `jpeg.rs`/`jcoef.rs`, which `fde5652` never touches.
+
+If any row moves, v14's N0 gate is re-based on the new numbers and the miss is
+printed here first.
+
+### RE-VERIFICATION MEASURED (2026-09-04) -- ZERO ROWS MOVED. **HIT.**
+
+Rebuilt from the current source (both of the second session's commits in) and
+re-run:
+
+```
+wubbadub.html      sealed=27621      now=27621      SAME   restore EXACT
+kernel32.dll       sealed=283604     now=283604     SAME   restore EXACT
+alarm01.wav        sealed=240008     now=240008     SAME   restore EXACT
+wallpaper.jpg      sealed=1126497    now=1126497    SAME   restore EXACT
+cbs.log            sealed=71385      now=71385      SAME   restore EXACT
+aoe4-autosave.sav  sealed=8759079    now=8759079    SAME   restore EXACT   <- the mandatory row
+```
+
+And the rebuilt 29-file deflate suite -- the sharpest test of `fde5652`, six of
+its members being hostiles -- reproduces its sealed verdict exactly: **29 EXACT,
+0 WRONG, 0 LOST; 3 peeled, 2 refused with a reason, 24 passed over.**
+
+**The sealed twenty stand against the current source.** The second session's
+shape-of-diff argument was right, and it is now measured rather than reasoned --
+which is the only reason it is written down as settled.

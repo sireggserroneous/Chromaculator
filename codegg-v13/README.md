@@ -160,6 +160,43 @@ entrant on a tie. egg13 is **<= egg12 on 12 of 12** and strictly lighter on
 three: `wallpaper.jpg` 1,238,198 -> **1,126,497**, `alarm01.wav` 252,862 ->
 **240,008**, `vim-version9.txt` 273,982 -> **273,743**.
 
+## MEASURED AGAINST THE SPECIALISTS (2026-09-04) — and they shade us
+
+Until this point v13 had only ever faced four general-purpose compressors, eight
+of its own ancestors, and the two armored rivals. **No specialist had ever been
+run in this house.** Two now have, and both results go against us on ratio.
+
+**packJPG v2.5k** (release 2.5k from `github.com/packjpg/packJPG`, SHA256
+`4987cae2…`; every round trip checked with `cmp`, not with its own `-ver`), over
+the **40 rows of `corpus-jpeg` both tools return byte-exactly**:
+
+| | bytes | off the entropy coding |
+|---|---|---|
+| entropy-coded | 33,168,733 | — |
+| egg13 inner | 24,432,195 | 26.34% |
+| egg13 armored | 24,624,675 | 25.76% |
+| **packJPG** | **24,385,599** | **26.48%** |
+
+**egg13 wins 18 rows, packJPG wins 22**, and packJPG is **0.19% ahead on our
+form** and **0.98% ahead of our armored total**. We win `wallpaper.jpg` (the row
+this README quotes) by 1.31% — that row is the *only* JPEG in `corpus-real`, so
+quoting it alone was accidental cherry-picking. **It is not true that v13 passed
+packJPG.** The honest claim: a general transmuter that also carries armor is
+within a fifth of a percent of a dedicated specialist on its own format.
+
+**packJPG also reads PROGRESSIVE JPEGs, which we refuse** — 51 of 60 files
+byte-exact against our 43. The 8 progressive (SOF2) files are a real coverage
+gap. On the 9 hostiles the two tools agree exactly: both refuse all nine.
+
+**FLAC 1.5.0** with `--keep-foreign-metadata`, byte-exact both rows:
+`alarm01.wav` 210,087 against our 235,196 (**−10.68%**), `ring01.wav` 101,165
+against our 130,753 (**−22.63%**). Audio is lost 0–2.
+
+**What is still ours alone.** Both specialists **forfeit all three injuries** —
+they refuse honestly and never return wrong bytes, but neither survives losing
+4 KB. Our figures on those rows are the only ones that do, and the armored bar
+stays 23/23. packJPG is also **6.4× faster** than us.
+
 ## THE RECIPE — the number that decides whether a peel is real
 
 A peel splits a file into a RECIPE (everything needed to re-spell it exactly)
@@ -275,7 +312,7 @@ container's declared layout and returns null rather than guessing.
 
 ```bash
 cd codegg-v13 && cargo build --release          # std only, offline
-cargo test --release                            # 42
+cargo test --release                            # 45
 cargo clippy --all-targets -- -D warnings       # clean under rustc 1.98
 target/release/eggv13 transmute <file> [--survive BYTES] [--tier BLK] [--parity T] [--ct triple|incw|none] [--judge]
 target/release/eggv13 restore <f>.egg13|.egg12|.egg11|.egg10|.egg9|.egg8 [--wound start:len]
