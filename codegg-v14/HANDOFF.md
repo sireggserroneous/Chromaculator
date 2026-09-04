@@ -141,6 +141,46 @@ them in pairs when convenient.
 the ISSE/APM stages all MOVE BYTES. On text rows `tokenize` + the cheap-v8
 trial are 36% of the clock and have never been looked at.
 
+### N3 the card · N3b the recipe. BOTH DONE. **PICK UP AT N4.**
+
+**N3b banked 3,464,635 B on one row.** `aoe4-autosave.sav` 8,759,079 ->
+5,294,444 armored (-39.6%), 90 seconds FASTER, every other row unmoved. The
+deflate recipe is now PREDICTED rather than stored: `src/zmatch.rs` infers the
+zlib matcher (level 4 memLevel 9 on that file) and 38,340,574 tokens ride as two
+parameter bytes and **20 corrections**. Blob version 2; version 1 still reads.
+
+Corpus-wide against the best pipeline anyone can actually run, a 1.33% LOSS
+became a **2.02% WIN** (101,901,149 against 103,964,248).
+
+**What N3's card says to do next, ranked by measured bytes** -- run
+`node tools/card.js`, it regenerates from `tools/card.json`:
+
+- **PE / binary model, 1,962,323 B** across rustc_driver.dll, ntoskrnl.exe,
+  kernel32.dll, msgraph.dll, zstd.exe, notepad.exe. We lose to zpaq -m5 on ALL
+  SIX by 0.3-5.0%. One mechanism, not six shortfalls. Now the largest deficit.
+- **JPEG peel, 265,778 B** -- paq8px beats wallpaper.jpg by 23.69%.
+- **JS / text, 188,813 B** · **audio, 91,685 B** (FLAC -10.68/-22.63%, paq8px
+  -38.98% on alarm01.wav) -- N6 was already scoped for the audio one.
+
+**Things a fresh context must not re-learn:**
+
+- **The card is a tool, not prose.** `tools/card.js` + `card.json`. Add a
+  measurement to the json and re-run; never hand-edit a table.
+- **zmatch's two known holes, both measured:** `deflate_fast` (levels 1..=3) is
+  wrong (gz-l1.gz predicts at 64.6% where the file IS level 1) and `windowBits`
+  is not modelled (smallwindow.gz 64.0%). Neither costs anything today -- the
+  format falls back per file -- but both cap N4.
+- **N4's ZIP peel now inherits a GOOD recipe.** That was the argument for doing
+  N3b first and it held.
+- **This machine drifts ~4% between measurement sessions.** Interleave A/B in
+  one shell (`scratchpad/ab.sh`); the round-trip is the low-noise instrument.
+- **`tools/m0gate.js` cannot pass** and has not since v12-M1: it asserts v14 ==
+  v11 byte for byte. Its ancestor-compat half is live and does pass 14/14.
+
+**Still owed:** five sealed rows have not been re-run since N2c
+(`mermaid-bundle.js`, `msgraph.dll`, `rdr2-shaders.vkcache`, `iconcache48.db`,
+`rustc_driver.dll`) -- hours each, no lens they exercise is untested.
+
 ## Then, in order: N3 · N4 · N5 · N6 · N7
 
 All four are specified with filed predictions in the plan. Priority argument, in
