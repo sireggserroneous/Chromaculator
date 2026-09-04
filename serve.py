@@ -177,15 +177,22 @@ def api_ipa(q="", lang=""):
     """The third alphabet, and a query's reading expressed in it.
 
     Chroma UTF is 306 in ring 9, twelve-bit digits, base 4096. This is the IPA
-    chart: 123 digits in ring 7, EIGHT-bit digits, base 256 -- two whole nibbles,
-    which the other two alphabets cannot reach. Its order is not declared, it is
-    the Chroma UTF order of each phoneme's spelling.
+    chart: 126 symbols in ring 7, EIGHT-bit digits -- two whole nibbles, which
+    the other two alphabets cannot reach. Its order is not declared, it is the
+    Chroma UTF order of each symbol's spelling.
+
+    Rank 0 stays empty because a trailing rank-0 digit is invisible: 0.5 and 0.50
+    are one number. That makes 127 elements, and 127 is prime, so every nonzero
+    digit has an inverse and division is total. Storage is nibble aligned at 8
+    bits; the arithmetic is mod 127. Two different roles for one digit.
     """
     C, P, S = ordering()
     sys.path.insert(0, str(pathlib.Path(__file__).parent / "tools"))
     import chroma_ipa as I
     out = {"count": len(I.ROWS), "ring": I.RING, "width": I.WIDTH, "base": I.BASE,
-           "spare": (1 << I.RING) - len(I.ROWS),
+           "modulus": I.MOD, "spare": (1 << I.RING) - I.MOD,
+           "addresses": [{"sym": s2, "rom": r2, "name": n2}
+                         for s2, r2, n2 in I.INFINITESIMAL],
            "alphabet": [{"sym": r["sym"], "rom": r["rom"], "rank": r["rank"],
                          "name": r["name"]} for r in I.ROWS],
            "diacritics": [{"mark": m, "name": n} for m, n in I.DIACRITICS]}
@@ -328,7 +335,10 @@ def demo():
     assert sorted(ws, key=whole) != real, \
         "the integer is length-dominant; if this ever matches, the control is dead"
     ip = api_ipa("shit", "en")
-    assert ip["width"] == 8 and ip["base"] == 256 and ip["count"] == 123, ip["count"]
+    assert ip["width"] == 8 and ip["base"] == 256, ip
+    assert ip["count"] == 126 and ip["modulus"] == 127, (ip["count"], ip["modulus"])
+    assert all(ip["modulus"] % d for d in range(2, 12)), "the modulus must be prime"
+    assert len(ip["addresses"]) == 5, ip["addresses"]
     it = ip["items"][0]
     assert it["ipa"] == "\u0283it" and it["digits"] == [
         __import__("chroma_ipa").RANK[c] for c in "\u0283it"], it

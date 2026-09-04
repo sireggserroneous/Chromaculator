@@ -21,7 +21,8 @@ Diacritics are NOT digits. They modify a segment the way an accent modifies a
 letter, so they are a sub-level, exactly as in the base table. The digits are the
 letters and the marks that stand between segments.
 """
-import os, sys, collections
+import os, sys, collections, math
+from fractions import Fraction
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import chroma_utf as C
 
@@ -95,20 +96,38 @@ VOWELS = [
  ("a","a","open front unrounded"),    ("ɶ","aq","open front rounded"),
  ("ɑ","ab","open back unrounded"),    ("ɒ","ap","open back rounded"),
 ]
+# The addresses. Not sounds: they say what KIND of address a reading is.
+#
+# Appending any digit already means "infinitesimally above the prefix" -- every
+# appended digit lands between hello and hellp, whatever it is. So the rank does
+# not decide WHETHER you went up, it decides HOW FAR. These are the smallest
+# increments there are, so they sort below everything, and their spellings begin
+# with 0 where prosody begins with 1: the order still derives from Chroma UTF
+# rather than being declared.
+#
+# Each is one digit, not two. A stalk carries a sign, so under is over negated,
+# down is up negated, miny is tiny negated. Five digits, ten addresses.
+INFINITESIMAL = [
+ ("\u29be","01","tiny-on, the floor"),   ("\u29bf","02","tiny"),
+ ("\u2191","03","up"),                   ("\u25cb","04","over"),
+ ("\u03b5","05","epsilon, below every real"),
+]
 # Boundaries and prosody sort BEFORE every letter, so they are spelled with
 # digits -- Chroma UTF puts 0..9 ahead of a..Z, so the convention costs nothing.
 PROSODY = [
  ("ˈ","1","primary stress"),   ("ˌ","2","secondary stress"),
- ("ː","3","long"),             ("ˑ","4","half-long"),
+ ("ː","3","long"),
  ("|","5","minor group"),      ("‖","6","major group"),
- (".","7","syllable break"),   ("‿","8","linking"),
+ (".","7","syllable break"),
+ # the linking mark and half-long are gone, so the alphabet lands on 126
+ # symbols; with rank 0 reserved that is 127 elements, and 127 is prime.
  ("˥","90","extra high tone"), ("˦","91","high tone"),
  ("˧","92","mid tone"),        ("˨","93","low tone"),
  ("˩","94","extra low tone"),  ("↗","95","global rise"),
  ("↘","96","global fall"),
 ]
 LETTERS = PULMONIC + NONPULMONIC + OTHER + VOWELS
-DIGITS = PROSODY + LETTERS
+DIGITS = INFINITESIMAL + PROSODY + LETTERS
 
 # Diacritics are not digits. They modify a segment the way an accent modifies a
 # letter, so they are a sub-level of the digit they sit on -- the same shape the
@@ -130,14 +149,18 @@ def build():
     rows = [{"sym": s, "rom": r, "name": n} for s, r, n in DIGITS]
     key = lambda row: tuple(C.letters(row["rom"]))
     rows.sort(key=key)
-    RING = max(1, (len(rows) - 1).bit_length())
-    W = 4 * -(-RING // 4)                       # bare ranks: no ring bit to carry
+    # Rank 0 is the ZERO and stays empty. A trailing rank-0 digit is invisible --
+    # 0.5 and 0.50 are the same number -- so a symbol parked there cannot be told
+    # from not being there at all. Ranks start at 1.
     for i, row in enumerate(rows):
-        row["rank"] = i
+        row["rank"] = i + 1
         row["key"] = key(row)
-    return rows, RING, W
+    MOD = len(rows) + 1                          # the symbols plus the zero
+    RING = max(1, (MOD - 1).bit_length())
+    W = 4 * -(-RING // 4)
+    return rows, RING, W, MOD
 
-ROWS, RING, WIDTH = build()
+ROWS, RING, WIDTH, MOD = build()
 RANK = {r["sym"]: r["rank"] for r in ROWS}
 ROM = {r["sym"]: r["rom"] for r in ROWS}
 BY_ROM = {r["rom"]: r["sym"] for r in ROWS}
@@ -182,13 +205,16 @@ if __name__ == "__main__":
         if not cond: fails.append(n)
 
     print(f"CHROMA IPA — the third alphabet\n")
-    print(f"  digits             {len(ROWS)}  "
-          f"({len(LETTERS)} letters + {len(PROSODY)} prosody marks)")
+    print(f"  symbols            {len(ROWS)}  ({len(LETTERS)} letters + "
+          f"{len(PROSODY)} prosody + {len(INFINITESIMAL)} addresses)")
     print(f"  diacritics         {len(DIACRITICS)}  a sub-level, not digits")
+    print(f"  ranks              1..{len(ROWS)}   rank 0 is the zero and stays empty")
+    print(f"  modulus            {MOD}   the symbols plus the zero")
     print(f"  ring               {RING}   ({2 ** RING} slots, "
-          f"{2 ** RING - len(ROWS)} spare)")
+          f"{2 ** RING - MOD} spare)")
     print(f"  digit width        {WIDTH} bits = {WIDTH // 4} nibbles, "
-          f"base {2 ** WIDTH}\n")
+          f"base {2 ** WIDTH}   (storage is nibble aligned, arithmetic is mod "
+          f"{MOD})\n")
 
     # [1] the width lands on a nibble, which is the whole reason for a third alphabet
     check(1, WIDTH % 4 == 0 and len(ROWS) <= 2 ** WIDTH,
@@ -245,6 +271,40 @@ if __name__ == "__main__":
     off = [r for r in ROWS if any(ch not in C.UTF for ch in r["rom"])]
     check(6, not off, f"inside the base  every spelling uses only Chroma UTF "
           f"characters" + (f"   OUTSIDE: {[r['rom'] for r in off][:4]}" if off else ""))
+
+    # [7] rank 0 is the zero, and nothing may sit there
+    lowest = min(r["rank"] for r in ROWS)
+    B = 1 << WIDTH
+    def val(ds):
+        num, den = 0, 1
+        for d in ds: num, den = num * B + d, den * B
+        return Fraction(num, den)
+    probe = digits("sit")
+    vanishes = val(probe) == val(probe + [0])
+    check(7, lowest == 1 and vanishes,
+          f"zero reserved    lowest rank is {lowest}; a trailing rank-0 digit is "
+          "invisible (0.5 and 0.50 are one number), so nothing may sit there")
+
+    # [8] the modulus is prime, so every nonzero digit divides
+    isprime = MOD > 1 and all(MOD % d for d in range(2, int(MOD ** 0.5) + 1))
+    units = sum(1 for a in range(1, MOD) if math.gcd(a, MOD) == 1)
+    check(8, isprime and units == MOD - 1,
+          f"a field          {MOD} is {'prime' if isprime else 'NOT prime'}, so "
+          f"{units}/{MOD - 1} nonzero digits have an inverse mod {MOD}")
+
+    # [9] the addresses are the smallest increments there are
+    addr = [r for r in ROWS if r["sym"] in {s2 for s2, _r, _n in INFINITESIMAL}]
+    ranks = [r["rank"] for r in addr]
+    want = [s2 for s2, _r, _n in INFINITESIMAL]
+    got = [r["sym"] for r in sorted(addr, key=lambda r: r["rank"])]
+    check(9, ranks == list(range(1, len(INFINITESIMAL) + 1)) and got == want,
+          f"addresses first  the {len(addr)} addresses hold ranks "
+          f"{min(ranks)}..{max(ranks)}, below every mark and every letter")
+    print("       " + " < ".join(
+        f"{r['sym']} {r['name'].split(',')[0]}" for r in sorted(addr, key=lambda r: r["rank"]))
+        + " < every sound")
+    print("       each is one digit; a stalk carries the sign, so under is over")
+    print("       negated, down is up negated, miny is tiny negated")
 
     print(f"\n  THE ORDER\n")
     line, col = [], 0

@@ -400,36 +400,64 @@ the picture are the same object.
 
     python3 tools/chroma_ipa.py
 
-| | entries | ring | digit | base | nibbles |
+| | symbols | ring | digit | arithmetic | nibbles |
 |---|---|---|---|---|---|
-| **Chroma UTF** — the base table | 306 | 9 | 12 bits | 4,096 | 3 |
-| **the phonetic index** — multi-listed | 370,571 | 19 | 20 bits | 1,048,576 | 5 |
-| **Chroma IPA** — the chart | 123 | 7 | **8 bits** | **256** | **2** |
+| **Chroma UTF** — the base table | 306 | 9 | 12 bits | — | 3 |
+| **the phonetic index** — multi-listed | 370,571 | 19 | 20 bits | — | 5 |
+| **Chroma IPA** — the chart | 126 | 7 | **8 bits** | **mod 127, a field** | **2** |
 
-123 digits: 108 chart letters plus 15 prosody and tone marks. **Eight bits is
-two whole nibbles**, which neither of the other two can reach — 306 needs nine
-bits and 154 needs nine once the ring code's leading bit is carried, and both
-round up to twelve. Chroma IPA uses bare ranks, so eight is exact.
+126 symbols: 108 chart letters, 13 prosody marks, and 5 addresses. **Eight bits
+is two whole nibbles**, which neither of the other two can reach.
+
+### Rank 0 is the zero and stays empty
+
+A trailing rank-0 digit is invisible — `0.5` and `0.50` are one number — so a
+symbol parked there cannot be told from not being there. `/sit/` and `/sitˈ/`
+were the same value until this was fixed. Ranks start at 1.
+
+That makes **127 elements**, and 127 is prime, so **every nonzero digit has an
+inverse** and division is total. Storage is nibble-aligned at 8 bits; the
+arithmetic is mod 127. Two roles for one digit.
+
+    Z/123  = 3 x 41     80 of 122 divide    65.6%
+    Z/127  PRIME       126 of 126 divide   100.0%   <- a field
+    Z/128  = 2^7        64 of 127 divide    50.4%
+
+Filling all 128 slots looks tidier and is strictly worse to compute with: only
+odd digits invert. The linking mark and half-long were dropped to land on 127.
+
+### The five addresses
+
+    ⦾ tiny-on < ⦿ tiny < ↑ up < ○ over < ε epsilon < every sound
+
+Pedro's anatomy of 0, at ranks 1..5 — below every mark and every letter.
+**Each is one digit, not two:** a stalk carries the sign, so `under` is `over`
+negated, `down` is `up` negated, `miny` is `tiny` negated. Five digits, ten
+addresses.
+
+They sit at the bottom because **appending any digit is already the
+"infinitesimally above" move** — every appended digit lands between `hello` and
+`hellp`, whatever it is. The rank does not decide *whether* you went up, it
+decides *how far*. These are the smallest increments there are.
+
+Their spellings begin with `0` where prosody begins with `1`, so the order still
+derives from Chroma UTF rather than being declared.
 
 ### The order is derived, not declared
 
-Not place|manner|voice. Every phoneme already carries a Chroma UTF spelling —
-that is what the sound axis has always sorted on — so **the IPA order is those
-spellings in the order the base table already declares.** Nothing new is judged,
-and the adjacency falls out rather than being arranged:
+Not place|manner|voice. Every symbol already carries a Chroma UTF spelling, so
+**the IPA order is those spellings in the order the base table already
+declares.** Nothing new is judged, and the adjacency falls out:
 
     /s/ s and /ʃ/ sh   +1   immediate
     /d/ d and /ð/ dh   +2   retroflex /ɖ/ spells dd and sorts between them
-    /t/ t and /θ/ th   +2   the dental click /ǀ/ spells tc
 
 All ten stop/fricative pairs share a first digit; five are immediate. The ones
 that are not have a sibling phoneme sitting between, which is a fact about the
-chart rather than noise in the order.
+chart rather than noise.
 
-Prosody marks are spelled with digits, so they sort ahead of every letter for
-free — Chroma UTF already puts `0..9` before `a`. **Diacritics are not digits.**
-They modify a segment the way an accent modifies a letter, so they are a
-sub-level, the same shape as `base | case | accent`.
+**Diacritics are not digits.** They modify a segment the way an accent modifies
+a letter, so they are a sub-level, the same shape as `base | case | accent`.
 
 ### What it buys
 
