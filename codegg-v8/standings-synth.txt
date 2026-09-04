@@ -1,0 +1,21 @@
+THE TOURNAMENT -- rule: wrong-or-no data after any injury forfeits; smallest lossless survivor wins
+injuries per artifact: 1-byte flip (blind) / 4 KB scratch (addressed) / 4 KB truncation
+
+file                    orig B      gzip    zstd  brotli      xz    egg6 e6+zstd    egg7    egg8   WINNER (size)
+--------------------------------------------------------------------------------------------------------------------------------
+archive.zst              946623      dq      dq    LIED      dq  107.3%  107.3%  107.7%  102.8%   egg8 (972696)
+big.xml                 4156948      dq      dq    LIED      dq  102.5%   10.9%   11.9%   10.9%   egg8 (453944)
+corpus-1489k.bin        1489000      dq      dq    LIED      dq  102.6%   30.7%   31.1%   29.5%   egg8 (438584)
+data.csv                4960761      dq      dq      dq      dq  102.4%   24.5%   24.3%   23.9%   egg8 (1184188)
+photo.bin               4194304      dq      dq    LIED      dq  102.5%  102.5%  103.3%  102.8%   egg6 (4297640)
+program.exe              265216      dq      dq      dq      dq  108.0%   48.1%   49.7%   46.3%   egg8 (122820)
+real-test.bmp          12000054      dq      dq    LIED      dq  102.4%   31.0%   31.2%    2.3%   egg8 (274208)
+real-test.db            9551872      dq      dq    LIED      dq  102.4%   17.7%   16.4%   15.7%   egg8 (1495032)
+repo-bundle.bin          215055      dq      dq    LIED      dq  108.4%   36.7%   38.2%   32.0%   egg8 (68848)
+server-log.json         7549839      dq      dq      dq      dq  102.4%   13.5%   14.3%   13.6%   egg6+zstd (1015632)
+--------------------------------------------------------------------------------------------------------------------------------
+podium: egg8 x8, egg6 x1, egg6+zstd x1
+victory ledger (egg8, armor ON, all injuries EXACT, of 10 files):
+  bar i   vs strongest gzip -9 : 7/10  (needs >=10 of 12) -- not met
+  bar ii  vs egg6+zstd hybrid  : 8/10  (needs >=6 of 12) -- MET
+  bar iii vs xz -9             : 1/10  (needs >=3 of 12) -- not met

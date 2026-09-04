@@ -1,0 +1,73 @@
+alarm01.wav  (egg8, 61.7% of original)
+  original   46c758f03534be1a2247413e7e5d92bcfdae1986f8f7f9fcaeabd3a72d131a2b
+  flip       46c758f03534be1a2247413e7e5d92bcfdae1986f8f7f9fcaeabd3a72d131a2b  MATCH
+  scratch    46c758f03534be1a2247413e7e5d92bcfdae1986f8f7f9fcaeabd3a72d131a2b  MATCH
+  trunc      46c758f03534be1a2247413e7e5d92bcfdae1986f8f7f9fcaeabd3a72d131a2b  MATCH
+
+arial.ttf  (egg8, 48.6% of original)
+  original   b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a
+  flip       b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a  MATCH
+  scratch    b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a  MATCH
+  trunc      b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a  MATCH
+
+kernel32.dll  (egg8, 41.1% of original)
+  original   0ab61f2e0d412a585233f1b308c120cba74f800c1030bffe0aabd20df8c6d907
+  flip       0ab61f2e0d412a585233f1b308c120cba74f800c1030bffe0aabd20df8c6d907  MATCH
+  scratch    0ab61f2e0d412a585233f1b308c120cba74f800c1030bffe0aabd20df8c6d907  MATCH
+  trunc      0ab61f2e0d412a585233f1b308c120cba74f800c1030bffe0aabd20df8c6d907  MATCH
+
+notepad.exe  (egg8, 54.2% of original)
+  original   3f543719a819a9769d8f138a02544f93af8b53ef1779a96bc2403715d9a55380
+  flip       3f543719a819a9769d8f138a02544f93af8b53ef1779a96bc2403715d9a55380  MATCH
+  scratch    3f543719a819a9769d8f138a02544f93af8b53ef1779a96bc2403715d9a55380  MATCH
+  trunc      3f543719a819a9769d8f138a02544f93af8b53ef1779a96bc2403715d9a55380  MATCH
+
+real-test.bmp  (egg8, 2.3% of original)
+  original   93717c13f3164cec88ad3c08a902cb84638eb2a5c96f43387d195709ce96a7f2
+  flip       93717c13f3164cec88ad3c08a902cb84638eb2a5c96f43387d195709ce96a7f2  MATCH
+  scratch    93717c13f3164cec88ad3c08a902cb84638eb2a5c96f43387d195709ce96a7f2  MATCH
+  trunc      93717c13f3164cec88ad3c08a902cb84638eb2a5c96f43387d195709ce96a7f2  MATCH
+
+real-test.db  (egg8, 15.7% of original)
+  original   bee9994a8b7e202902ffa1beab9c8cfaa6fd77117e71390f4dfd7a659bd7e4f7
+  flip       bee9994a8b7e202902ffa1beab9c8cfaa6fd77117e71390f4dfd7a659bd7e4f7  MATCH
+  scratch    bee9994a8b7e202902ffa1beab9c8cfaa6fd77117e71390f4dfd7a659bd7e4f7  MATCH
+  trunc      bee9994a8b7e202902ffa1beab9c8cfaa6fd77117e71390f4dfd7a659bd7e4f7  MATCH
+
+ring01.wav  (egg8, 41.9% of original)
+  original   d950700cf810605ab9c94df8d3344479f82da8423d5fb4e9b42895028acd5054
+  flip       d950700cf810605ab9c94df8d3344479f82da8423d5fb4e9b42895028acd5054  MATCH
+  scratch    d950700cf810605ab9c94df8d3344479f82da8423d5fb4e9b42895028acd5054  MATCH
+  trunc      d950700cf810605ab9c94df8d3344479f82da8423d5fb4e9b42895028acd5054  MATCH
+
+segoeui.ttf  (egg8, 48.3% of original)
+  original   8134dbcd09e7b123c9a7f229d49cffbcb01352cc72ea5e1076b65d0dca9f73cd
+  flip       8134dbcd09e7b123c9a7f229d49cffbcb01352cc72ea5e1076b65d0dca9f73cd  MATCH
+  scratch    8134dbcd09e7b123c9a7f229d49cffbcb01352cc72ea5e1076b65d0dca9f73cd  MATCH
+  trunc      8134dbcd09e7b123c9a7f229d49cffbcb01352cc72ea5e1076b65d0dca9f73cd  MATCH
+
+vim-version9.txt  (egg8, 19.6% of original)
+  original   d5c5db349d44b343eb836f429877e0a20c18bd224003b3d138bf1d0534a719ea
+  flip       d5c5db349d44b343eb836f429877e0a20c18bd224003b3d138bf1d0534a719ea  MATCH
+  scratch    d5c5db349d44b343eb836f429877e0a20c18bd224003b3d138bf1d0534a719ea  MATCH
+  trunc      d5c5db349d44b343eb836f429877e0a20c18bd224003b3d138bf1d0534a719ea  MATCH
+
+wallpaper.jpg  (egg8, 96.8% of original)
+  original   a37491a5e479e191cfe547b484426037455ce8aacff7ab15f91925330c24864f
+  flip       a37491a5e479e191cfe547b484426037455ce8aacff7ab15f91925330c24864f  MATCH
+  scratch    a37491a5e479e191cfe547b484426037455ce8aacff7ab15f91925330c24864f  MATCH
+  trunc      a37491a5e479e191cfe547b484426037455ce8aacff7ab15f91925330c24864f  MATCH
+
+wubbadub.html  (egg8, 37.1% of original)
+  original   6ee88504a6b09c81432fc8f5fdc9dd21acdc2fbb32452da35f0e40f6a4c2b677
+  flip       6ee88504a6b09c81432fc8f5fdc9dd21acdc2fbb32452da35f0e40f6a4c2b677  MATCH
+  scratch    6ee88504a6b09c81432fc8f5fdc9dd21acdc2fbb32452da35f0e40f6a4c2b677  MATCH
+  trunc      6ee88504a6b09c81432fc8f5fdc9dd21acdc2fbb32452da35f0e40f6a4c2b677  MATCH
+
+zstd.exe  (egg8, 36.5% of original)
+  original   8076aae03feac7c66b319579e82172eed168deed2a3f25e5e2d3c60f55e84111
+  flip       8076aae03feac7c66b319579e82172eed168deed2a3f25e5e2d3c60f55e84111  MATCH
+  scratch    8076aae03feac7c66b319579e82172eed168deed2a3f25e5e2d3c60f55e84111  MATCH
+  trunc      8076aae03feac7c66b319579e82172eed168deed2a3f25e5e2d3c60f55e84111  MATCH
+
+ALL FINGERPRINTS MATCH -- verified by certutil, not by us.
