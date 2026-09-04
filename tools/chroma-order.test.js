@@ -1,0 +1,158 @@
+/* node tools/chroma-order.test.js — the Chroma Certified Ordering certificate.
+ *
+ * "Certified" is not a label. It is this file. A build of the character table
+ * either satisfies every property below or it is not a certified ordering.
+ *
+ * The point of a certificate rather than a spec is that these properties are
+ * cheap to state and easy to break: a table edit that reorders two accents, or
+ * a comparison that drops to floats, silently violates one of them and nothing
+ * else complains.
+ */
+const fs = require("fs");
+eval(fs.readFileSync(__dirname + "/../stalk.js", "utf8"));
+const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
+
+/* ---- build the table: DUCET places the accents, once ---- */
+const acc = new Intl.Collator("en", {sensitivity: "accent"});
+const MARKS = [""].concat([...Array(0x70).keys()].map(i => String.fromCharCode(0x300 + i)));
+const usable = MARKS.filter(m => m === "" || ("e" + m).normalize("NFC").length <= 2);
+const RANK = new Map([...usable].sort((x, y) =>
+  acc.compare(("e" + x).normalize("NFC"), ("e" + y).normalize("NFC"))).map((m, i) => [m, i]));
+
+const chars = [];
+for(let c = 0x30; c <= 0x39; c++) chars.push(String.fromCharCode(c));
+for(let c = 0x41; c <= 0x24F; c++){
+  const s = String.fromCharCode(c);
+  if(!/\p{L}/u.test(s)) continue;
+  const d = s.normalize("NFD");
+  if(!/^[a-zA-Z]/.test(d[0])) continue;
+  chars.push(s);
+}
+const facet = ch => {
+  const d = ch.normalize("NFD"), b = d[0], m = d.slice(1), l = b.toLowerCase();
+  return {base: l.codePointAt(0), upper: b === l ? 0 : 1,
+          accent: RANK.has(m) ? RANK.get(m) : 999, marks: m};
+};
+const ordered = [...chars].sort((x, y) => {
+  const a = facet(x), b = facet(y);
+  return a.base - b.base || a.upper - b.upper || a.accent - b.accent
+      || (a.marks < b.marks ? -1 : a.marks > b.marks ? 1 : 0);
+});
+
+/* the ring: smallest that holds the table, so width is automatic */
+const RING = Math.ceil(Math.log2(ordered.length));
+const FLOOR = 2 ** RING;
+const CODE = new Map(ordered.map((ch, i) => [ch, FLOOR + i]));
+const digitsOfCode = k => k.toString(2).split("").map(c => +c);
+const value = ch => hexValue(digitsOfCode(CODE.get(ch)));
+/* exact comparison. never floats. */
+const cmp = (a, b) => {
+  const x = value(a), y = value(b);
+  const l = x.num * y.den, r = y.num * x.den;
+  return l < r ? -1 : l > r ? 1 : 0;
+};
+
+console.log(`  table: ${ordered.length} characters, ring ${RING}, `
+  + `codes ${FLOOR}..${FLOOR + ordered.length - 1}, `
+  + `${(2 ** RING) - ordered.length} spare slots`);
+
+/* ---- 1. fixed width: one ring, so every code is the same length ---- */
+{
+  const widths = new Set(ordered.map(c => CODE.get(c).toString(2).length));
+  ok(widths.size === 1, `codes have ${widths.size} different bit lengths`);
+  const w = [...widths][0];
+  ok(w === RING + 1, `width ${w} does not match ring ${RING}`);
+  ok(ordered.every(c => CODE.get(c) >= FLOOR && CODE.get(c) < 2 * FLOOR),
+     "a code escaped the ring");
+  console.log(`  [1] fixed width      every code ${w} bits, all inside ring ${RING}`);
+}
+
+/* ---- 2. total: no two characters share a code or a value ---- */
+{
+  ok(new Set(ordered.map(c => CODE.get(c))).size === ordered.length, "duplicate code");
+  const vs = new Set(ordered.map(c => { const f = value(c); return f.num + "/" + f.den; }));
+  ok(vs.size === ordered.length, `${ordered.length - vs.size} characters share a value`);
+  console.log(`  [2] total            ${vs.size}/${ordered.length} distinct values, no ties`);
+}
+
+/* ---- 3. monotone: the value rises with the table, compared exactly ---- */
+{
+  let bad = 0;
+  for(let i = 1; i < ordered.length; i++) if(cmp(ordered[i - 1], ordered[i]) !== -1) bad++;
+  ok(bad === 0, `${bad} inversions in the value sequence`);
+  console.log(`  [3] monotone         0 inversions across ${ordered.length - 1} steps`);
+}
+
+/* ---- 4. the declared ordering: base, then case, then DUCET accent ---- */
+{
+  let bad = 0;
+  for(let i = 1; i < ordered.length; i++){
+    const a = facet(ordered[i - 1]), b = facet(ordered[i]);
+    const rising = b.base > a.base
+      || (b.base === a.base && (b.upper > a.upper
+      || (b.upper === a.upper && b.accent >= a.accent)));
+    if(!rising) bad++;
+  }
+  ok(bad === 0, `${bad} breaks in base -> case -> accent`);
+  ok(ordered.slice(0, 10).join("") === "0123456789", "digits must come first");
+  const aGroup = ordered.filter(c => facet(c).base === 97);
+  const firstUpper = aGroup.findIndex(c => facet(c).upper === 1);
+  ok(aGroup.slice(0, firstUpper).every(c => facet(c).upper === 0)
+     && aGroup.slice(firstUpper).every(c => facet(c).upper === 1),
+     "lowercase and uppercase forms interleave within a base letter");
+  console.log(`  [4] declared order   digits first; per base letter all lower then all upper`);
+  console.log(`                       a-group: ${aGroup.join(" ")}`);
+}
+
+/* ---- 5. stable: the result cannot depend on input order ---- */
+{
+  const shuffled = ordered.map((c, i) => [c, (i * 7919 + 13) % ordered.length])
+    .sort((a, b) => a[1] - b[1]).map(p => p[0]);
+  ok(shuffled.join("") !== ordered.join(""), "the shuffle did nothing; test is vacuous");
+  ok([...shuffled].sort(cmp).join("") === ordered.join(""), "sort is not stable under reshuffle");
+  console.log(`  [5] stable           reshuffled input sorts to the identical sequence`);
+}
+
+/* ---- 6. exact comparison is REQUIRED, not a nicety ---- */
+{
+  const floats = new Set(ordered.map(c => {
+    const f = value(c); return Number(f.num) / Number(f.den);
+  }));
+  console.log(`  [6] exact required   ${floats.size}/${ordered.length} survive as doubles`
+    + (floats.size < ordered.length ? ` — ${ordered.length - floats.size} collapse` : ""));
+  /* the table is small enough that doubles happen to hold; the words do not */
+  const enc = s => BigInt("0x" + Buffer.from(s, "utf8").toString("hex"));
+  const wv = s => hexValue(hexSequence(enc(s), false).raw);
+  const names = ["Rabinowitz", "Rabinovich", "Rabinovitz"];
+  const exact = new Set(names.map(w => { const f = wv(w); return f.num + "/" + f.den; }));
+  const dbl = new Set(names.map(w => { const f = wv(w); return Number(f.num) / Number(f.den); }));
+  ok(exact.size === 3, "these three must be distinct exactly");
+  ok(dbl.size < 3, "if doubles separate these, the warning below is stale");
+  console.log(`                       words: ${exact.size}/3 exact, ${dbl.size}/3 as doubles`);
+}
+
+/* ---- 7. radix-sortable: sorting by the key equals sorting by comparison ---- */
+{
+  const byKey = [...ordered].sort((a, b) => CODE.get(a) - CODE.get(b));
+  ok(byKey.join("") === [...ordered].sort(cmp).join(""),
+     "the integer key and the exact value disagree");
+  console.log(`  [7] radix-sortable   integer key order == exact value order`);
+}
+
+/* ---- 8. the ring scales: the properties are not a small-table accident ---- */
+{
+  const raw = k => k.toString(2).split("").map(c => +c);
+  for(const r of [9, 14, 18]){
+    const lo = 2 ** r, n = Math.min(2 ** r, 8000);
+    let inv = 0, prev = null;
+    for(let i = 0; i < n; i++){
+      const f = hexValue(raw(lo + i));
+      if(prev && !(prev.num * f.den < f.num * prev.den)) inv++;
+      prev = f;
+    }
+    ok(inv === 0, `ring ${r}: ${inv} inversions`);
+  }
+  console.log(`  [8] scales           0 inversions sampled in rings 9, 14 and 18`);
+}
+
+console.log("\ncertified.");

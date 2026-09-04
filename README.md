@@ -47,6 +47,7 @@ node tools/load.test.js         # all three Wub pages under a full rack
 node tools/running.test.js      # the 2^E-times-a-stalk pair all four operations share
 node tools/wubbadub.test.js     # the paged cards, and that they reproduce the other three
 node tools/bulk.test.js         # 10,000 integers through both grids (~20s)
+node tools/chroma-order.test.js # the Chroma Certified Ordering certificate
 ```
 
 `run.js` runs a page's JavaScript against a stand-in DOM. A 200 from the server says
