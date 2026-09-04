@@ -1190,6 +1190,11 @@ fn main() -> ExitCode {
         // sample, then counts how many tokens of the WHOLE parse that matcher
         // fails to predict. Those are the only tokens a predicted recipe has
         // to store.
+        // v14-N3b: the measurement the recipe rewrite stands on. Peels a
+        // deflate member, INFERS the zlib matcher that produced it from a
+        // sample, then walks the WHOLE parse in lockstep with that matcher and
+        // counts what it had to force. Those are the only tokens a predicted
+        // recipe stores.
         "zprobe" => {
             let src = fs::read(path).expect("read input");
             let d = match deflate::peel(&src) {
@@ -1200,29 +1205,47 @@ fn main() -> ExitCode {
                 }
             };
             let actual = zmatch::from_recipe(&d);
-            let sample = (4 << 20).min(d.values.len());
-            let cut = actual.iter().scan(0usize, |p, t| { *p += t.span(); Some(*p) }).take_while(|&p| p <= sample).count();
+            // the sample must end on a TOKEN boundary: `infer` compares the
+            // parse it drives against the slice it was handed, and a sample cut
+            // mid-token makes every config fail that comparison -- which is how
+            // the first run of this reported `infer`'s DEFAULT config and 8.1M
+            // corrections on a file that needs 22.
+            let (mut sample, mut cut) = (0usize, 0usize);
+            for t in &actual {
+                if sample + t.span() > (4 << 20) {
+                    break;
+                }
+                sample += t.span();
+                cut += 1;
+            }
             let t0 = Instant::now();
             let (cfg, _) = zmatch::infer(&d.values[..sample], &actual[..cut]);
             let infer_ms = t0.elapsed().as_millis();
             let t1 = Instant::now();
-            let bad = zmatch::disagreements(&actual, &zmatch::parse(&d.values, cfg));
+            let (got, corr) = zmatch::lockstep(&d.values, cfg, &actual);
+            let lock_ms = t1.elapsed().as_millis();
             println!("{}: {}", path, d.describe());
             println!(
                 "  inferred zlib level {} memLevel {} from a {} B sample in {} ms",
                 cfg.level, cfg.mem_level, sample, infer_ms
             );
+            // THE LAW: a prediction that does not reproduce the parse EXACTLY
+            // is not a prediction, however few corrections it claims.
+            if got != actual {
+                println!("  LOCKSTEP FAILED to reproduce the parse -- {} tokens against {}; this file would ship its stored recipe", got.len(), actual.len());
+                return ExitCode::SUCCESS;
+            }
             println!(
-                "  WHOLE stream: {} tokens, {} need correction = {:.5}% predicted exactly ({} ms)",
+                "  WHOLE stream reproduced EXACTLY: {} tokens, {} forced = {:.5}% predicted ({} ms)",
                 actual.len(),
-                bad,
-                100.0 * (actual.len() - bad) as f64 / actual.len().max(1) as f64,
-                t1.elapsed().as_millis()
+                corr.len(),
+                100.0 * (actual.len() - corr.len()) as f64 / actual.len().max(1) as f64,
+                lock_ms
             );
             let stored = d.flags.len() + d.lens.len() + d.dists.len() * 2;
-            let predicted = actual.len().div_ceil(8) + bad * 5;
+            let predicted = 2 + corr.len() * 7;
             println!(
-                "  recipe parse streams: STORED {} B -> PREDICTED {} B (a correction bit per token + 5 B per correction) = {:.2}x smaller",
+                "  recipe parse streams: STORED {} B -> PREDICTED {} B (2 param bytes + 7 B per correction) = {:.1}x smaller",
                 stored, predicted, stored as f64 / predicted.max(1) as f64
             );
             ExitCode::SUCCESS
@@ -1625,7 +1648,26 @@ mod pipeline_tests {
         let b = deflate::blob(&d);
         let l = deflate::layout(&b).expect("layout");
         assert_eq!(l.values_len, d.values.len() as u64);
-        assert_eq!(l.nmatch, d.lens.len());
+        // v14-N3b: a PREDICTED recipe carries NO parse -- nmatch is 0 and the
+        // length and distance sections are empty. So the law under test is no
+        // longer "the blob holds the streams" but the stronger one: the blob
+        // REBUILDS them from the inflated bytes, byte for byte, and re-spells
+        // the original member from what it rebuilt.
+        if d.pred.is_some() {
+            assert_eq!(b[0], 2, "a predicted recipe must be version 2");
+            assert_eq!(l.nmatch, 0, "a predicted recipe must not carry a length table");
+            assert!(l.flags.1 - l.flags.0 < d.flags.len(), "the prediction is not smaller than the parse it replaces");
+        } else {
+            assert_eq!(b[0], 1);
+            assert_eq!(l.nmatch, d.lens.len());
+        }
+        let mut back = deflate::from_blob(&b).expect("from_blob");
+        back.values = d.values.clone();
+        deflate::expand(&mut back).expect("expand");
+        assert_eq!(back.flags, d.flags, "the rebuilt parse disagrees on flags");
+        assert_eq!(back.lens, d.lens, "the rebuilt parse disagrees on match lengths");
+        assert_eq!(back.dists, d.dists, "the rebuilt parse disagrees on match distances");
+        assert!(deflate::respell(&back).expect("re-spell") == src, "the rebuilt recipe did not re-spell the save");
         // the container law, on a member small enough to model in a test: a
         // gzip of the corpus HTML made by this build's own stored-block writer
         let html = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/corpus-real/wubbadub.html")).expect("html");

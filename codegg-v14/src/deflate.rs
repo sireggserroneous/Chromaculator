@@ -103,6 +103,15 @@ pub struct Deflate {
     /// in size but breaks the distance-sequence repetition the LZ arm wins on.
     /// `lens` has no spare values: all 256 are in use for 3..=258.
     pub resp: Vec<u32>,
+    /// v14-N3b, THE PREDICTED PARSE. `Some((level, mem_level))` means the
+    /// parse is not stored at all: a zlib-compatible matcher (zmatch.rs)
+    /// reproduces it from the inflated bytes, and only `corr` -- the tokens it
+    /// gets wrong -- is carried. On `aoe4-autosave.sav` that is 20 tokens of
+    /// 38,340,574, so 81,776,304 B of flags/lens/dists become 142 B.
+    /// When this is `Some`, `flags`/`lens`/`dists` are EMPTY in the blob and
+    /// `expand()` materialises them before a re-spell.
+    pub pred: Option<(u8, u8)>,
+    pub corr: Vec<(u32, crate::zmatch::Tok)>,
     pub nblocks: u32,
     pub ntok: u32,
     pub pad_bits: u8,
@@ -132,6 +141,40 @@ impl Deflate {
             self.resp.len() * 4
         )
     }
+}
+
+/// v14-N3b: rebuild `flags`/`lens`/`dists` from the predicted parse. A v2
+/// recipe carries no parse, so this runs once the inflated values are in hand
+/// and before anything re-spells. A v1 recipe already has its streams and this
+/// is a no-op, which is what keeps every other reader unchanged.
+pub fn expand(d: &mut Deflate) -> Result<(), String> {
+    let Some((level, mem_level)) = d.pred else { return Ok(()) };
+    if !d.flags.is_empty() {
+        return Ok(());
+    }
+    let cfg = crate::zmatch::Cfg::new(level, mem_level);
+    let toks = crate::zmatch::replay(&d.values, cfg, &d.corr);
+    if toks.len() != d.ntok as usize {
+        return Err(format!(
+            "the predicted parse rebuilt {} tokens where the recipe says {}",
+            toks.len(),
+            d.ntok
+        ));
+    }
+    d.flags = vec![0u8; toks.len().div_ceil(8)];
+    d.lens = Vec::with_capacity(toks.len());
+    d.dists = Vec::with_capacity(toks.len());
+    for (i, t) in toks.iter().enumerate() {
+        if let crate::zmatch::Tok::Match(l, dd) = t {
+            d.flags[i >> 3] |= 1 << (i & 7);
+            if !(3..=258).contains(l) || *dd == 0 || *dd > 32_768 {
+                return Err(format!("the predicted parse holds a match of length {} at distance {}", l, dd));
+            }
+            d.lens.push((*l - 3) as u8);
+            d.dists.push(*dd);
+        }
+    }
+    Ok(())
 }
 
 // ---------------------------------------------------------------- the bit reader
@@ -502,6 +545,9 @@ fn codes(lengths: &[u8]) -> Vec<(u32, u32)> {
 /// the recipe plus the values -> the original bytes, bit for bit
 #[allow(clippy::too_many_lines)]
 pub fn respell(d: &Deflate) -> Result<Vec<u8>, String> {
+    if d.pred.is_some() && d.flags.is_empty() && d.ntok > 0 {
+        return Err("a predicted recipe re-spelled before expand() rebuilt its parse".into());
+    }
     let mut w = BitW::new(d.values.len() / 3 + 1024);
     let mut mi = 0usize;
     let mut tok = 0usize;
@@ -896,6 +942,8 @@ pub fn peel(src: &[u8]) -> Result<Deflate, String> {
         flags: Vec::new(),
         lens: Vec::new(),
         dists: Vec::new(),
+        pred: None,
+        corr: Vec::new(),
         nblocks: 0,
         ntok: 0,
         pad_bits: 0,
@@ -943,7 +991,55 @@ pub fn peel(src: &[u8]) -> Result<Deflate, String> {
     if used != body.len() {
         return Err(format!("the deflate stream used {} of the member's {} body bytes", used, body.len()));
     }
+    try_predict(&mut d);
     Ok(d)
+}
+
+/// v14-N3b: try the PREDICTED parse, and keep it only if it earns its place.
+/// The stored streams are already built when this runs, so this is a pure
+/// trade with nothing at risk: infer the matcher from a token-aligned sample,
+/// walk the WHOLE parse in lockstep, and take the prediction only if it
+/// reproduces that parse EXACTLY and costs fewer bytes. A greedy level we model
+/// badly, a window we do not model, a stored block -- each simply keeps the
+/// stored parse, and the row is exactly what it was.
+///
+/// The in-memory streams are deliberately NOT cleared. `blob()` omits them from
+/// a v2 recipe, but every encode-side reader -- the law's own re-spell most of
+/// all -- goes on seeing an ordinary recipe. Only the decoder, which reads a
+/// blob with no parse in it, needs `expand()`.
+fn try_predict(d: &mut Deflate) {
+    if d.ntok == 0 || d.values.len() < 4096 {
+        return;
+    }
+    let actual = crate::zmatch::from_recipe(d);
+    if actual.len() != d.ntok as usize {
+        return;
+    }
+    // the sample must end on a token boundary or `infer` compares a driven
+    // parse against a slice that does not cover the same bytes, and every
+    // config fails
+    let (mut sample, mut cut) = (0usize, 0usize);
+    for t in &actual {
+        if sample + t.span() > (4 << 20) {
+            break;
+        }
+        sample += t.span();
+        cut += 1;
+    }
+    if cut == 0 {
+        return;
+    }
+    let (cfg, _) = crate::zmatch::infer(&d.values[..sample], &actual[..cut]);
+    let (got, corr) = crate::zmatch::lockstep(&d.values, cfg, &actual);
+    if got != actual {
+        return;
+    }
+    let stored = d.flags.len() + d.lens.len() + d.dists.len() * 2;
+    if 2 + corr.len() * CORR >= stored {
+        return;
+    }
+    d.pred = Some((cfg.level, cfg.mem_level));
+    d.corr = corr;
 }
 
 // ---------------------------------------------------------------- the recipe blob
@@ -953,6 +1049,9 @@ pub fn peel(src: &[u8]) -> Result<Deflate, String> {
 /// seventh, `nresp`, is M3a's sparse spelling list)
 pub const HDR: usize = 52;
 
+/// each correction: u32 token index, u8 tag, u8 literal, u16 length, u16 distance
+pub const CORR: usize = 10;
+
 pub fn blob_len(d: &Deflate) -> usize {
     HDR + d.pre.len()
         + d.head.len()
@@ -960,9 +1059,7 @@ pub fn blob_len(d: &Deflate) -> usize {
         + d.segs.len() * 8
         + d.segs.iter().map(|(_, g)| g.len()).sum::<usize>()
         + d.meta.len()
-        + d.flags.len()
-        + d.lens.len()
-        + d.dists.len() * 2
+        + if d.pred.is_some() { 2 + d.corr.len() * CORR } else { d.flags.len() + d.lens.len() + d.dists.len() * 2 }
         + d.resp.len() * 4
 }
 
@@ -971,20 +1068,26 @@ pub fn blob_len(d: &Deflate) -> usize {
 /// carry the blob verbatim, which is what makes the peel testable on its own.
 pub fn blob(d: &Deflate) -> Vec<u8> {
     let mut b = Vec::with_capacity(blob_len(d));
-    b.push(1u8); // version
+    // version 2 is the PREDICTED parse (v14-N3b). It sets nmatch to 0, which
+    // empties the lens and dists sections by the same arithmetic version 1
+    // already uses, and spends the flags section on the two matcher parameters
+    // plus the corrections. Version 1 is written byte for byte as it always
+    // was, so every container already in the world still reads.
+    let predicted = d.pred.is_some();
+    b.push(if predicted { 2u8 } else { 1u8 });
     b.push(d.wrap);
     b.push(d.pad_bits);
     b.push(d.pad_val);
     b.extend_from_slice(&d.nblocks.to_le_bytes());
     b.extend_from_slice(&d.ntok.to_le_bytes());
-    b.extend_from_slice(&(d.lens.len() as u32).to_le_bytes());
+    b.extend_from_slice(&(if predicted { 0 } else { d.lens.len() } as u32).to_le_bytes());
     b.extend_from_slice(&(d.values.len() as u64).to_le_bytes());
     b.extend_from_slice(&(d.pre.len() as u32).to_le_bytes());
     b.extend_from_slice(&(d.head.len() as u32).to_le_bytes());
     b.extend_from_slice(&(d.tail.len() as u32).to_le_bytes());
     b.extend_from_slice(&(d.segs.len() as u32).to_le_bytes());
     b.extend_from_slice(&(d.meta.len() as u32).to_le_bytes());
-    b.extend_from_slice(&(d.flags.len() as u32).to_le_bytes());
+    b.extend_from_slice(&(if predicted { 2 + d.corr.len() * CORR } else { d.flags.len() } as u32).to_le_bytes());
     b.extend_from_slice(&(d.resp.len() as u32).to_le_bytes());
     debug_assert_eq!(b.len(), HDR);
     b.extend_from_slice(&d.pre);
@@ -998,10 +1101,32 @@ pub fn blob(d: &Deflate) -> Vec<u8> {
         b.extend_from_slice(g);
     }
     b.extend_from_slice(&d.meta);
-    b.extend_from_slice(&d.flags);
-    b.extend_from_slice(&d.lens);
-    for &x in &d.dists {
-        b.extend_from_slice(&x.to_le_bytes());
+    if let Some((level, mem_level)) = d.pred {
+        b.push(level);
+        b.push(mem_level);
+        for (i, t) in &d.corr {
+            b.extend_from_slice(&i.to_le_bytes());
+            match t {
+                crate::zmatch::Tok::Lit(v) => {
+                    b.push(0);
+                    b.push(*v);
+                    b.extend_from_slice(&0u16.to_le_bytes());
+                    b.extend_from_slice(&0u16.to_le_bytes());
+                }
+                crate::zmatch::Tok::Match(l, dd) => {
+                    b.push(1);
+                    b.push(0);
+                    b.extend_from_slice(&l.to_le_bytes());
+                    b.extend_from_slice(&dd.to_le_bytes());
+                }
+            }
+        }
+    } else {
+        b.extend_from_slice(&d.flags);
+        b.extend_from_slice(&d.lens);
+        for &x in &d.dists {
+            b.extend_from_slice(&x.to_le_bytes());
+        }
     }
     for &x in &d.resp {
         b.extend_from_slice(&x.to_le_bytes());
@@ -1034,8 +1159,8 @@ pub fn layout(b: &[u8]) -> Result<Layout, String> {
     if b.len() < HDR {
         return Err("a deflate recipe shorter than its header".into());
     }
-    if b[0] != 1 {
-        return Err(format!("deflate recipe version {} is not 1", b[0]));
+    if b[0] != 1 && b[0] != 2 {
+        return Err(format!("deflate recipe version {} is neither 1 (stored parse) nor 2 (predicted)", b[0]));
     }
     let u32at = |i: usize| u32::from_le_bytes([b[i], b[i + 1], b[i + 2], b[i + 3]]) as usize;
     let nblocks = u32at(4) as u32;
@@ -1132,6 +1257,45 @@ pub fn from_blob(b: &[u8]) -> Result<Deflate, String> {
             return Err(format!("a deflate recipe whose spelling list names match {} of {}", last, l.nmatch));
         }
     }
+    // v2 spends the flags section on [level, mem_level] + fixed-size
+    // corrections; v1 leaves `pred` empty and carries its parse as before.
+    let (pred, corr) = if b[0] == 2 {
+        let sec = &b[l.flags.0..l.flags.1];
+        if sec.len() < 2 || !(sec.len() - 2).is_multiple_of(CORR) {
+            return Err(format!("a predicted deflate recipe whose correction section is {} B", sec.len()));
+        }
+        let mut c = Vec::with_capacity((sec.len() - 2) / CORR);
+        let mut last: Option<u32> = None;
+        for r in sec[2..].as_chunks::<CORR>().0 {
+            let i = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
+            // the corrections are consumed in order by a single forward walk,
+            // so a list that is not ascending would silently desynchronise the
+            // decoder. It refuses here instead.
+            if let Some(p) = last {
+                if i <= p {
+                    return Err(format!("a predicted recipe whose corrections are not ascending: {} after {}", i, p));
+                }
+            }
+            if i as usize >= l.ntok as usize {
+                return Err(format!("a predicted recipe correcting token {} of {}", i, l.ntok));
+            }
+            last = Some(i);
+            let t = if r[4] == 0 {
+                crate::zmatch::Tok::Lit(r[5])
+            } else {
+                let ln = u16::from_le_bytes([r[6], r[7]]);
+                let dd = u16::from_le_bytes([r[8], r[9]]);
+                if !(3..=258).contains(&ln) || dd == 0 || dd > 32_768 {
+                    return Err(format!("a predicted recipe correcting to a match of length {} at distance {}", ln, dd));
+                }
+                crate::zmatch::Tok::Match(ln, dd)
+            };
+            c.push((i, t));
+        }
+        (Some((sec[0], sec[1])), c)
+    } else {
+        (None, Vec::new())
+    };
     Ok(Deflate {
         wrap: l.wrap,
         pre: b[l.pre.0..l.pre.1].to_vec(),
@@ -1139,10 +1303,12 @@ pub fn from_blob(b: &[u8]) -> Result<Deflate, String> {
         tail: b[l.tail.0..l.tail.1].to_vec(),
         segs,
         meta: b[l.meta.0..l.meta.1].to_vec(),
-        flags: b[l.flags.0..l.flags.1].to_vec(),
+        flags: if pred.is_some() { Vec::new() } else { b[l.flags.0..l.flags.1].to_vec() },
         lens,
         dists,
         resp,
+        pred,
+        corr,
         nblocks: l.nblocks,
         ntok: l.ntok,
         pad_bits: l.pad_bits,

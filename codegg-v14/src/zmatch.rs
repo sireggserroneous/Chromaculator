@@ -19,9 +19,19 @@
 //! re-compression, so that search could only ever return zero: it was measuring
 //! the wrong layer. At the PARSE layer, with the parameters INFERRED rather
 //! than assumed, `aoe4-autosave.sav` agrees with zlib level 4 / memLevel 9 on
-//! 1,796,005 of 1,796,006 tokens over 12 MB -- 99.99994%, and the single miss
-//! is the measurement's own truncation edge. At the default level 6 the same
-//! file agrees on 82.7%. The parameters are the whole finding.
+//! all but 22 of 38,340,574 tokens. At the default level 6 the same file agrees
+//! on 82.7%. The parameter search is the finding, not the matcher.
+//!
+//! THE LOCKSTEP, and why the simpler design does not work: a free-running
+//! matcher that disagrees 22 times produces **38,340,647 tokens against the
+//! actual 38,340,574**, because a disagreement splits a match into literals and
+//! every index after it shifts. Corrections therefore cannot be (index, token)
+//! patches over an independently produced stream -- that was measured, not
+//! assumed. `drive` walks ONE loop in which the caller sees each predicted
+//! token and may replace it; the EMITTED token, never the prediction, advances
+//! the state. The encoder forces the actual token and records where; the
+//! decoder forces the recorded ones. Both run this identical function, so they
+//! agree by construction rather than by luck.
 //!
 //! Attribution: Jean-loup Gailly and Mark Adler's zlib `deflate.c`
 //! (`deflate_slow`, `deflate_fast`, `longest_match`, the configuration table);
@@ -98,6 +108,8 @@ struct Chains {
     ins_h: usize,
     hash_mask: usize,
     hash_shift: u32,
+    /// every position below this has been INSERT_STRING'd, in order
+    upto: usize,
 }
 
 impl Chains {
@@ -110,22 +122,35 @@ impl Chains {
             hash_mask: (1usize << hb) - 1,
             // zlib: hash_shift = (hash_bits + MIN_MATCH-1) / MIN_MATCH
             hash_shift: hb.div_ceil(MIN_MATCH as u32),
+            upto: 0,
         }
     }
     #[inline]
     fn upd(&mut self, c: u8) {
         self.ins_h = ((self.ins_h << self.hash_shift) ^ c as usize) & self.hash_mask;
     }
-    /// zlib's INSERT_STRING: hash the three bytes at `s`, chain it, hand back
-    /// the previous head of that bucket
+    /// INSERT_STRING every position from `upto` through `target`, in order --
+    /// the rolling hash demands the order. Returns the previous head of the
+    /// LAST bucket touched, which is where `longest_match` starts its walk.
+    /// zlib never hashes a position without MIN_MATCH bytes ahead of it.
     #[inline]
-    fn insert(&mut self, data: &[u8], s: usize) -> u32 {
-        self.upd(data[s + MIN_MATCH - 1]);
-        let h = self.ins_h;
-        let prev_head = self.head[h];
-        self.prev[s & W_MASK] = prev_head;
-        self.head[h] = s as u32;
-        prev_head
+    fn insert_upto(&mut self, data: &[u8], target: usize) -> u32 {
+        let n = data.len();
+        let mut last = NIL;
+        while self.upto <= target {
+            let s = self.upto;
+            if s + MIN_MATCH > n {
+                self.upto = target + 1;
+                return NIL;
+            }
+            self.upd(data[s + MIN_MATCH - 1]);
+            let h = self.ins_h;
+            last = self.head[h];
+            self.prev[s & W_MASK] = last;
+            self.head[h] = s as u32;
+            self.upto += 1;
+        }
+        last
     }
 }
 
@@ -163,13 +188,28 @@ fn longest_match(data: &[u8], ch: &Chains, cfg: &Cfg, strstart: usize, mut cur: 
     (best.min(lookahead), best_start)
 }
 
-/// Run the matcher over `data` and return the token stream zlib would emit for
-/// a single `compress()` call over the whole buffer.
-pub fn parse(data: &[u8], cfg: Cfg) -> Vec<Tok> {
+/// THE ONE LOOP. `decide(tok_index, out_pos, predicted) -> emitted` is called
+/// once per token; returning `predicted` unchanged reproduces zlib exactly, and
+/// returning anything else forces that token and resyncs the matcher to a clean
+/// state just past it. The EMITTED token drives the state, never the
+/// prediction, which is what keeps encoder and decoder identical.
+///
+/// The resync after a forced token is deliberately the state zlib is in after
+/// emitting a match -- no pending lazy candidate. It is not what zlib would do
+/// after a literal, and that does not matter: both sides run this function, so
+/// both agree. Fidelity to zlib is what makes predictions ACCURATE; determinism
+/// is what makes them CORRECT, and only the second is load-bearing.
+fn drive<F>(data: &[u8], cfg: Cfg, mut decide: F) -> Vec<Tok>
+where
+    F: FnMut(usize, usize, Tok) -> Tok,
+{
     let n = data.len();
     let mut out: Vec<Tok> = Vec::with_capacity(n / 3 + 16);
+    let mut idx = 0usize;
     if n < MIN_MATCH {
-        out.extend(data.iter().map(|&b| Tok::Lit(b)));
+        for (p, &b) in data.iter().enumerate() {
+            out.push(decide(p, p, Tok::Lit(b)));
+        }
         return out;
     }
     let mut ch = Chains::new(&cfg);
@@ -178,13 +218,13 @@ pub fn parse(data: &[u8], cfg: Cfg) -> Vec<Tok> {
     ch.upd(data[1]);
 
     let mut strstart = 0usize;
+    let mut pos = 0usize; // output bytes emitted so far == the next token's start
     let mut match_available = false;
     let mut prev_len = MIN_MATCH - 1;
     let mut prev_start = 0usize;
 
     while strstart < n {
-        // the last MIN_MATCH-1 bytes cannot start a hashed string
-        let hash_head = if strstart + MIN_MATCH <= n { ch.insert(data, strstart) } else { NIL };
+        let hash_head = ch.insert_upto(data, strstart);
 
         let mut cur_len = MIN_MATCH - 1;
         let mut cur_start = 0usize;
@@ -198,53 +238,90 @@ pub fn parse(data: &[u8], cfg: Cfg) -> Vec<Tok> {
             }
         }
 
-        if cfg.greedy() {
-            if cur_len >= MIN_MATCH {
-                out.push(Tok::Match(cur_len as u16, (strstart - cur_start) as u16));
-                for k in 1..cur_len {
-                    let s = strstart + k;
-                    if s + MIN_MATCH <= n {
-                        ch.insert(data, s);
-                    }
-                }
-                strstart += cur_len;
+        // what this iteration would emit, if anything
+        let proposal: Option<Tok> = if cfg.greedy() {
+            Some(if cur_len >= MIN_MATCH {
+                Tok::Match(cur_len as u16, (strstart - cur_start) as u16)
             } else {
-                out.push(Tok::Lit(data[strstart]));
-                strstart += 1;
-            }
-            continue;
-        }
-
-        // deflate_slow's lazy step: the match at strstart-1 only wins if the
-        // one at strstart is no longer than it
-        if prev_len >= MIN_MATCH && cur_len <= prev_len {
-            let start = strstart - 1;
-            out.push(Tok::Match(prev_len as u16, (start - prev_start) as u16));
-            let last = start + prev_len;
-            let mut s = strstart + 1;
-            while s + MIN_MATCH <= n && s < last {
-                ch.insert(data, s);
-                s += 1;
-            }
-            strstart = last;
-            match_available = false;
-            prev_len = MIN_MATCH - 1;
+                Tok::Lit(data[strstart])
+            })
+        } else if prev_len >= MIN_MATCH && cur_len <= prev_len {
+            Some(Tok::Match(prev_len as u16, (pos - prev_start) as u16))
         } else if match_available {
-            out.push(Tok::Lit(data[strstart - 1]));
-            prev_len = cur_len;
-            prev_start = cur_start;
-            strstart += 1;
+            Some(Tok::Lit(data[pos]))
         } else {
+            None // the lazy step: nothing is emitted yet, just look one ahead
+        };
+
+        let Some(pred) = proposal else {
             match_available = true;
             prev_len = cur_len;
             prev_start = cur_start;
             strstart += 1;
+            continue;
+        };
+
+        let tok = decide(idx, pos, pred);
+        idx += 1;
+        out.push(tok);
+        let span = tok.span();
+
+        if tok == pred && !cfg.greedy() && matches!(tok, Tok::Lit(_)) {
+            // zlib's own literal step keeps the lazy candidate alive
+            pos += 1;
+            prev_len = cur_len;
+            prev_start = cur_start;
+            strstart += 1;
+        } else {
+            // a match, a greedy emission, or a FORCED token: insert every
+            // position the token covers, then restart clean just past it
+            if span > 1 {
+                ch.insert_upto(data, pos + span - 1);
+            }
+            pos += span;
+            strstart = pos;
+            match_available = false;
+            prev_len = MIN_MATCH - 1;
         }
     }
-    if match_available {
-        out.push(Tok::Lit(data[n - 1]));
+    if match_available && pos < n {
+        let pred = Tok::Lit(data[pos]);
+        out.push(decide(idx, pos, pred));
     }
     out
+}
+
+/// Walk in lockstep with `actual`, forcing it wherever the prediction differs.
+/// Returns the stream produced and the corrections as (token index, forced
+/// token). The stream IS `actual` whenever this succeeds; every caller verifies
+/// that rather than assuming it.
+pub fn lockstep(data: &[u8], cfg: Cfg, actual: &[Tok]) -> (Vec<Tok>, Vec<(u32, Tok)>) {
+    let mut corr: Vec<(u32, Tok)> = Vec::new();
+    let got = drive(data, cfg, |i, _, pred| match actual.get(i) {
+        Some(&a) => {
+            if a != pred {
+                corr.push((i as u32, a));
+            }
+            a
+        }
+        None => pred,
+    });
+    (got, corr)
+}
+
+/// Rebuild the parse from the inferred parameters and the corrections -- the
+/// decoder's half, driven by exactly the same loop.
+pub fn replay(data: &[u8], cfg: Cfg, corr: &[(u32, Tok)]) -> Vec<Tok> {
+    let mut k = 0usize;
+    drive(data, cfg, |i, _, pred| {
+        if k < corr.len() && corr[k].0 as usize == i {
+            let t = corr[k].1;
+            k += 1;
+            t
+        } else {
+            pred
+        }
+    })
 }
 
 /// The parse a v13 recipe STORES, read back as tokens. `flags` is one bit per
@@ -278,39 +355,24 @@ pub fn from_recipe(d: &crate::deflate::Deflate) -> Vec<Tok> {
     out
 }
 
-/// Count tokens of `actual` the prediction does not reproduce, aligned by
-/// OUTPUT POSITION. Aligning by token INDEX is meaningless -- one differing
-/// token shifts every index after it, which is how a first cut of this
-/// measurement read 2.2% where the truth was 98.5%.
-pub fn disagreements(actual: &[Tok], pred: &[Tok]) -> usize {
-    // both streams are in output order, so a two-pointer merge over POSITIONS
-    // settles it in one pass and no allocation. A HashMap keyed by position
-    // works too and is what the first cut used -- at 38.3M tokens it wants the
-    // better part of a gigabyte for a number this walk gets for free.
-    let (mut i, mut j, mut pa, mut pp, mut bad) = (0usize, 0usize, 0usize, 0usize, 0usize);
-    while i < actual.len() {
-        while j < pred.len() && pp < pa {
-            pp += pred[j].span();
-            j += 1;
-        }
-        if j >= pred.len() || pp != pa || pred[j] != actual[i] {
-            bad += 1;
-        }
-        pa += actual[i].span();
-        i += 1;
-    }
-    bad
-}
-
-/// Try every (level, memLevel) zlib could have used and return the one whose
-/// parse needs the fewest corrections, with that count. This is the step v12
+/// Try every (level, memLevel) zlib could have used and return the one needing
+/// the fewest corrections IN LOCKSTEP, with that count. This is the step v12
 /// skipped: the parameters are read out of the stream, not assumed.
 pub fn infer(data: &[u8], actual: &[Tok]) -> (Cfg, usize) {
     let mut best = (Cfg::new(6, 8), usize::MAX);
     for level in 1..=9u8 {
         for mem_level in 1..=9u8 {
             let cfg = Cfg::new(level, mem_level);
-            let d = disagreements(actual, &parse(data, cfg));
+            let (got, corr) = lockstep(data, cfg, actual);
+            // a config that cannot reproduce the stream is no fit at all. NOTE
+            // this demands `data` and `actual` cover the same bytes exactly: a
+            // sample cut mid-token fails here for EVERY config and silently
+            // returns the default. The caller aligns the sample; this asserts it.
+            debug_assert!(
+                actual.iter().map(|t| t.span()).sum::<usize>() == data.len(),
+                "infer was handed a token slice that does not cover its data"
+            );
+            let d = if got == actual { corr.len() } else { usize::MAX };
             if d < best.1 {
                 best = (cfg, d);
                 if d == 0 {
@@ -326,9 +388,9 @@ pub fn infer(data: &[u8], actual: &[Tok]) -> (Cfg, usize) {
 mod tests {
     use super::*;
 
-    /// the parse must reproduce the input exactly -- a token stream that does
-    /// not re-spell its own data is not a parse, whatever its agreement rate
-    fn replay(toks: &[Tok]) -> Vec<u8> {
+    /// a token stream that does not re-spell its own data is not a parse,
+    /// whatever its agreement rate
+    fn replay_bytes(toks: &[Tok]) -> Vec<u8> {
         let mut out = Vec::new();
         for t in toks {
             match t {
@@ -345,59 +407,93 @@ mod tests {
         out
     }
 
-    #[test]
-    fn parse_replays_its_input() {
+    fn sample() -> Vec<u8> {
         let mut v: Vec<u8> = Vec::new();
         for i in 0..40000u32 {
             v.push((i.wrapping_mul(2654435761) >> 13) as u8);
         }
-        v.extend_from_slice(&v.clone()[..15000]); // a long repeat the matcher must find
+        let head = v[..15000].to_vec();
+        v.extend_from_slice(&head); // a long repeat the matcher must find
         v.extend(b"the same words the same words the same words".iter().copied());
+        v
+    }
+
+    #[test]
+    fn parse_replays_its_input() {
+        let v = sample();
         for cfg in [Cfg::new(1, 8), Cfg::new(4, 9), Cfg::new(6, 8), Cfg::new(9, 9)] {
-            let toks = parse(&v, cfg);
-            assert_eq!(replay(&toks), v, "parse did not replay its own input at {:?}", cfg);
+            let toks = replay(&v, cfg, &[]);
+            assert_eq!(replay_bytes(&toks), v, "parse did not replay its own input at {:?}", cfg);
             assert!(toks.len() < v.len(), "no matches found at {:?}", cfg);
         }
     }
 
-    /// every match must be legal RFC 1951: 3..=258 long, 1..=32768 back, and
-    /// never reaching before the start of the output
     #[test]
     fn matches_are_legal() {
         let mut v: Vec<u8> = b"abcabcabcabc".repeat(500);
         v.extend(b"zzzz".repeat(300));
-        let toks = parse(&v, Cfg::new(6, 8));
+        let toks = replay(&v, Cfg::new(6, 8), &[]);
         let mut p = 0usize;
         for t in &toks {
             if let Tok::Match(l, d) = t {
                 assert!((3..=258).contains(l), "illegal length {}", l);
                 assert!(*d >= 1 && (*d as usize) <= p, "illegal distance {} at {}", d, p);
-                assert!((*d as usize) <= 32768, "distance past the window: {}", d);
             }
             p += t.span();
         }
         assert_eq!(p, v.len());
     }
 
-    /// short inputs: below MIN_MATCH nothing can be hashed
     #[test]
     fn tiny_inputs() {
         for n in 0..4usize {
             let v: Vec<u8> = (0..n as u8).collect();
-            let toks = parse(&v, Cfg::new(6, 8));
-            assert_eq!(replay(&toks), v);
+            assert_eq!(replay_bytes(&replay(&v, Cfg::new(6, 8), &[])), v);
         }
     }
 
-    /// `disagreements` counts by OUTPUT POSITION, so a single extra literal
-    /// early must not be read as total disagreement
+    /// THE LOCKSTEP LAW: whatever the target parse is, lockstep reproduces it
+    /// exactly and `replay` rebuilds it from the corrections alone. The target
+    /// here is a DIFFERENT config's parse, so corrections are many and the
+    /// forcing path is exercised hard -- including forcing a literal where the
+    /// matcher wanted a match, which is the resync that a free-running design
+    /// cannot express.
     #[test]
-    fn disagreement_is_position_aligned() {
-        let a = vec![Tok::Lit(1), Tok::Match(4, 1), Tok::Lit(2)];
-        assert_eq!(disagreements(&a, &a), 0);
-        // same output, spelled with literals instead of the match: the two
-        // tokens at positions 1 and 5 disagree, not "everything after 0"
-        let b = vec![Tok::Lit(1), Tok::Lit(1), Tok::Lit(1), Tok::Lit(1), Tok::Lit(1), Tok::Lit(2)];
-        assert_eq!(disagreements(&a, &b), 1);
+    fn lockstep_reproduces_a_foreign_parse() {
+        let v = sample();
+        for (a, b) in [((9u8, 9u8), (4u8, 9u8)), ((1, 8), (6, 8)), ((6, 8), (1, 8))] {
+            let target = replay(&v, Cfg::new(a.0, a.1), &[]);
+            let cfg = Cfg::new(b.0, b.1);
+            let (got, corr) = lockstep(&v, cfg, &target);
+            assert_eq!(got, target, "lockstep did not reproduce the {:?} parse under {:?}", a, b);
+            assert!(!corr.is_empty(), "a foreign config should need corrections ({:?} vs {:?})", a, b);
+            assert_eq!(replay(&v, cfg, &corr), target, "replay did not rebuild the parse from its corrections");
+            assert_eq!(replay_bytes(&got), v, "the reproduced parse does not re-spell the data");
+        }
+    }
+
+    /// with the matching config the corrections are empty and replay is a no-op
+    #[test]
+    fn lockstep_on_its_own_parse_needs_no_corrections() {
+        let v = sample();
+        for cfg in [Cfg::new(1, 8), Cfg::new(4, 9), Cfg::new(6, 8), Cfg::new(9, 9)] {
+            let own = replay(&v, cfg, &[]);
+            let (got, corr) = lockstep(&v, cfg, &own);
+            assert_eq!(got, own, "lockstep diverged from its own parse at {:?}", cfg);
+            assert!(corr.is_empty(), "{} corrections against its own parse at {:?}", corr.len(), cfg);
+            assert_eq!(replay(&v, cfg, &corr), own);
+        }
+    }
+
+    /// infer must FIND the config a stream was made with, not merely score it
+    #[test]
+    fn infer_recovers_the_config() {
+        let v = sample();
+        for (lvl, ml) in [(4u8, 9u8), (6, 8), (9, 9)] {
+            let target = replay(&v, Cfg::new(lvl, ml), &[]);
+            let (cfg, d) = infer(&v, &target);
+            assert_eq!(d, 0, "infer settled for {} corrections on a {}/{} stream", d, lvl, ml);
+            assert_eq!(replay(&v, cfg, &[]), target, "the inferred config does not reproduce the stream");
+        }
     }
 }

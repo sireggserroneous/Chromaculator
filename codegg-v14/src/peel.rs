@@ -273,6 +273,10 @@ pub fn respell_bytes(id: u8, recipe: &[u8], values: Vec<u8>) -> Result<Vec<u8>, 
                 ));
             }
             d.values = values;
+            // v14-N3b: a version-2 recipe carries no parse -- a matcher
+            // rebuilds it from the values that just arrived. A version-1
+            // recipe already has one and this is a no-op.
+            deflate::expand(&mut d)?;
             deflate::respell(&d)
         }
         _ => Err(format!("peel id {} does not take its values as bytes", id)),

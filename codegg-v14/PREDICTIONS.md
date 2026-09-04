@@ -994,3 +994,89 @@ so it will not code that well. **Filed: the row's inner lands between 5,300,000
 and 5,450,000** (today 8,754,267), i.e. the recipe falls by at least 3.30 MB. If
 it lands above 5,600,000 the meta stream is the next thing to look at, and that
 gets written down before anything else is tried.
+
+## N3b step 3 SHIPPED — the recipe is predicted, and the row falls 39.6%
+
+```
+aoe4-autosave.sav: 66,417,543 B -> 5,289,632 transmuted -> 5,294,444 armored (7.97%)
+  peel id 2 -- recipe 312,738 B raw ->    40,805 B (model 26)
+               values 296,540,843 B raw -> 5,248,812 B (model 17)
+  round-trip verified in memory before write
+```
+
+**8,759,079 -> 5,294,444. A 3,464,635 B win, -39.6% on the row**, and the row
+runs 90 seconds FASTER (7m51s against 9m22s) because building 82 MB of parse
+streams cost more than inferring a matcher and walking it.
+
+### The filed prediction, judged
+
+| filed | measured | verdict |
+|---|---|---|
+| the row's inner lands between **5,300,000 and 5,450,000** | **5,289,632** | **MISS, on the low side** -- better than the range by 10,368 B |
+| if it lands above 5,600,000, `meta` is the next thing to look at | 40,805 B coded from 312,738 raw | not triggered |
+
+The recipe went 3,505,440 -> 40,805, which is **98.8% of it gone**, and `meta`
+coded far better than I allowed for (13.0% of raw, against the 4.27% the old
+token-heavy recipe managed -- I had assumed block structure would code WORSE
+than a token stream and sized the range around that).
+
+### What the format does
+
+Blob **version 2**: `nmatch` is 0, which empties the length and distance
+sections by the arithmetic version 1 already used, and the flags section is
+spent on two matcher parameters plus fixed 10-byte corrections. Version 1 is
+written byte for byte as before, so **every container already in the world still
+reads**. `expand()` rebuilds the parse on the decode side, once the inflated
+values are in hand; the encode side keeps its streams in memory so the peel's
+own law re-spells exactly as it always did.
+
+**The decision is per file and it is a measurement, not a policy:** `try_predict`
+runs only after the stored parse exists, takes the prediction only if it
+reproduces that parse EXACTLY *and* costs fewer bytes, and otherwise changes
+nothing. A greedy level we model badly, a window we do not model, a stored
+block -- each keeps the stored parse and the row is what it was.
+
+### The gates
+
+- **Restore EXACT** on the shipped 66 MB container, read back from disk.
+- **The 29-file deflate suite: 29 EXACT, 0 WRONG, 0 LOST** -- 14 took the peeled
+  form, 2 refused with a reason, 13 were passed over by the argmin.
+- 8 rows byte-identical; clippy clean; **51 tests**, including a new pipeline
+  test that takes the save's own recipe through blob -> from_blob -> expand ->
+  re-spell and compares the rebuilt flags, lengths and distances to the
+  originals before checking the bytes.
+
+### Two defects this milestone found in its own instruments
+
+1. **`infer` reported its DEFAULT config and 8.1M corrections on a file that
+   needs 20.** The 4 MB sample was cut mid-token, so the parse `infer` drove
+   covered more bytes than the token slice it was scored against, and *every*
+   config failed the comparison. Now the sample ends on a token boundary and a
+   `debug_assert` in `infer` states the invariant it depends on.
+2. **Corrections cannot be (index, token) patches.** A free-running matcher that
+   disagrees 20 times emits **38,340,647 tokens against 38,340,574** -- a
+   disagreement splits a match into literals and shifts every index after it.
+   That was measured before the format was designed, which is the only reason
+   the format is a lockstep rather than a patch list.
+
+### Where the row now stands
+
+| form | bytes | vs ours |
+|---|---|---|
+| precomp -cn + zpaq -m5 | 5,197,337 | -1.8% |
+| **ours** | **5,294,444** | — |
+| precomp -cn + 7-Zip LZMA2 | 5,443,648 | **+2.8% (we win)** |
+| precomp, own lzma2 default | 6,028,745 | +13.9% |
+
+**We still do not take that row outright** -- precomp+zpaq keeps it by 1.8%,
+down from 40.6%. But across the whole corpus:
+
+```
+ours                            101,901,149
+zpaq -m5 alone                  117,029,003   +14.85%  we WIN
+precomp on the save + zpaq      103,964,248   +2.02%   we WIN
+```
+
+**The corpus-wide comparison against the best pipeline anyone can actually run
+flips from a 1.33% LOSS to a 2.02% WIN**, and the projection filed before the
+format was built (101,911,517) lands within 0.01% of the measurement.

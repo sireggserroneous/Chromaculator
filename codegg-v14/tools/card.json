@@ -59,5 +59,9 @@
   "notes": {
     "aoe4-autosave.sav": "precomp -cn + zpaq -m5; zpaq alone (no peel) is 18,262,092",
     "real-test.bmp": "zpaq -m5 has no image model; paq8px does and still loses 8x"
+  },
+  "_ours_now_note": "rows this build has MOVED since the v13 seal. card.js prefers these over sealed_v13 when scoring, because the card must compare a rival to what we ship today, not to what we shipped in September.",
+  "ours_now": {
+    "aoe4-autosave.sav": 5294444
   }
 }

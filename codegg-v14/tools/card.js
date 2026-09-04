@@ -12,7 +12,9 @@ const pct = (r, o) => r == null ? '' : (100 * (r - o) / o).toFixed(2).replace(/^
 const n = v => v == null ? '—' : v.toLocaleString('en-US');
 
 const rows = Object.keys(C.sealed_v13).map(f => {
-  const ours = C.sealed_v13[f] - C.armor_price;
+  // a row this build has moved is scored at what it ships TODAY; the sealed
+  // v13 number stays in the file as the baseline the win is measured from.
+  const ours = ((C.ours_now || {})[f] ?? C.sealed_v13[f]) - C.armor_price;
   const z = C.zpaq_m5[f] ?? null, p = C.paq8px_9LAET[f] ?? null, pc = C.precomp_best[f] ?? null;
   const rivals = [z, p, pc].filter(v => v != null);
   const best = rivals.length ? Math.min(...rivals) : null;
