@@ -38,6 +38,8 @@ mod prior_tab;
 mod prior_ttf;
 mod state_tab;
 mod mix9;
+mod numtext; // M3c's WS-N: the number field tracker
+mod twod; // M3c's WS-2D: the rectangle
 mod deflate;
 mod peel;
 mod sites; // M3b's two instruments (S1b the gcd, S1c the bit period)
@@ -86,6 +88,13 @@ const MODEL_PEEL: u8 = 24; // a peeled form: (recipe, values), each modelled
 // model byte. peel.rs owns the constant so the preamble and the ladder read
 // ONE number, never two.
 const MODEL_DRECIPE: u8 = peel::MODEL_DRECIPE;
+// v13-M3c (WS-N): the v12 literal model with its two sparse inputs re-pointed
+// at the number field tracker. A ROSTER ENTRANT like any other -- nominated by
+// `numtext::looks_numeric`, judged on the armored total, free when it loses.
+const MODEL_NUM: u8 = 27;
+// v13-M3c (WS-2D): the same model reading a rectangle instead of a tail. The
+// stride and pixel ride in the arm's own header, measured by `twod::nominate`.
+const MODEL_2D: u8 = 28;
 
 // ---------------------------------------------------------------- pipeline
 // the transmutation chain: bytes -> nibs -> tokens -> dyadic point. Each
@@ -131,6 +140,8 @@ fn restore_bytes(inner: &[u8], orig_len: usize, model: u8) -> Result<Vec<u8>, St
         MODEL_CM12H => dyadic::decode_cm12h(inner, orig_len),
         MODEL_CM12_PE => dyadic::decode_cm12_book(inner, orig_len, &mix12::BOOK_PE),
         MODEL_CM12_TTF => dyadic::decode_cm12_book(inner, orig_len, &mix12::BOOK_TTF),
+        MODEL_NUM => dyadic::decode_num(inner, orig_len),
+        MODEL_2D => dyadic::decode_2d(inner, orig_len),
         MODEL_DRECIPE => decode_drecipe(inner, orig_len),
         MODEL_PEEL => restore_peel(inner),
         m => Err(format!("unknown model byte {} -- newer transmuter?", m)),
@@ -142,6 +153,18 @@ fn restore_bytes(inner: &[u8], orig_len: usize, model: u8) -> Result<Vec<u8>, St
 /// ladder and the peel re-spells the original bytes from recipe + values. The
 /// container's own length check and FNV-64 gate then decide, as always.
 fn restore_peel(inner: &[u8]) -> Result<Vec<u8>, String> {
+    restore_peel_at(inner, 1)
+}
+
+/// THE CHAIN (v13-M3d, S3b). `wubdiv.html:371-375`: "Each step hands its
+/// quotient down as the next dividend ... The remainder is not carried. That is
+/// what makes it a remainder: it is shown, and the step it belongs to owns it."
+/// A peel's VALUES may themselves be a peel, to `PEEL_DEPTH_MAX` and no
+/// further; each step's recipe is sealed where it was made, and the depth is a
+/// number both directions read from ONE constant.
+const PEEL_DEPTH_MAX: u32 = 2;
+
+fn restore_peel_at(inner: &[u8], depth: u32) -> Result<Vec<u8>, String> {
     let (id, rmodel, rraw, rlen, vmodel, vraw) = peel::read_preamble(inner)?;
     if rmodel == MODEL_PEEL {
         return Err("a peel inside a peel recipe: refused".into());
@@ -157,10 +180,14 @@ fn restore_peel(inner: &[u8]) -> Result<Vec<u8>, String> {
     if peel::values_are_bytes(id) {
         // the deflate peel values ARE the file underneath: ordinary bytes, so
         // they come back up the ordinary ladder and the peel only re-spells
-        if vmodel == MODEL_PEEL {
-            return Err("a peel inside a peel values stream: refused".into());
-        }
-        let values = restore_bytes(&inner[end..], vraw, vmodel)?;
+        let values = if vmodel == MODEL_PEEL {
+            if depth >= PEEL_DEPTH_MAX {
+                return Err(format!("a peel {} deep: the chain stops at {}", depth + 1, PEEL_DEPTH_MAX));
+            }
+            restore_peel_at(&inner[end..], depth + 1)?
+        } else {
+            restore_bytes(&inner[end..], vraw, vmodel)?
+        };
         if values.len() != vraw {
             return Err(format!("peel: values restored {} B, the preamble said {}", values.len(), vraw));
         }
@@ -265,6 +292,10 @@ fn decode_drecipe(inner: &[u8], orig_len: usize) -> Result<Vec<u8>, String> {
 /// bytes then go through the ordinary pipeline and nothing is lost.
 /// `EGG_PEEL=1` (or `EGG_ARMS=1`) prints the reason and the recipe's own weight.
 fn peel_arm(src: &[u8]) -> Option<(Vec<u8>, u8)> {
+    peel_arm_at(src, 1)
+}
+
+fn peel_arm_at(src: &[u8], depth: u32) -> Option<(Vec<u8>, u8)> {
     if std::env::var_os("EGG_NO_PEEL").is_some() {
         return None;
     }
@@ -329,7 +360,20 @@ fn peel_arm(src: &[u8]) -> Option<(Vec<u8>, u8)> {
     let (vstream, vmodel) = if peel::values_are_bytes(id) {
         let vals = peel::take_values(&mut p);
         let toks = token::tokenize(&vals);
-        encode_best(&vals, &toks)
+        let flat = encode_best(&vals, &toks);
+        // THE CHAIN: the quotient handed down as the next dividend. The inner
+        // peel proves its own bijection before it is offered, exactly as this
+        // one did, and it is taken only if it is STRICTLY lighter -- on a tie
+        // the flat form keeps it, because that is the form we can already prove.
+        match if depth < PEEL_DEPTH_MAX { peel_arm_at(&vals, depth + 1) } else { None } {
+            Some((chained, m)) if chained.len() < flat.0.len() => {
+                if trace {
+                    eprintln!("  peel {}: THE CHAIN took depth {} -- values {} B -> {} B", id, depth + 1, flat.0.len(), chained.len());
+                }
+                (chained, m)
+            }
+            _ => flat,
+        }
     } else {
         let mut m = 0u8;
         let v = peel::encode_values(&mut p, &mut m);
@@ -471,7 +515,9 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
                                                // <=min in the 4-16 MB gap
     let wide = std::env::var_os("EGG_NO_V12").is_none();
     let dialect = dialect_of(data);
-    let (v11, cm, pr, cpr, hv, chv, f10, fc10, v12, cm12, pr12, cpr12, hv12, chv12, bk12) = std::thread::scope(|s| {
+    let numeric = numtext::looks_numeric(data);
+    let rect = if wide { twod::nominate(data) } else { None };
+    let (v11, cm, pr, cpr, hv, chv, f10, fc10, v12, cm12, pr12, cpr12, hv12, chv12, bk12, num, two) = std::thread::scope(|s| {
         let h1 = s.spawn(|| dyadic::encode11(data, toks));
         let h2 = s.spawn(|| dyadic::encode_cm11(data));
         let h3 = s.spawn(|| if prior_arms { Some(dyadic::encode11p(data, toks)) } else { None });
@@ -486,6 +532,8 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
         let w5 = s.spawn(|| if wide && heavy_arms { Some(dyadic::encode12h(data, toks)) } else { None });
         let w6 = s.spawn(|| if wide && heavy_arms { Some(dyadic::encode_cm12h(data)) } else { None });
         let w7 = s.spawn(|| if wide { dialect.map(|(b, _)| dyadic::encode_cm12_book(data, b)) } else { None });
+        let w8 = s.spawn(|| if wide && numeric { Some(dyadic::encode_num(data)) } else { None });
+        let w9 = s.spawn(|| rect.map(|(st, px)| dyadic::encode_2d(data, st, px)));
         let f8 = if frozen_arms { Some(dyadic::encode_cm10(data)) } else { None };
         (
             h1.join().expect("arm"),
@@ -503,6 +551,8 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
             w5.join().expect("arm"),
             w6.join().expect("arm"),
             w7.join().expect("arm"),
+            w8.join().expect("arm"),
+            w9.join().expect("arm"),
         )
     });
     // the price replays, side by side (each LZ arm re-priced by its own pass)
@@ -512,7 +562,9 @@ fn big_arms(data: &[u8], toks: &[token::Tok], label: &str) -> (Vec<u8>, u8) {
         (h.join().expect("pass"), v12)
     });
     let book_model = dialect.map(|(_, m)| m).unwrap_or(MODEL_CM12);
-    let roster: [(Option<Vec<u8>>, u8, &str); 15] = [
+    let roster: [(Option<Vec<u8>>, u8, &str); 17] = [
+        (two, MODEL_2D, "2D"),
+        (num, MODEL_NUM, "NUM"),
         (v12, MODEL_MIX12, "MIX12"),
         (cm12, MODEL_CM12, "CM12"),
         (bk12, book_model, if book_model == MODEL_CM12_PE { "CM12-PE" } else { "CM12-TTF" }),
@@ -978,6 +1030,38 @@ fn main() -> ExitCode {
                 None => {
                     fs::write("src/prior_tab.rs", lm.export_prior()).expect("write prior_tab");
                     println!("prior trained on {} B of book across {} files -> src/prior_tab.rs", book.len(), files.len());
+                }
+            }
+            ExitCode::SUCCESS
+        }
+        // M3d's S3a: the offset-to-member prober. An INSTRUMENT -- it reads a
+        // container's declared layout and prints it, and says NULL rather than
+        // guessing when the file is not one it can read.
+        "members" => {
+            let src = fs::read(path).expect("read input");
+            match peel::members(&src) {
+                None => println!("{}: no container layout this build can read", path),
+                Some(ms) => {
+                    println!("{}: {} members ({} B)", path, ms.len(), src.len());
+                    let mut deflated = 0usize;
+                    for m in &ms {
+                        let nom = peel::nominate(&src[m.off..m.off + m.len]);
+                        if m.method == 8 {
+                            deflated += 1;
+                        }
+                        println!(
+                            "  off {:>10} len {:>10} method {:>2} peel-nominates {} {}",
+                            m.off, m.len, m.method, nom, m.name
+                        );
+                    }
+                    let probes = [0usize, src.len() / 2, src.len().saturating_sub(1)];
+                    for off in probes {
+                        match peel::owner(&ms, off) {
+                            Some(i) => println!("  offset {} is owned by member {} ({})", off, i, ms[i].name),
+                            None => println!("  offset {} is owned by NO member -- null, not a guess", off),
+                        }
+                    }
+                    println!("  {} of {} members are deflate", deflated, ms.len());
                 }
             }
             ExitCode::SUCCESS

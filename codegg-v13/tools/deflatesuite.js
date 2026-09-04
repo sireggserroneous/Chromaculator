@@ -35,12 +35,17 @@ for (const f of files) {
   const orig = fs.readFileSync(src);
   const cont = path.join(tmp, f + '.egg13');
   const out = path.join(tmp, f + '.out');
-  let verdict = 'LOST', model = -1, note = '';
+  let verdict = 'LOST', model = -1, note = '', proved = false;
   const t = spawnSync(exe, ['transmute', src, '-o', cont], { stdio: 'pipe', env: { ...process.env, EGG_PEEL: '1' } });
   if (t.status === 0 && fs.existsSync(cont)) {
     const err = String(t.stderr);
     const m = err.match(/peel 2: REFUSED -- ([^;]+)/);
     if (m) { note = m[1].trim(); }
+    // v13-M3d: a "REFUSED" line can come from THE CHAIN's inner attempt on
+    // values that merely LOOK like a deflate stream. The outer peel proved
+    // itself whenever it got as far as naming its recipe, and reporting the
+    // chain's refusal as the row's story is a lie about which peel refused.
+    if (/peel \d+: recipe /.test(err)) { proved = true; }
     try { model = JSON.parse(execFileSync(exe, ['info', cont]).toString()).model; } catch (e) { model = -1; }
     const r = spawnSync(exe, ['restore', cont, '-o', out], { stdio: 'pipe' });
     if (r.status === 0 && fs.existsSync(out)) {
@@ -49,14 +54,17 @@ for (const f of files) {
   }
   if (verdict === 'EXACT') exact++; else if (verdict === 'WRONG') wrong++; else lost++;
   if (model === 24) peeled++;
+  else if (proved) passedOver++;
   else if (note) refused++;
   else passedOver++;
-  rows.push({ f, n: orig.length, total: fs.existsSync(cont) ? fs.statSync(cont).size : 0, verdict, model, note });
+  rows.push({ f, n: orig.length, total: fs.existsSync(cont) ? fs.statSync(cont).size : 0, verdict, model, note, proved });
   try { fs.rmSync(cont); } catch (e) {}
   try { fs.rmSync(out); } catch (e) {}
 }
 for (const r of rows) {
-  const what = r.model === 24 ? 'PEELED' : (r.note ? 'refused: ' + r.note.slice(0, 62) : 'raw pipeline (the argmin kept the bytes)');
+  const what = r.model === 24 ? 'PEELED'
+    : r.proved ? 'peel PROVED, passed over by the argmin'
+    : (r.note ? 'refused: ' + r.note.slice(0, 62) : 'no peel nominated (the ordinary pipeline)');
   console.log(`${r.f.padEnd(34)} ${String(r.n).padStart(9)} -> ${String(r.total).padStart(9)}  ${r.verdict.padEnd(6)} ${what}`);
   if (prov[r.f]) console.log(`${''.padEnd(34)} provenance: ${prov[r.f]}`);
 }

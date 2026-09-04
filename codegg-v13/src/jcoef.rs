@@ -12,12 +12,31 @@
 //! LEFT, the count of nonzeros already placed in this block, the QUANTISATION
 //! value at that position, and the COMPONENT.
 //!
+//! v13-M3c (S2a) added three more, and the measurement is the reason each is
+//! here rather than the reading that suggested it. On wallpaper.jpg's
+//! 1,233,099 B of modelled values:
+//!   - the block's own LAST NONZERO INDEX, in `mag` (-36,167 B) and, as the
+//!     DISTANCE `last - k`, in `nz` (-18,315 B). Both are known to the decoder
+//!     before the AC loop starts, because `last` is coded first.
+//!   - the running nonzero count in `mag` (-4,962 B), widened from 4 steps to
+//!     8 (-1,941 B), and the neighbour magnitude buckets widened from 4 steps
+//!     to 8 (-1,840 B).
+//!   - the neighbour magnitudes in `mbits`, which LOSE 993 B on their own and
+//!     WIN 1,811 B behind the count gate.
+//!
+//! Two inputs the plan named were measured and DELETED: `qb[k]` in `mag`
+//! (+14 B -- the quantisation table is nearly a function of the band, and the
+//! band was already there) and the block's DC magnitude in `last` (+92 B).
+//!
 //! Shape: one adaptive 16-bit probability per context, count-adaptive rate, no
 //! mixer -- packJPG's shape rather than Lepton's, chosen for the house speed
-//! floor (0.25 MB/s) and printed as that choice. Attribution: packJPG (Matthias
-//! Stirner) and Lepton (Dropbox) for the context shape; Matt Mahoney's
-//! StateMap (zpaq/lpaq/paq8) for the count-adaptive probability; ITU T.81 for
-//! everything the coefficients mean.
+//! floor (0.25 MB/s) and printed as that choice; M3c re-priced a mixer against
+//! a measured clock and refused it again. What M3c DID add is the COUNT GATE
+//! (see `blend` below), which is what makes contexts this fine affordable.
+//! Attribution: packJPG (Matthias Stirner) and Lepton (Dropbox) for the
+//! context shape; Matt Mahoney's StateMap (zpaq/lpaq/paq8) for the
+//! count-adaptive probability and for the idea of backing a sparse context
+//! with a dense one; ITU T.81 for everything the coefficients mean.
 //!
 //! Encoder and decoder are ONE routine driven through a `Coder` trait, so the
 //! two sides cannot drift: every decision is taken in the same order with the
@@ -51,6 +70,47 @@ static RATE: [u32; NLIMIT as usize + 1] = {
     }
     t
 };
+/// THE COUNT GATE (v13-M3c, S2a-4c). A fine context is trusted in proportion
+/// to how much it has SEEN: the coded probability is the COARSE parent's,
+/// pulled toward the fine child by `n / (n + KGATE)`. Both counters update
+/// either way, so the fine one warms up while the coarse one carries the
+/// decision. This is what makes the fine contexts affordable -- `nz` reaches
+/// 786,432 contexts over 3.5M codings (4.5 each) and `mag` 196,608 over 1.6M
+/// (8.2 each), and the SAME widening measured a LOSS before the gate existed.
+///
+/// KGATE = 4 is the sweep winner, measured on wallpaper.jpg's values:
+/// 1 -> 1,160,670; 2 -> 1,159,728; **4 -> 1,159,378**; 8 -> 1,160,200. The
+/// hard-step form of the same gate (coarse below the threshold, fine above)
+/// was measured beside it and is worse at every threshold (best 1,162,201 at
+/// 4), so the proportional law ships.
+///
+/// No mixer, no stretch, no squash -- one multiply, one table read and one
+/// extra counter update, which is what keeps this model inside the 0.25 MB/s
+/// house floor. (A mixer was priced and refused: `peel_arm` already runs at
+/// PARITY with the roster on this row, 4,749 ms against 4,528 ms, so 2-3x the
+/// model work would put the row at 0.11-0.17 MB/s.)
+const KGATE: u32 = 4;
+static WGT: [u32; NLIMIT as usize + 1] = {
+    let mut t = [0u32; NLIMIT as usize + 1];
+    let mut i = 0usize;
+    while i <= NLIMIT as usize {
+        t[i] = (65536 * i as u32) / (i as u32 + KGATE);
+        i += 1;
+    }
+    t
+};
+#[inline]
+fn blend(f: &Pr, c: &Pr) -> u16 {
+    // i64, and it is not decoration: the difference reaches +-65,408 and the
+    // weight 65,536, so the product overflows i32 and wraps SILENTLY in
+    // release. The first cut of this function was i32 and measured a 163,116 B
+    // loss for the gate; the control that caught it was KGATE = 0, which must
+    // reproduce the ungated build to the byte and did not. It does now.
+    let w = WGT[f.n as usize] as i64;
+    let p = c.p as i64 + (((f.p as i64 - c.p as i64) * w) >> 16);
+    p.clamp(PLO as i64, PHI as i64) as u16
+}
+
 impl Pr {
     #[inline]
     fn new() -> Pr {
@@ -74,6 +134,8 @@ trait Coder {
     /// code `want` (encoding) or decode (decoding) at this counter; returns the
     /// bit that actually went through, which is what the shared walk follows
     fn bit(&mut self, c: &mut Pr, want: u32) -> u32;
+    /// code against the count gate: the pair (fine, coarse), both updated
+    fn bit2(&mut self, f: &mut Pr, c: &mut Pr, want: u32) -> u32;
 }
 struct Enc(WEnc);
 impl Coder for Enc {
@@ -81,6 +143,13 @@ impl Coder for Enc {
     #[inline]
     fn bit(&mut self, c: &mut Pr, want: u32) -> u32 {
         self.0.bit(c.p, want);
+        c.update(want);
+        want
+    }
+    #[inline]
+    fn bit2(&mut self, f: &mut Pr, c: &mut Pr, want: u32) -> u32 {
+        self.0.bit(blend(f, c), want);
+        f.update(want);
         c.update(want);
         want
     }
@@ -94,6 +163,13 @@ impl Coder for Dec<'_> {
         c.update(b);
         b
     }
+    #[inline]
+    fn bit2(&mut self, f: &mut Pr, c: &mut Pr, _want: u32) -> u32 {
+        let b = self.0.bit(blend(f, c));
+        f.update(b);
+        c.update(b);
+        b
+    }
 }
 
 /// an `nbits`-deep binary tree over `tab` (length 1 << nbits); returns the value
@@ -103,6 +179,19 @@ fn tree<C: Coder>(co: &mut C, tab: &mut [Pr], nbits: u32, want: u32) -> u32 {
     for i in (0..nbits).rev() {
         let b = (want >> i) & 1;
         let got = co.bit(&mut tab[node], b);
+        node = (node << 1) | got as usize;
+    }
+    node as u32 - (1 << nbits)
+}
+
+/// the same tree, gated: `fine` and `coarse` are two slices of equal shape and
+/// every node is decided by the pair
+#[inline]
+fn tree2<C: Coder>(co: &mut C, fine: &mut [Pr], coarse: &mut [Pr], nbits: u32, want: u32) -> u32 {
+    let mut node = 1usize;
+    for i in (0..nbits).rev() {
+        let b = (want >> i) & 1;
+        let got = co.bit2(&mut fine[node], &mut coarse[node], b);
         node = (node << 1) | got as usize;
     }
     node as u32 - (1 << nbits)
@@ -131,14 +220,15 @@ const KB: usize = 16;
 #[inline]
 fn mbucket(v: i16) -> usize {
     let a = v.unsigned_abs() as u32;
-    if a == 0 {
-        0
-    } else if a == 1 {
-        1
-    } else if a <= 3 {
-        2
-    } else {
-        3
+    match a {
+        0 => 0,
+        1 => 1,
+        2..=3 => 2,
+        4..=7 => 3,
+        8..=15 => 4,
+        16..=31 => 5,
+        32..=95 => 6,
+        _ => 7,
     }
 }
 /// the quantisation value at this position, in four steps
@@ -166,6 +256,24 @@ fn lbucket(l: usize) -> usize {
         9..=16 => 5,
         17..=32 => 6,
         _ => 7,
+    }
+}
+/// the DC gradient ACROSS this block -- right minus left, below minus above --
+/// in GS signed steps. Only a walk that decides every DC before any AC can
+/// take it, which is what the scatter bought.
+const GS: usize = 9;
+#[inline]
+fn gbucket(d: i32) -> usize {
+    match d {
+        i32::MIN..=-33 => 0,
+        -32..=-9 => 1,
+        -8..=-3 => 2,
+        -2..=-1 => 3,
+        0 => 4,
+        1..=2 => 5,
+        3..=8 => 6,
+        9..=32 => 7,
+        _ => 8,
     }
 }
 #[inline]
@@ -201,6 +309,23 @@ fn nbits_of(v: i32) -> u32 {
 }
 
 const NC: usize = 3; // component classes: luma, chroma, everything else
+/// a neighbour's magnitude bucket (`mbucket`), the running nonzero count of the
+/// block capped at 3, and the quantisation bucket (`qbucket`). Named so the
+/// table dimensions below and the census read ONE number each.
+const MB: usize = 8;
+const NZB: usize = 8;
+const QB: usize = 4;
+/// how many CONTEXTS each of the two tables the M3c lever touches carries --
+/// the tree width (16) multiplies these, and the census divides by them
+/// how far a position is from the block's own last nonzero, in eight steps
+const NR: usize = 8;
+const LAST_CTX: usize = NC * 8 * 8;
+const NZC_CTX: usize = NC * KB * NZB * NR;
+const MAGC_CTX: usize = NC * KB * NR;
+const NZ_CTX: usize = NC * KB * MB * MB * NZB * QB * NR;
+const MAG_CTX: usize = NC * KB * MB * MB * NZB * NR;
+const MBITSC_CTX: usize = NC * KB * 16;
+const MBITS_CTX: usize = NC * KB * 16 * MB * MB;
 
 struct Model {
     /// the last-nonzero index of the block: a 6-bit tree
@@ -209,30 +334,61 @@ struct Model {
     nz: Vec<Pr>, // [NC][KB][4][4][4][4]
     /// the magnitude class, a 4-bit tree over (bits-1)
     mag: Vec<Pr>, // [NC][KB][4][4][16]
-    /// the bits below the leading one
-    mbits: Vec<Pr>, // [NC][KB][16][16]
+    /// the bits below the leading one, with the two neighbour magnitude
+    /// buckets and a coarse parent behind the count gate
+    mbits: Vec<Pr>, // [NC][KB][16][MB][MB][16]
+    mbits_c: Vec<Pr>, // [NC][KB][16][16]
+    /// the COARSE parents of `nz` and `mag`: the same decisions over a small
+    /// dense index, which the count gate falls back on while the fine
+    /// context is cold
+    nz_c: Vec<Pr>,
+    mag_c: Vec<Pr>,
     /// the sign
-    sign: Vec<Pr>, // [NC][KB][3][3]
+    sign: Vec<Pr>, // [NC][KB][3][3][GS][GS]
     /// the DC difference from the 2D predictor: a 5-bit category tree
-    dcmag: Vec<Pr>, // [NC][4][8][32]
+    dcmag: Vec<Pr>, // [NC][4][8][NR][32]
     dcbits: Vec<Pr>, // [NC][18][16]
     /// the sign of that difference, by component and by the neighbourhood's
     /// activity -- NEVER by the value being coded (a context the decoder
     /// cannot rebuild is a broken model, not a clever one)
     dcsign: Vec<Pr>, // [NC][8]
+    /// EGG_JSTATS: the census. An INSTRUMENT, not a context -- it is written
+    /// by the walk and read by nobody inside it, so both directions agree.
+    /// (blocks, nonzero ACs = also the `sign` codings, `mag` codings,
+    /// `mbits` bit codings)
+    census: [u64; 5],
 }
 impl Model {
     fn new() -> Box<Model> {
         Box::new(Model {
-            last: vec![Pr::new(); NC * 8 * 8 * 64],
-            nz: vec![Pr::new(); NC * KB * 4 * 4 * 4 * 4],
-            mag: vec![Pr::new(); NC * KB * 4 * 4 * 16],
-            mbits: vec![Pr::new(); NC * KB * 16 * 16],
-            sign: vec![Pr::new(); NC * KB * 3 * 3],
-            dcmag: vec![Pr::new(); NC * 4 * 8 * 32],
+            last: vec![Pr::new(); LAST_CTX * 64],
+            nz: vec![Pr::new(); NZ_CTX],
+            mag: vec![Pr::new(); MAG_CTX * 16],
+            mbits: vec![Pr::new(); MBITS_CTX * 16],
+            mbits_c: vec![Pr::new(); MBITSC_CTX * 16],
+            nz_c: vec![Pr::new(); NZC_CTX],
+            mag_c: vec![Pr::new(); MAGC_CTX * 16],
+            sign: vec![Pr::new(); NC * KB * 3 * 3 * GS * GS],
+            dcmag: vec![Pr::new(); NC * 4 * 8 * NR * 32],
             dcbits: vec![Pr::new(); NC * 18 * 16],
             dcsign: vec![Pr::new(); NC * 8],
+            census: [0; 5],
         })
+    }
+    /// every adaptive counter this model carries -- printed by the census so
+    /// the table budget is a measured number and not a remembered one
+    fn counters(&self) -> usize {
+        self.last.len()
+            + self.nz.len()
+            + self.mag.len()
+            + self.mbits.len()
+            + self.mbits_c.len()
+            + self.nz_c.len()
+            + self.mag_c.len()
+            + self.sign.len()
+            + self.dcmag.len()
+            + self.dcbits.len()
+            + self.dcsign.len()
     }
 }
 
@@ -252,9 +408,23 @@ fn med(l: i32, a: i32, al: i32) -> i32 {
     }
 }
 
-/// the shared walk: one component plane, raster order, every block. Refuses
-/// with a number the moment a decoded symbol cannot be a coefficient -- a
-/// wounded or foreign stream stops here rather than writing nonsense that the
+/// THE SHARED WALK, in THREE PASSES over one component plane (v13-M3c, S2b --
+/// the scatter). Reading: `spectrometer.html:464-466`, disjoint regions summed
+/// independently with every symbol carrying its index, so the merge is exact.
+///
+/// The pure re-ordering buys NOTHING and was measured as the control before
+/// this was built. What it buys is LEGALITY: a decision taken in a later pass
+/// may read anything an earlier pass decided, in any direction, so the model
+/// gets a TWO-SIDED reading of the neighbourhood where a block-order walk can
+/// only ever look up and left.
+///
+///   pass A -- the last-nonzero index of every block;
+///   pass B -- the DC plane, which may now read its own block's `last`;
+///   pass C -- the ACs, band by band, whose coarse contexts may now read the
+///             `last` of the blocks to the RIGHT and BELOW.
+///
+/// Refuses with a number the moment a decoded symbol cannot be a coefficient --
+/// a wounded or foreign stream stops here rather than writing nonsense that the
 /// FNV-64 gate would have to catch downstream.
 fn walk<C: Coder>(co: &mut C, m: &mut Model, j: &mut Jpeg, ci: usize) -> Result<(), String> {
     let cc = ci.min(NC - 1);
@@ -262,14 +432,38 @@ fn walk<C: Coder>(co: &mut C, m: &mut Model, j: &mut Jpeg, ci: usize) -> Result<
     let q = j.qt[c.tq];
     let qb: Vec<usize> = (0..64).map(|k| qbucket(q[k])).collect();
     let mut lastplane = vec![0u8; c.bw * c.bh];
+
+    // ---------------- pass A: the last-nonzero plane
+    for by in 0..c.bh {
+        for bx in 0..c.bw {
+            m.census[0] += 1;
+            let base = block_at(&c, bx, by);
+            let la = lbucket(if by > 0 { lastplane[(by - 1) * c.bw + bx] as usize } else { 0 });
+            let ll = lbucket(if bx > 0 { lastplane[by * c.bw + bx - 1] as usize } else { 0 });
+            let lb = ((cc * 8 + la) * 8 + ll) * 64;
+            let want_last = if C::ENCODING {
+                let mut l = 0usize;
+                for k in (1..64).rev() {
+                    if j.coef[ci][base + k] != 0 {
+                        l = k;
+                        break;
+                    }
+                }
+                l as u32
+            } else {
+                0
+            };
+            lastplane[by * c.bw + bx] = tree(co, &mut m.last[lb..lb + 64], 6, want_last) as u8;
+        }
+    }
+
+    // ---------------- pass B: the DC plane, against the two-dimensional predictor
     for by in 0..c.bh {
         for bx in 0..c.bw {
             let base = block_at(&c, bx, by);
             let left = if bx > 0 { Some(block_at(&c, bx - 1, by)) } else { None };
             let above = if by > 0 { Some(block_at(&c, bx, by - 1)) } else { None };
             let al = if bx > 0 && by > 0 { Some(block_at(&c, bx - 1, by - 1)) } else { None };
-
-            // ---- the DC, against the two-dimensional predictor
             let lv = left.map(|o| j.coef[ci][o] as i32);
             let av = above.map(|o| j.coef[ci][o] as i32);
             let alv = al.map(|o| j.coef[ci][o] as i32);
@@ -288,7 +482,9 @@ fn walk<C: Coder>(co: &mut C, m: &mut Model, j: &mut Jpeg, ci: usize) -> Result<
             let dq = qbucket(q[0]);
             let want_d = if C::ENCODING { j.coef[ci][base] as i32 - pred } else { 0 };
             let want_t = nbits_of(want_d);
-            let tbase = ((cc * 4 + dq) * 8 + act) * 32;
+            // legal ONLY because pass A ran first: this block's own AC activity
+            let own = lbucket(lastplane[by * c.bw + bx] as usize);
+            let tbase = (((cc * 4 + dq) * 8 + act) * NR + own) * 32;
             let t = tree(co, &mut m.dcmag[tbase..tbase + 32], 5, want_t.min(31));
             if t > 17 {
                 return Err(format!("coefficient stream: DC category {} is not a category", t));
@@ -317,67 +513,86 @@ fn walk<C: Coder>(co: &mut C, m: &mut Model, j: &mut Jpeg, ci: usize) -> Result<
                 }
                 j.coef[ci][base] = dcv as i16;
             }
+        }
+    }
 
-            // ---- the ACs: the last nonzero first, then the coefficients
-            let la = lbucket(above.map(|_| lastplane[(by - 1) * c.bw + bx] as usize).unwrap_or(0));
-            let ll = lbucket(left.map(|_| lastplane[by * c.bw + bx - 1] as usize).unwrap_or(0));
-            let lb = ((cc * 8 + la) * 8 + ll) * 64;
-            let want_last = if C::ENCODING {
-                let mut l = 0usize;
-                for k in (1..64).rev() {
-                    if j.coef[ci][base + k] != 0 {
-                        l = k;
-                        break;
-                    }
+    // ---------------- pass C: the ACs, one band at a time
+    let mut nzcplane = vec![0u8; c.bw * c.bh];
+    #[allow(clippy::needless_range_loop)] // k is the zigzag INDEX: it addresses
+    // the block, the quantisation table and both neighbours at once
+    for k in 1..64 {
+        let kb = kbucket(k);
+        for by in 0..c.bh {
+            for bx in 0..c.bw {
+                let bi = by * c.bw + bx;
+                let last = lastplane[bi] as usize;
+                if k > last {
+                    continue;
                 }
-                l as u32
-            } else {
-                0
-            };
-            let last = tree(co, &mut m.last[lb..lb + 64], 6, want_last) as usize;
-            lastplane[by * c.bw + bx] = last as u8;
-
-            let mut nzc = 0usize;
-            #[allow(clippy::needless_range_loop)] // k is the zigzag INDEX: it addresses
-            // the block, the quantisation table and both neighbours at once
-            for k in 1..=last {
-                let kb = kbucket(k);
+                let base = block_at(&c, bx, by);
+                let left = if bx > 0 { Some(block_at(&c, bx - 1, by)) } else { None };
+                let above = if by > 0 { Some(block_at(&c, bx, by - 1)) } else { None };
                 let ba = mbucket(above.map(|o| j.coef[ci][o + k]).unwrap_or(0));
                 let bl = mbucket(left.map(|o| j.coef[ci][o + k]).unwrap_or(0));
-                let nzb = nzc.min(3);
+                let nzb = (nzcplane[bi] as usize).min(NZB - 1);
                 let v = if C::ENCODING { j.coef[ci][base + k] } else { 0 };
                 let is_nz = if k == last {
                     // the last coefficient is nonzero by construction: free
                     1u32
                 } else {
-                    let idx = ((((cc * KB + kb) * 4 + ba) * 4 + bl) * 4 + nzb) * 4 + qb[k];
+                    let idx = (((((cc * KB + kb) * MB + ba) * MB + bl) * NZB + nzb) * QB + qb[k]) * NR
+                        + lbucket(last - k);
+                    m.census[4] += 1;
+                    let cidx = ((cc * KB + kb) * NZB + nzb) * NR + lbucket(last - k);
                     let w = if C::ENCODING && v != 0 { 1 } else { 0 };
-                    co.bit(&mut m.nz[idx], w)
+                    co.bit2(&mut m.nz[idx], &mut m.nz_c[cidx], w)
                 };
                 if is_nz == 0 {
                     continue;
                 }
-                nzc += 1;
+                nzcplane[bi] = nzcplane[bi].saturating_add(1);
+                m.census[1] += 1;
+                m.census[2] += 1;
                 // the magnitude class, then the bits below the leading one
-                let mbase = (((cc * KB + kb) * 4 + ba) * 4 + bl) * 16;
+                let mbase =
+                    (((((cc * KB + kb) * MB + ba) * MB + bl) * NZB + nzb) * NR + lbucket(last)) * 16;
                 let want_m = if C::ENCODING { nbits_of(v as i32) - 1 } else { 0 };
-                let mm = tree(co, &mut m.mag[mbase..mbase + 16], 4, want_m.min(15)) + 1;
+                let cbase = ((cc * KB + kb) * NR + lbucket(last)) * 16;
+                let mm = tree2(
+                    co,
+                    &mut m.mag[mbase..mbase + 16],
+                    &mut m.mag_c[cbase..cbase + 16],
+                    4,
+                    want_m.min(15),
+                ) + 1;
                 if mm > 15 {
                     return Err(format!("coefficient stream: magnitude class {} is not a class", mm));
                 }
-                let bbase = ((cc * KB + kb) * 16 + mm as usize) * 16;
+                let cb = ((cc * KB + kb) * 16 + mm as usize) * 16;
+                let bbase = ((((cc * KB + kb) * 16 + mm as usize) * MB + ba) * MB + bl) * 16;
                 let mut node = 1usize;
                 let mut low = 0u32;
+                m.census[3] += mm as u64 - 1;
                 for i in (0..mm - 1).rev() {
                     let w = ((v.unsigned_abs() as u32) >> i) & 1;
-                    let got = co.bit(&mut m.mbits[bbase + node.min(15)], w);
+                    let got =
+                        co.bit2(&mut m.mbits[bbase + node.min(15)], &mut m.mbits_c[cb + node.min(15)], w);
                     low = (low << 1) | got;
                     node = ((node << 1) | got as usize).min(15);
                 }
                 let mag = (1i32 << (mm - 1)) | low as i32;
                 let sa = sbucket(above.map(|o| j.coef[ci][o + k]).unwrap_or(0));
                 let sl = sbucket(left.map(|o| j.coef[ci][o + k]).unwrap_or(0));
-                let sidx = ((cc * KB + kb) * 3 + sa) * 3 + sl;
+                // the two-sided DC gradient, legal ONLY because pass B decided
+                // every DC before any AC: a block-order walk has no right and
+                // no below, and this is the single biggest context in the model
+                let dcl = if bx > 0 { j.coef[ci][block_at(&c, bx - 1, by)] as i32 } else { 0 };
+                let dcr = if bx + 1 < c.bw { j.coef[ci][block_at(&c, bx + 1, by)] as i32 } else { 0 };
+                let dca = if by > 0 { j.coef[ci][block_at(&c, bx, by - 1)] as i32 } else { 0 };
+                let dcb = if by + 1 < c.bh { j.coef[ci][block_at(&c, bx, by + 1)] as i32 } else { 0 };
+                let gx = gbucket(dcr - dcl);
+                let gy = gbucket(dcb - dca);
+                let sidx = ((((cc * KB + kb) * 3 + sa) * 3 + sl) * GS + gx) * GS + gy;
                 let wsign = if C::ENCODING && v < 0 { 1 } else { 0 };
                 let neg = co.bit(&mut m.sign[sidx], wsign);
                 if !C::ENCODING {
@@ -399,6 +614,26 @@ pub fn encode(j: &mut Jpeg) -> Vec<u8> {
     let mut co = Enc(WEnc::new());
     for ci in 0..j.comps.len() {
         walk(&mut co, &mut m, j, ci).expect("the encoding direction cannot refuse its own coefficients");
+    }
+    if std::env::var_os("EGG_JSTATS").is_some() {
+        let [blocks, nz, mags, mbits, nzcode] = m.census;
+        eprintln!(
+            "jstats: {} blocks, {} nonzero ACs ({:.2}/block), {} mag codings over {} contexts ({:.1} each), {} mbits bits over {} contexts ({:.1} each), {} nz codings over {} contexts ({:.1} each), tables {} Pr = {} B",
+            blocks,
+            nz,
+            nz as f64 / blocks.max(1) as f64,
+            mags,
+            MAG_CTX,
+            mags as f64 / MAG_CTX as f64,
+            mbits,
+            MBITS_CTX,
+            mbits as f64 / MBITS_CTX as f64,
+            nzcode,
+            NZ_CTX,
+            nzcode as f64 / NZ_CTX as f64,
+            m.counters(),
+            m.counters() * std::mem::size_of::<Pr>(),
+        );
     }
     co.0.finish()
 }

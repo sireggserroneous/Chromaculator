@@ -468,6 +468,18 @@ impl Mix12 {
         claim(&mut self.o4s, base, (key.wrapping_mul(GOLD) >> 56) as u8)
     }
     #[inline]
+    /// the same two sparse tables, entered by an ARBITRARY key instead of by
+    /// the byte tail (v13-M3c, WS-N). Nothing about the model changes: the
+    /// caller decides what the context means, the tables and the mixer inputs
+    /// are the ones that were already there, and every existing caller still
+    /// goes through `ctx_sparse` untouched.
+    pub fn ctx_key(&mut self, key: u64, pick: u32, phase: usize, hi: u32) -> usize {
+        let key = key ^ ((pick as u64) << 40) ^ if phase == 1 { ((0x10 | hi) as u64) << 44 } else { 0 };
+        let h = key.wrapping_mul(GOLD);
+        let base = (((h >> 46) as usize) & 0x3ffff) * 16;
+        let t = if pick == 0 { &mut self.sp13s } else { &mut self.sp24s };
+        claim(t, base, (h >> 38) as u8)
+    }
     pub fn ctx_sparse(&mut self, tail: u64, pick: u32, phase: usize, hi: u32) -> usize {
         let two: u64 = if pick == 0 {
             (tail & 0xff) | (((tail >> 16) & 0xff) << 8)

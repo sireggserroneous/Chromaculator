@@ -2575,19 +2575,66 @@ fn decode12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32) -> Result<V
 
 /// MODEL_CM12: literal-only at sixteen bits (the match model carries repeats)
 pub fn encode_cm12(src: &[u8]) -> Vec<u8> {
-    encode_cm12_inner(src, false, MIX12_LR, None)
+    encode_cm12_inner(src, false, MIX12_LR, None, Lens::Plain)
+}
+/// WHICH LENS the two sparse inputs of the v12 literal model look through
+/// (v13-M3c). `Plain` is the shipped CM12, byte for byte; the other two point
+/// the SAME two tables and the SAME two mixer inputs at a different reading of
+/// the same already-coded bytes. Nothing else in the model moves.
+#[derive(Clone, Copy)]
+pub enum Lens {
+    Plain,
+    /// WS-N: the number field tracker
+    Num,
+    /// WS-2D: the rectangle, at (stride, pixel)
+    Grid(usize, usize),
+}
+
+/// v13-M3c (WS-N): the same v12 literal model with its TWO SPARSE INPUTS
+/// re-pointed at the number field tracker (`numtext.rs`) -- field, digit
+/// position, integer length, column, and the digit at the same position of the
+/// previous number. Everything else, mixer and match model and APM included, is
+/// the shipped CM12 verbatim, and `Lens::Plain` reproduces it to the byte.
+pub fn encode_num(src: &[u8]) -> Vec<u8> {
+    encode_cm12_inner(src, false, MIX12_LR, None, Lens::Num)
+}
+pub fn decode_num(inp: &[u8], orig_len: usize) -> Result<Vec<u8>, String> {
+    decode_cm12_inner(inp, orig_len, false, MIX12_LR, None, Lens::Num)
+}
+/// v13-M3c (WS-2D): the same model reading a rectangle. The stride and pixel
+/// the encoder MEASURED ride in a five-byte header at the front of the arm's
+/// own stream, so the decoder reads them and never guesses -- and it refuses
+/// with a number if they are not a rectangle it can read.
+pub fn encode_2d(src: &[u8], stride: u32, pixel: u32) -> Vec<u8> {
+    let mut out = Vec::with_capacity(src.len() / 3 + 5);
+    out.extend_from_slice(&stride.to_le_bytes());
+    out.push(pixel as u8);
+    out.extend_from_slice(&encode_cm12_inner(src, false, MIX12_LR, None, Lens::Grid(stride as usize, pixel as usize)));
+    out
+}
+pub fn decode_2d(inp: &[u8], orig_len: usize) -> Result<Vec<u8>, String> {
+    if inp.len() < 5 {
+        return Err(format!("2D arm: {} B is shorter than its own header", inp.len()));
+    }
+    let stride = u32::from_le_bytes([inp[0], inp[1], inp[2], inp[3]]) as usize;
+    let pixel = inp[4] as usize;
+    if pixel == 0 || pixel >= stride || stride > crate::twod::MAX_STRIDE {
+        return Err(format!("2D arm: stride {} pixel {} is not a rectangle", stride, pixel));
+    }
+    decode_cm12_inner(&inp[5..], orig_len, false, MIX12_LR, None, Lens::Grid(stride, pixel))
 }
 pub fn encode_cm12p(src: &[u8]) -> Vec<u8> {
-    encode_cm12_inner(src, true, MIX12_LR, None)
+    encode_cm12_inner(src, true, MIX12_LR, None, Lens::Plain)
 }
 pub fn encode_cm12h(src: &[u8]) -> Vec<u8> {
-    encode_cm12_inner(src, false, 13, None)
+    encode_cm12_inner(src, false, 13, None, Lens::Plain)
 }
 /// MODEL_CM12_PE / MODEL_CM12_TTF: CM12 primed by a dialect book (M2c(c))
 pub fn encode_cm12_book(src: &[u8], book: &Book) -> Vec<u8> {
-    encode_cm12_inner(src, false, MIX12_LR, Some(book))
+    encode_cm12_inner(src, false, MIX12_LR, Some(book), Lens::Plain)
 }
-fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>) -> Vec<u8> {
+fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>, lens: Lens) -> Vec<u8> {
+    let mut nf = crate::numtext::Field::new();
     let mut rc = REnc::new_wide();
     let mut lm = Box::new(Mix12::new());
     lm.set_lr(lr);
@@ -2600,6 +2647,11 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>) -> V
     let mut hist: usize = 0;
     for pos in 0..src.len() {
         let b = src[pos];
+        let (kk0, kk1) = match lens {
+            Lens::Plain => (0, 0),
+            Lens::Num => (nf.key0(), nf.key1()),
+            Lens::Grid(st, px) => crate::twod::keys(src, pos, st, px),
+        };
         let prev4 = tail4_11(src, pos);
         let t8 = tail8_11(src, pos);
         let mm_pred = lm.mmodel.predicted(&src[..pos]);
@@ -2615,8 +2667,11 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>) -> V
         let cx0 = lm.ctx18(prev4, 0, 0);
         let c30 = lm.ctx20(t8, 3, 0, 0);
         let c60 = lm.ctx20(t8, 6, 0, 0);
-        let s10 = lm.ctx_sparse(t8, 0, 0, 0);
-        let s20 = lm.ctx_sparse(t8, 1, 0, 0);
+        let (s10, s20) = if matches!(lens, Lens::Plain) {
+            (lm.ctx_sparse(t8, 0, 0, 0), lm.ctx_sparse(t8, 1, 0, 0))
+        } else {
+            (lm.ctx_key(kk0, 0, 0, 0), lm.ctx_key(kk1, 1, 0, 0))
+        };
         let i10c = lm.ctx_ind1((t8 & 0xff) as u8, 0, 0);
         let i20c = lm.ctx_ind2((t8 & 0xffff) as usize, 0, 0);
         enc_nib12(&mut rc, &mut lm, hi, mhi, &mut still, hist, cx0, c30, c60, s10, s20, i10c, i20c, mm_pred, &mut malive, 0, am);
@@ -2624,12 +2679,16 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>) -> V
         let cx1 = lm.ctx18(prev4, 1, hi);
         let c31 = lm.ctx20(t8, 3, 1, hi);
         let c61 = lm.ctx20(t8, 6, 1, hi);
-        let s11 = lm.ctx_sparse(t8, 0, 1, hi);
-        let s21 = lm.ctx_sparse(t8, 1, 1, hi);
+        let (s11, s21) = if matches!(lens, Lens::Plain) {
+            (lm.ctx_sparse(t8, 0, 1, hi), lm.ctx_sparse(t8, 1, 1, hi))
+        } else {
+            (lm.ctx_key(kk0, 0, 1, hi), lm.ctx_key(kk1, 1, 1, hi))
+        };
         let i11c = lm.ctx_ind1((t8 & 0xff) as u8, 1, hi);
         let i21c = lm.ctx_ind2((t8 & 0xffff) as usize, 1, hi);
         enc_nib12(&mut rc, &mut lm, lo, mlo, &mut still, hist, cx1, c31, c61, s11, s21, i11c, i21c, mm_pred, &mut malive, 1, am);
         hist = ((hist << 4) | lo as usize) & 0xffff;
+        nf.update(b);
         lm.byte_update(src, pos + 1);
     }
     if std::env::var_os("EGG_STATEHASH").is_some() {
@@ -2639,18 +2698,19 @@ fn encode_cm12_inner(src: &[u8], prior: bool, lr: u32, book: Option<&Book>) -> V
 }
 
 pub fn decode_cm12(inp: &[u8], orig_len: usize) -> Result<Vec<u8>, String> {
-    decode_cm12_inner(inp, orig_len, false, MIX12_LR, None)
+    decode_cm12_inner(inp, orig_len, false, MIX12_LR, None, Lens::Plain)
 }
 pub fn decode_cm12p(inp: &[u8], orig_len: usize) -> Result<Vec<u8>, String> {
-    decode_cm12_inner(inp, orig_len, true, MIX12_LR, None)
+    decode_cm12_inner(inp, orig_len, true, MIX12_LR, None, Lens::Plain)
 }
 pub fn decode_cm12h(inp: &[u8], orig_len: usize) -> Result<Vec<u8>, String> {
-    decode_cm12_inner(inp, orig_len, false, 13, None)
+    decode_cm12_inner(inp, orig_len, false, 13, None, Lens::Plain)
 }
 pub fn decode_cm12_book(inp: &[u8], orig_len: usize, book: &Book) -> Result<Vec<u8>, String> {
-    decode_cm12_inner(inp, orig_len, false, MIX12_LR, Some(book))
+    decode_cm12_inner(inp, orig_len, false, MIX12_LR, Some(book), Lens::Plain)
 }
-fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Option<&Book>) -> Result<Vec<u8>, String> {
+fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Option<&Book>, lens: Lens) -> Result<Vec<u8>, String> {
+    let mut nf = crate::numtext::Field::new();
     let mut rd = RDec::new_wide(inp);
     let mut lm = Box::new(Mix12::new());
     lm.set_lr(lr);
@@ -2664,6 +2724,11 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
     let mut hist: usize = 0;
     while out.len() < orig_len {
         let pos = out.len();
+        let (kk0, kk1) = match lens {
+            Lens::Plain => (0, 0),
+            Lens::Num => (nf.key0(), nf.key1()),
+            Lens::Grid(st, px) => crate::twod::keys(&out, pos, st, px),
+        };
         let prev4 = tail4_11(&out, pos);
         let t8 = tail8_11(&out, pos);
         let mm_pred = lm.mmodel.predicted(&out);
@@ -2677,8 +2742,11 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
         let cx0 = lm.ctx18(prev4, 0, 0);
         let c30 = lm.ctx20(t8, 3, 0, 0);
         let c60 = lm.ctx20(t8, 6, 0, 0);
-        let s10 = lm.ctx_sparse(t8, 0, 0, 0);
-        let s20 = lm.ctx_sparse(t8, 1, 0, 0);
+        let (s10, s20) = if matches!(lens, Lens::Plain) {
+            (lm.ctx_sparse(t8, 0, 0, 0), lm.ctx_sparse(t8, 1, 0, 0))
+        } else {
+            (lm.ctx_key(kk0, 0, 0, 0), lm.ctx_key(kk1, 1, 0, 0))
+        };
         let i10c = lm.ctx_ind1((t8 & 0xff) as u8, 0, 0);
         let i20c = lm.ctx_ind2((t8 & 0xffff) as usize, 0, 0);
         let hi = dec_nib12(&mut rd, &mut lm, mhi, &mut still, hist, cx0, c30, c60, s10, s20, i10c, i20c, mm_pred, &mut malive, 0, am);
@@ -2686,13 +2754,17 @@ fn decode_cm12_inner(inp: &[u8], orig_len: usize, prior: bool, lr: u32, book: Op
         let cx1 = lm.ctx18(prev4, 1, hi);
         let c31 = lm.ctx20(t8, 3, 1, hi);
         let c61 = lm.ctx20(t8, 6, 1, hi);
-        let s11 = lm.ctx_sparse(t8, 0, 1, hi);
-        let s21 = lm.ctx_sparse(t8, 1, 1, hi);
+        let (s11, s21) = if matches!(lens, Lens::Plain) {
+            (lm.ctx_sparse(t8, 0, 1, hi), lm.ctx_sparse(t8, 1, 1, hi))
+        } else {
+            (lm.ctx_key(kk0, 0, 1, hi), lm.ctx_key(kk1, 1, 1, hi))
+        };
         let i11c = lm.ctx_ind1((t8 & 0xff) as u8, 1, hi);
         let i21c = lm.ctx_ind2((t8 & 0xffff) as usize, 1, hi);
         let lo = dec_nib12(&mut rd, &mut lm, mlo, &mut still, hist, cx1, c31, c61, s11, s21, i11c, i21c, mm_pred, &mut malive, 1, am);
         hist = ((hist << 4) | lo as usize) & 0xffff;
         out.push(((hi << 4) | lo) as u8);
+        nf.update(((hi << 4) | lo) as u8);
         lm.byte_update(&out, out.len());
     }
     if std::env::var_os("EGG_STATEHASH").is_some() {

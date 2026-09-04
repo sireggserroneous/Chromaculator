@@ -1521,3 +1521,1327 @@ control that killed it: what the earlier probe measured was context length.
    them intact. **The signature to trust is "no exit", not "no progress", and the
    fix is to kill it and read what it already wrote -- the measurement is not
    lost.**
+
+---
+
+## M3c FILED (2026-09-03, BEFORE ONE LINE of context, scatter, digit or 2D code)
+
+Four levers, in the plan's value order. Each is filed with the plan's range AND
+with a **sharpened reading of my own**, because on two of them the arithmetic of
+the design says something the plan's range does not, and a prediction that
+cannot miss is not a prediction. Both columns get judged.
+
+### The instruments this milestone needs, named before they exist
+
+`EGG_JSTATS=1` -- a coefficient census printed on stderr by the JPEG peel
+(blocks, nonzeros, codings per context class). It is an INSTRUMENT, like
+`EGG_ARMS` and `EGG_PEEL`, not an arm: it prints what the model already walked.
+Filed because the dilution arithmetic below is conditional on a count I do not
+have yet.
+
+### S2a -- the JPEG coefficient contexts, sharpened
+
+**The design.** `mag`'s index (`jcoef.rs:362`) gains the block's running nonzero
+count `nzb` and the quantisation bucket `qb[k]`; `mbits`'s index (`368`) gains
+the two neighbour magnitude buckets `ba`/`bl`. Three places each, exactly as the
+plan names them: the `vec![Pr::new(); ]` line, its doc dimension, and one index
+expression. `walk<C: Coder>` is one routine, so the decoder mirror is free.
+
+Table arithmetic, filed: `mag` 12,288 -> 3*16*4*4*4*4*16 = **196,608** `Pr`;
+`mbits` 12,288 -> 3*16*16*4*4*16 = **196,608**. The model goes 53,544 -> 422,184
+`Pr` = **1,688,736 B**, from ~209 KiB to **1.61 MiB**. Well inside the budget.
+
+| | called |
+|---|---|
+| **the plan's range** | **-1.5% to -4%** of wallpaper.jpg's 1,233,099 modelled values, i.e. 1,233,099 -> **1,183,775 .. 1,214,603** |
+| **my sharpened reading** | **the top half of that range at best, and a real chance of a LOSS on `mag`** |
+
+**Why I am filing against the plan's own range.** Both indices are multiplied by
+**16**. wallpaper.jpg is 432,000 blocks (55,296,000 B / 128) and its coded output
+is 9.86 Mbit, ~22.8 bits per block, which puts the nonzero count at roughly 1.3M
+-- call it O(1M) `mag` codings. Spread over 12,288 contexts that is ~100 codings
+each; spread over 196,608 it is **~6**. `Pr` starts at 32,768 with a
+count-adaptive rate and there is **no mixer in this model** (a deliberate v13-M1
+choice, printed at `jcoef.rs:15-17`), so a context that has seen six bits pays
+for its own ignorance with nothing to fall back on. `mbits` is the safer of the
+two: its codings are the mantissa bits of the same nonzeros, more per symbol.
+
+So, filed separately and each judged:
+
+- **S2a-1 `mag` += (nzb, qb[k]) alone**: called **-0.5% to -2%**, and I give it
+  **one chance in three of LOSING outright**.
+- **S2a-2 `mbits` += (ba, bl) alone**: called **-0.5% to -1.5%**, a loss unlikely.
+- **S2a-3 both together** (the plan's lever): called **-1.0% to -3.0%**, i.e.
+  1,233,099 -> **1,196,106 .. 1,220,769**. **The plan's -4% floor is called as
+  OUT OF REACH without a mixer or a count-gated fallback.**
+- If the plain form misses low, the diagnosis is dilution and the answer named
+  in advance is a **count gate** (fall back to the coarse context while the fine
+  one is cold), which is a SECOND lever and gets its own filed line before it is
+  written.
+
+**Decoder-legality, restated as the gate:** every added input (`nzb`, `qb[k]`,
+`ba`, `bl`) is a value the decode direction already holds -- the running count of
+this block's nonzeros, the quantisation table from the recipe, and coefficients
+in the left/above blocks, which are complete before this block starts. Nothing
+derived from `v`, `want_d` or `want_m` may enter. The round trip on
+wallpaper.jpg plus the 60-file JPEG suite is the proof.
+
+### S2b -- the MCU sub-stream scatter
+
+Source: `spectrometer.html:464-466` -- disjoint regions summed independently,
+every symbol carrying its index `s.i`, so the merge is exact.
+
+**A CORRECTION TO THE PLAN, filed before the code and testable:** a scatter that
+is only a **re-ordering** of the same decisions over the same contexts is
+**provably free**. Each `Pr` counter sees its own observations in the same
+relative order whichever way the file is walked, and an arithmetic coder's length
+is the sum of `-log2(p)` at each event, so permuting the events globally changes
+nothing but the flush. Our peel **already** scatters per component: `encode`
+(`jcoef.rs:397-404`) walks whole component planes, not the MCU interleave, and
+`cc` already separates their contexts. **A band-order rewrite of the same model
+is therefore called at 0.00% +- one byte of coder flush**, and I will measure it
+as the CONTROL before building anything on top of it.
+
+**What the scatter can actually buy, and the arm that is being built:** an order
+that makes a context LEGAL which was not legal before. Three passes per plane
+instead of one:
+
+- pass A codes the `last` plane for every block;
+- pass B codes the DC plane, and may now see `last` at the block to the RIGHT
+  and BELOW;
+- pass C codes the ACs, and may now see the DC and `last` of RIGHT and BELOW.
+
+That is a two-sided activity estimate where today the model has a one-sided one.
+
+| | called |
+|---|---|
+| the plan's range | **-0.5% to -2%** |
+| my sharpened reading | **the re-order alone: 0.00%. The new contexts: -0.3% to -1.5%** |
+
+Kept only alongside S2a, since they share the context machinery.
+
+### S2c -- the field split for numbers spelled as digits (WS-N)
+
+Target `embeddings.json` (corpus-fmt, 15,801,527 B; 1,275,904 float literals,
+91.1% digits). A NEW ROSTER ARM, `MODEL_NUM` (**27**, the next free id after
+`MODEL_DRECIPE` 26), in a new `src/numtext.rs`: bytes in, bytes out, byte-exact,
+**contexts not a peel**. The text is parsed as it is coded -- sign, integer part,
+fraction, exponent, digit position within the field, the field's index inside its
+array, and **the aligned digit of the previous value in the same array position**
+-- and those become model contexts. Encoder and decoder are ONE routine through a
+`Coder` trait, `jcoef.rs`'s shape, so the two sides cannot drift.
+
+| | called |
+|---|---|
+| the plan's range | **-3% to -10%** of 4,687,145, i.e. **140,614 .. 468,714 B** |
+| my sharpened reading | **-2% to -8%**; the arm wins the row or it is deleted |
+
+Measured support already on the record: re-spelling 400,000 literals as raw f32
+costs 1,391,012 against the text's 1,654,648, **-15.9%** under a generic coder --
+but that is a peel's number, not a model's, and a model that must emit the digits
+back cannot collect all of it.
+
+**The ship rule, filed:** the arm ships only if it wins `embeddings.json`'s row on
+the ARMORED total through the ordinary argmin, and costs **zero bytes** on all
+twenty sealed rows (it is one more roster entrant; an entrant that loses is free).
+Called: **it is nominated on `embeddings.json` and on `data.csv`, and wins
+nowhere in the sealed twenty.**
+
+### S2d -- the second dimension (WS-2D)
+
+A NEW ROSTER ARM, `MODEL_2D` (**28**), in a new `src/twod.rs`: a bitwise CM whose
+contexts are the byte one PIXEL to the left, one ROW above, above-left and
+above-right, plus the channel phase -- the stride and pixel size MEASURED by the
+encoder and carried in the arm's own stream header, so the decoder reads them
+rather than guessing. `iconcache48.db` is 10,526 raw 48x48 BGRA bitmaps: stride
+192, pixel 4.
+
+**Why this is not the transpose that died at M3b, and not the lattice either:**
+the transpose reordered the BYTES and threw local context away; the lattice
+(`mix12.rs:363-364`, two of the twelve mixer inputs) reads down ONE learned
+stride and keeps local context but never forms the JOINT context (above, left,
+above-left) that every lossless image coder is built on. This arm forms it.
+
+| | called |
+|---|---|
+| the plan's range | **-5% to -15%** of that row's 413,511 B inner |
+| my sharpened reading | **-4% to -12%**, and `real-test.bmp` moves too: **-2% to -10%** of its 256,462 |
+
+**The ship rule, same as S2c:** it wins a row on the armored total or it is
+deleted. Called: **nominated on `iconcache48.db`, `real-test.bmp` and
+`photo.bin`; wins on the first two.**
+
+### The M3c gate
+
+One lever at a time; the JPEG rows re-measured on every jcoef change plus the
+60-file conservation suite; a 20-row ledger (IN GROUPS -- 12 small in one pass,
+the big rows in pairs, the save and the monster alone) before the milestone
+closes; every filed range printed beside its measurement; **no row heavier than
+its M3b total**; injuries 3x20 EXACT; clippy clean, `cargo test --release` green,
+`node tools/drills.js` green.
+
+## S2a MEASURED (2026-09-03) -- the plan's lever, and both filed ranges MISS
+
+`wallpaper.jpg`, the modelled values, baseline **1,233,099 B**. Every variant is
+the same build with one index expression changed; the census prints the table.
+
+| variant | values | vs baseline | |
+|---|---|---|---|
+| baseline (M3b) | 1,233,099 | -- | |
+| **S2a-1 `mag` += (nzb, qb[k])** | **1,228,151** | **-4,948 = -0.401%** | |
+| S2a-1a `mag` += nzb ALONE | **1,228,137** | **-4,962 = -0.402%** | **the best form** |
+| S2a-1b `mag` += qb[k] ALONE | 1,233,113 | **+14 = a LOSS** | |
+| **S2a-2 `mbits` += (ba, bl)** | 1,234,092 | **+993 = +0.081%, a LOSS** | |
+| **S2a-3 both** (the plan's lever) | 1,229,144 | **-3,955 = -0.321%** | |
+
+**Both filed ranges MISS, and by a wide margin:**
+
+| | filed | measured | verdict |
+|---|---|---|---|
+| the plan's range for the lever | -1.5% to -4% | **-0.321%** | **MISS**, low by 4.7x |
+| my re-filed range (after the census) | -1.5% to -4% | **-0.321%** | **MISS**, the same |
+| my ORIGINAL sharpened reading | "the top half at best, and a real chance of a LOSS on `mag`" | mag WINS, `mbits` LOSES | **half right, and right about the wrong table** |
+| "`qb[k]` may be redundant with `kb`" (filed as the loss risk) | -- | **+14 B: it is worth nothing at all** | **HIT** |
+
+**What the measurement says, and it is worth more than the bytes.**
+
+1. **The whole of S2a is `nzb`.** Adding the block's running nonzero count to
+   `mag` is -4,962 B; the quantisation bucket on top of it is +14 B. `qb[k]` is
+   already known: the quantisation table is very nearly a function of the band
+   on any ordinary encoder, and `kb` is the band. The plan named two inputs and
+   one of them was already in the model under another name.
+2. **`mbits` does not want neighbours.** It LOST 993 B. Those are the mantissa
+   bits below the leading one of a coefficient whose magnitude class is already
+   coded; conditioned on the class they are close to uniform, and the only thing
+   a 16x wider table buys is 16x colder counters. The report that named this gap
+   ("no neighbours at all") read a hole that is not a hole.
+3. **This model is not context-starved. It is architecture-limited.** -0.4% is
+   what a whole new context input is worth here. The distance to packJPG/Lepton
+   (22-25% off the entropy coding against our 17.2%) is not another index term.
+
+**The speed reading that decides what CAN be built**, measured on the same row:
+the roster on the raw JPEG takes **4,528 ms** and the whole row with the peel
+takes **4,749 ms**, so `peel_arm` runs BESIDE the roster and is at parity with
+it, not hidden under it. A mixer in `jcoef` would multiply its work by 2-3x and
+put the row at 9-14 s, i.e. **0.11-0.17 MB/s, under the 0.25 MB/s house floor**.
+**The M1 decision to ship without a mixer is re-confirmed by measurement, not by
+memory.**
+
+---
+
+## S2a-4 FILED (2026-09-03, BEFORE the code) -- three contexts the measurement points at
+
+Filed because S2a's own result names them: the win came from a context about the
+BLOCK's state, and the losses came from wider tables over the same neighbours.
+
+- **(a) `nz` += `how far from the end`**, the bucket of `last - k`. `nz` is the
+  single most-coded decision in the model (one per position from 1 to `last` in
+  every block) and its context carries the ABSOLUTE band `kb` but nothing about
+  the distance to the block's own last nonzero, which the decoder holds before
+  the loop starts. Called: **-0.5% to -2.0%**.
+- **(b) `mag` += `lbucket(last)`**, the block's activity. Called: **-0.1% to
+  -0.6%**.
+- **(c) THE COUNT GATE**, the answer named in advance at M3c-filing for exactly
+  the failure `mbits` just showed: a fine context whose counter has seen fewer
+  than `GATE` observations codes against the COARSE counter instead, and both
+  update. It is one branch per decision, no mixer, no stretch, no squash -- it
+  stays inside the speed floor. Called: **it turns `mbits`'s +993 B loss into
+  -0.0% to -0.5%**, and is worth **-0.0% to -0.3%** on `mag`.
+
+If (c) fails to rescue `mbits`, `mbits` keeps its M1 index and the neighbours are
+DELETED from it -- the loss is the finding.
+
+## S2a-4 MEASURED (2026-09-03) -- the block's own shape is the context, and the gate is what pays for it
+
+Every row is `wallpaper.jpg`'s modelled values, one build per line, the same
+input, the census printing the table each time.
+
+| build | values | vs M3b | vs the line above |
+|---|---|---|---|
+| M3b baseline | 1,233,099 | -- | |
+| `mag` += nzb (S2a-1a, the only surviving part of the plan's lever) | 1,228,137 | -4,962 (-0.40%) | -4,962 |
+| **+ (a) `nz` += `lbucket(last - k)`** | 1,209,822 | -23,277 (-1.89%) | **-18,315** |
+| **+ (b) `mag` += `lbucket(last)`** | 1,173,656 | -59,443 (-4.82%) | **-36,166** |
+| + (d) the running count widened 4 -> 8 steps | 1,171,715 | -61,384 | -1,941 |
+| + (f) the neighbour buckets widened 4 -> 8 steps | 1,169,875 | -63,224 | -1,840 |
+| **+ (c) THE COUNT GATE, proportional, KGATE = 4** | 1,159,378 | -73,721 | **-10,497** |
+| **+ `mbits` += (ba, bl), behind the gate** | **1,157,567** | **-75,532 = -6.126%** | **-1,811** |
+
+**The whole 60-file JPEG suite, M3b build against M3c build, same tool, same
+lanes: 40 peeled rows, values 25,731,725 -> 24,896,039, `-835,686 = -3.248%`,
+and ROWS NOT IMPROVED: 0.** The suite gains half of what `wallpaper.jpg` gains
+because most of its files are a third the size and fine contexts need data --
+which is the honest shape of this lever and is printed rather than averaged
+away. 60 of 60 EXACT, 0 LOST, 0 WRONG; the 17 refusals are the same 17.
+
+### The filed ranges, judged
+
+| filed | measured | verdict |
+|---|---|---|
+| S2a-4(a) `nz` += distance-to-end: **-0.5% to -2.0%** | **-1.49%** (marginal, on its own base) | **HIT** |
+| S2a-4(b) `mag` += block activity: **-0.1% to -0.6%** | **-2.95%** (marginal) | **MISS, high by 5x** |
+| S2a-4(c) the gate rescues `mbits` from +993 B to -0.0%..-0.5% | **+993 B -> -1,811 B**, a 2,804 B swing | **HIT** |
+| S2a-4(c) the gate is worth -0.0% to -0.3% on the rest | **-10,497 B = -0.90%** | **MISS, high by 3x** |
+| the plan's S2a range for the milestone: **-1.5% to -4%** | **-6.126%** | **MISS -- the milestone beat it** |
+| "the plan's -4% floor is out of reach without a mixer or a count gate" | -6.126%, **with** a count gate and **without** a mixer | **HIT, and it named the mechanism** |
+
+### THE BUG THIS MILESTONE ALMOST SHIPPED A VERDICT ON
+
+The count gate was measured THREE TIMES and the first two readings were both
+wrong, in opposite directions, from one line:
+
+```rust
+let p = c.p as i32 + (((f.p as i32 - c.p as i32) * w) >> 16);
+```
+
+`f.p - c.p` reaches +-65,408 and `w` reaches 65,536: the product is 4.29e9 and
+**overflows i32, wrapping silently in release**. The first reading said the
+proportional blend LOSES 107,417 B; I wrote that down as a mechanism ("averaging
+a locked 0.999 against a 0.9 parent"), switched to a hard step, and the hard
+step measured worse still -- 1,327,282 at KGATE=1, and *more* coarse measured
+*better*, which is the opposite of what a gate can do.
+
+**The control that caught it was KGATE = 0**, which makes the gate a no-op and
+must therefore reproduce the ungated build TO THE BYTE. It read 1,332,991
+against 1,169,875. The mechanism I had written down was fiction; the arithmetic
+was the fault. With `i64` the same control reproduces 1,169,875 exactly, and the
+proportional law then beats the hard step at every threshold (1,159,378 against
+1,162,201 at their respective bests).
+
+**The lesson, and it is a house lesson, not a JPEG one: a measurement that
+disagrees with the mechanism is not a finding until a control says the
+instrument works.** I published a mechanism for a wrapped multiply.
+
+### What DIED at S2a, printed
+
+- `qb[k]` in `mag`: **+14 B**. The quantisation table is very nearly a function
+  of the band and the band was already in the index.
+- `(ba, bl)` in `mbits` UNGATED: **+993 B**. It survives only behind the gate.
+- the block's DC magnitude class in the `last` context: **+92 B**.
+- `nz` += `lbucket(last)` on top of the distance: **-343 B for an 8x nz table**
+  (786,432 -> 6,291,456 contexts, +22 MB of counters). Refused on price.
+
+### The clock, and the mixer refused again
+
+`wallpaper.jpg` at M3c: **4,677 ms, 0.343 MB/s SOLO**, against M3b's 4,626 ms.
+The model grew from 214,176 B of counters to 19,027,104 B and the row did not
+slow measurably, because `peel_arm` runs beside the roster and the roster is the
+critical path. A mixer was priced against that clock and refused: 2-3x the model
+work puts the row at 0.11-0.17 MB/s, under the 0.25 MB/s house floor.
+
+`cargo clippy --all-targets -- -D warnings` clean; `cargo test --release` **35
+passed** including `jcoef::tests::coefficients_round_trip` and
+`jpeg::tests::corpus_jpeg_round_trips_byte_exact`.
+
+### S2b CORRECTION, filed BEFORE the band-order code
+
+My "provably free" claim for a pure re-ordering is **too strong, and I can say
+exactly where it breaks**. The proof requires each counter to see its own
+observations in the SAME RELATIVE ORDER either way. That holds for a context
+that pins the band exactly (`kbucket` 0..7 are the single positions k = 1..8),
+and it FAILS for every bucketed tail: `kbucket` 15 covers k = 48..63, so in
+block order the events arrive block-by-block and in band order they arrive
+band-by-band, and a count-adaptive counter is order-sensitive.
+
+**Re-filed, before the code: the re-order alone lands in `+-0.3%`, not at
+0.00%.** The sign is not called. If it lands outside that band, the miss is
+printed and the cause is a context I have not accounted for, not the flush.
+
+## M3a FILED (2026-09-03 17:25, BEFORE ONE LINE of the refusal fix)
+
+Source of the bug: `wubbadub.html:663-666`, the site's own canonicalisation rule
+-- *"0,+1 is the same number as 1,-1 and 0,-1 is the same as -1,1, so a pushed
+card should have no 0,+-1 pair left anywhere -- not in its operand, and not in
+its result."* Canonicalise ambiguity and RECORD it; do not refuse it.
+
+`src/deflate.rs:373-379` does the opposite. RFC 1951 allows a 258-byte match two
+legal spellings -- length symbol 285 (LBASE 258, 0 extra bits) and symbol 284
+(LBASE 227, 5 extra bits, value 31). The peel refuses the WHOLE FILE when it
+meets the second: *"a 258-byte match spelled with symbol 284: the recipe stores
+lengths, not spellings"*. That is a shipped refusal on legal deflate, and it was
+found by a probe, not by a gate.
+
+### The design being predicted
+
+A **sparse fifth stream**: the recipe records the INDEX (into the match
+sequence) of every 258-match that used the 284 spelling, as a u32 each. The
+flags stream has no spare room (exactly one bit per token) and the three
+alternatives were rejected with reasons, measured or arithmetic:
+
+- widening flags to a bit per MATCH costs +3.2 MB raw on the save (25,661,244
+  matches) and destroys the byte periodicity the roster arm exploits;
+- stealing bit 15 of `dists` by storing `dist-1` is free in size but breaks the
+  distance-sequence repetition MIX12 wins that section on;
+- `lens` has no spare values: all 256 are in use for lengths 3..=258.
+
+Sparse costs FOUR bytes per occurrence and, on a file with none, exactly
+**nothing but a section-table entry**.
+
+### FILED
+
+| quantity | FILED |
+|---|---|
+| a CONSTRUCTED gzip using the 284 spelling peels where it previously refused, and re-spells **BIT FOR BIT** | **YES** -- or the fix is not a fix |
+| the fifth stream's coded size on `aoe4-autosave.sav` | **under 200 B** against a 3,505,430 B recipe (this corpus is expected to hold **zero** 284 spellings, so the real cost is the section table alone) |
+| `aoe4-autosave.sav`'s armored total | moves by **less than 0.01%** of 8,759,069, i.e. by less than 876 B |
+| the other NINETEEN rows | **byte-identical**, every one -- no other row takes a deflate peel |
+| coverage gain on this corpus | **NOT MEASURABLE.** No file in the 20 rows, the 42-file deflate suite or the 60-file JPEG suite is expected to use the 284 form. The gain must be shown on a constructed file or it is not shown at all |
+| **if any row moves more than 0.05%** | something else changed, and the **miss is printed with its cause** |
+
+Surgery, named in advance so a silent divergence is visible: `HDR`
+(`deflate.rs:903`) 48 -> 52; `blob_len`; `blob`; `Layout`; `layout()` including
+the strict terminal check at 1019-1021; `from_blob`; and on the model side
+`secs` (`main.rs:187`), the `out.push(4u8)` literal (204), the capacity hint
+(203) and the `n != 4` guard (221). `decode_drecipe`'s loop is already generic
+over `n` and gives the new stream its own roster winner for free.
+
+## M3b FILED (2026-09-03 17:25, BEFORE ONE LINE of transpose, gcd or bit-period code)
+
+Three readings are in limbo because verdicts were published from PROBES. A probe
+is one instrument, one shot, no competition. Each of the three now either wins
+somewhere and STAYS, or loses everywhere and is **DELETED** with its prediction
+printed beside the measurement. Vladimir's ruling, 2026-09-03: nothing ships
+dormant, no shelving.
+
+### S1a -- the transpose, as filter id 15
+
+Source: `wubx.html:393-395`, *"the long way round is the row width; the short way
+is the runs of like colour, read row by row. Transposing the rectangle re-reads
+it"*; the scoring rule is `wubx.html:380`, which counts the runs under a reading.
+Blosc takes its stride from a declared type size; **this page takes it by
+measuring**, and that is the only novel part.
+
+Built as filter id 15, length-preserving (transpose the largest `m*s` prefix,
+pass the tail remainder through), param = the stride, composed INSIDE one id in
+the `ms1_apply` pattern so the single `filter_id` header byte is untouched.
+Strides proposed: {2,3,4,6,8,12,16,24,32,48,64} plus anything `sniff` already
+knows, scored by the page's own run count before the trial so the roster is not
+flooded.
+
+**FILED PREDICTION: it loses on 20 of 20 and is DELETED.** Reason, measured:
+under xz it wins big (real-test.bmp -86.45% at stride 3, ring01 -18.43% and
+alarm01 -15.61% at stride 4) and under OUR model it loses badly --
+248,050 -> 272,456, 130,753 -> 188,338, and 256,462 -> **3,603,901**, a 14x
+loss. The cause is that `mix12.rs` already carries the LATTICE (`lat1s`/`lat2s`,
+allocated at `mix12.rs:363-364`, claimed at 436/439, two of the 12 mixer inputs
+at `mix12.rs:45`), which reads down a learned stride WITHOUT reordering the
+bytes, so it keeps local context too; transposing throws the local context away
+to buy what the lattice already provides. **The one place I expect to be
+surprised** is real-test.bmp composed with the existing image handling rather
+than instead of it. **If any row wins, the win is kept and this prediction is
+printed as the miss.**
+
+### S1b -- the gcd, per block and after deltas
+
+Source: `wub.html:322-326`, *"reducing the two rates by their gcd makes them
+coprime"*. Whole-file gcd is settled at 1 on all 23 rows at 8/16/32 bits and
+that stands. Untested, and the reason it is not yet dead: the gcd of a BLOCK,
+and the gcd of the DELTA stream, which is where quantised data actually carries
+a common factor. Measured per 64 KB block at 8/16/32 bits, before and after each
+existing filter.
+
+**FILED PREDICTION: gcd > 1 on fewer than 1% of blocks corpus-wide, and on no
+block of any row whose form we already win.** Ship only if some row's summed
+free bits exceed its recipe cost (one factor per block). Otherwise DELETED with
+this printed beside the number.
+
+### S1c -- the bit period, at order 1 and per region
+
+The earlier probe used order-0 entropy per width plus bit autocorrelation, on 5
+rows, 16 MB sampled. It cannot see structure living at order-1 in a 12-bit
+symbol space, and it averaged whole files, which hides a container packing
+differently per section. Redone with **order-1 conditional entropy per candidate
+width, per 1 MB region**.
+
+**FILED PREDICTION: no region of any row shows a non-multiple-of-8 width beating
+the byte reading by more than 1%.** `rdr2-shaders.vkcache` is the row to watch
+and the row I expect to stay flat: its bit autocorrelation is 0.504 at every lag
+from 1 to 512, and 79.5% of its 4 KB windows sit above 7.9 bits/byte. If no
+region beats bytes, there is nothing for a peel to take and the reading is
+DELETED with this printed beside the number.
+
+### The M3b gate
+
+A 20-row ledger (run in GROUPS -- the 8-lane pass hung twice on 2026-09-03) with
+every SURVIVING arm live; each of the three either wins somewhere and stays, or
+loses everywhere and is DELETED with its prediction printed beside the
+measurement. Injuries 3x20 EXACT. Ratchet: no row heavier than its M2 total.
+
+## S2b MEASURED (2026-09-03) -- the scatter, and BOTH of my claims about it were wrong
+
+The walk was rebuilt as three passes over each component plane -- pass A the
+last-nonzero plane, pass B the DC plane, pass C the ACs band by band -- and the
+control was measured before anything was built on top of it.
+
+| build | values | vs the line above |
+|---|---|---|
+| S2a final (block order) | 1,157,567 | -- |
+| **the CONTROL: band order, the SAME contexts, nothing added** | **1,146,007** | **-11,560 = -0.999%** |
+| + the DC reads its own block's `last` (pass A -> pass B) | 1,139,922 | -6,085 |
+| + the AC SIGN reads the two-sided DC GRADIENT (pass B -> pass C) | 1,122,685 | **-17,237** |
+| + that gradient at 9 signed steps instead of 3 | **1,121,398** | -1,287 |
+
+**S2b total: -36,169 B = -3.124%. M3c total on this row so far: 1,233,099 ->
+1,121,398 = -111,701 = -9.058%.**
+
+### Both filed claims MISSED, and the second one was mine twice over
+
+| filed | measured | verdict |
+|---|---|---|
+| "a scatter that is only a RE-ORDERING is **provably free**" (M3c filing) | **-11,560 B** | **MISS** |
+| the correction: "the re-order alone lands in **+-0.3%**" (filed before the code) | **-0.999%** | **MISS**, by 3.3x |
+| the plan's S2b range: **-0.5% to -2%** | **-3.124%** | **MISS -- the milestone beat it** |
+| my sharpened reading: "the new contexts: -0.3% to -1.5%" | **-2.14%** (the two contexts, marginal) | **MISS**, high |
+
+**Why the re-order is not free, which is the finding.** My proof required each
+counter to see its own observations in the same relative order either way. I
+corrected it once (bucketed bands break the order) and still called the effect
+`+-0.3%`. The real mechanism is bigger than the correction: `Pr` is
+count-adaptive with `n` capped at NLIMIT = 127, so it TRACKS rather than
+averages. In band order a context like `kbucket` 15 (k = 48..63) sees all of
+k=48, then all of k=49, and specialises to one k at a time. **The ordering acts
+as a soft extra context dimension, for free, and it is worth a full percent.**
+A memoryless coder would have been indifferent; ours is not, and that is a
+property of the counter, not of the JPEG.
+
+### What the scatter actually bought, and it is one context
+
+The two-sided DC gradient on the AC SIGN is **-17,237 B on its own** -- the
+single biggest context in this model after the block's own `last`. AC signs were
+the least compressible thing here (1,608,209 of them, one bit each, modelled by
+432 contexts), and they are **not** random: the sign of a low-band AC follows the
+DC gradient ACROSS the block, which needs the DC to the RIGHT and BELOW. A
+block-order walk can never have those. That is what the scatter is for.
+
+Resolution sweep on that gradient, both directions: 3 steps 1,122,685; 5 steps
+1,121,678; 7 steps 1,121,549; **9 steps 1,121,398**.
+
+### What DIED at S2b, printed
+
+- the coarse parents of `nz` and `mag` reading right/below `last`: **-24 B** for
+  an 8x coarse table. Refused on price.
+- the DC reading right/below `last` on top of its own: **+613 B**. A loss.
+- the gradient as an ACTIVITY in `mag`'s fine context: **-275 B** for a 4x `mag`
+  table (196,608 -> 786,432 contexts, +50 MB of counters). Refused on price,
+  the same rule that refused `nz += lbucket(last)` at S2a.
+
+### The row, and the suite
+
+| | bytes |
+|---|---|
+| wallpaper.jpg | 1,602,752 (entropy-coded 1,602,311) |
+| values | **1,121,398** |
+| inner | 1,121,685 |
+| **armored total** | **1,126,497** |
+| against the entropy coding | **-475,814 = 29.70% off** |
+| against v12 on the same row (1,513,903) | **-387,406** |
+| against the SEALED v11 (1,533,228) | **-406,731** |
+| speed SOLO | 4,615 ms, **0.347 MB/s** -- above the 0.25 floor, and FASTER than M3b's 4,626 ms |
+
+**The plan's target for this row was "toward packJPG/Lepton's 22-25%". The row is
+at 29.70% off the entropy coding.** That is a claim about our number, not about
+theirs: neither packJPG nor Lepton has been run on this file in this house, and
+until they are, 22-25% is a remembered figure and nothing more. **They are on
+v14's challengers card and that is where the comparison belongs.**
+
+The 60-file conservation suite on the final build: **40 peeled rows,
+25,731,725 -> 24,380,500 = -1,351,225 = -5.251%, ROWS NOT IMPROVED: 0**, and
+60 of 60 EXACT, 0 LOST, 0 WRONG, the same 17 refusals with the same reasons.
+`cargo clippy --all-targets -- -D warnings` clean, `cargo test --release` 35
+passed.
+
+## M3d FILED (2026-09-03, BEFORE ONE LINE of prober, chain or arena code)
+
+### THE SCOPE DECISION, stated before the predictions so they can be judged
+
+The plan's second arena names "real ZIPs and DOCXs". Reading the tree to design
+against it: `deflate::peel` carries ONE member and a wrap (`WRAP_RAW`,
+`WRAP_GZIP`, `WRAP_PNG`, `WRAP_ZLIB`), with `pre`/`segs`/`tail` for the
+container skeleton, and `peel::Peeled` carries ONE `Option<Deflate>` and ONE
+values stream. **A ZIP is N INDEPENDENT deflate members**, and a DOCX is a ZIP:
+reading one needs a peel that holds a VECTOR of members and a skeleton that
+interleaves them. That is a new peel id and a change to the peel frame itself,
+and it is not a milestone I can land and prove inside M3d beside the ledger and
+the seal.
+
+**So it is NOT BEING BUILT, and it is named here rather than discovered
+missing.** What M3d builds instead:
+
+- **S3a the prober**, as the plan specifies it -- layout arithmetic, and
+  **null, not a guess** -- shipped as an INSTRUMENT (`eggv13 members <file>`)
+  that reads a ZIP's central directory and prints every member's offset,
+  length, method and name. It is the thing the ZIP peel would be built on, and
+  it is the thing that says whether the arena's files are worth a peel at all.
+- **S3b the chain**, depth 2: when a peel's values are BYTES and those bytes
+  themselves nominate a peel, peel them too. That is the reading exactly -- the
+  quotient handed down as the next dividend, each step's recipe sealed where it
+  was made.
+- **The second arena**, reported apart from the sealed 20 + 3.
+
+**The ZIP container peel is v14's line, and this is its brief:** the prober's
+output is the member table; the peel is N `deflate::peel` calls plus a skeleton;
+the law is unchanged.
+
+### S3a -- the offset-to-member prober
+
+Source: `atlas.html:355-356` and `461-462`.
+
+**The measured facts this is designed against:** the sealed corpus's only
+embedded member is a 72,024 B PNG inside `notepad.exe` at offset 244,808, and
+extracted and run standalone it wins nothing (75,904 B armored either way).
+`deflate::looks_like_deflate` returns **true with no further check** for block
+type 1, so 9 of our 20 rows already take a real peel attempt that fails; a
+prober that nominates MORE offsets makes that worse unless it is cheap and
+certain -- which is why it reads a DECLARED layout and refuses to guess.
+
+**FILED: no row of the sealed twenty moves by a single byte**, because the
+prober is an instrument and touches no arm. If a sealed row moves at all, the
+miss is printed.
+
+### S3b -- the chain
+
+Source: `wubdiv.html:371-375`.
+
+**FILED: no row of the sealed corpus moves**, because no row has a member inside
+a member -- and the guard that made nesting depth 1 is `main.rs:145-147` /
+`159-161`, so the change is visible and bounded. **On a constructed
+`something.jpg.gz` the chain must reach DEPTH 2 and restore EXACT**, and that
+constructed file is the proof; without it the chain is a claim.
+
+### The second arena
+
+Built on the model of `tools/deflatesuite.js` (LOST must be zero and WRONG must
+be zero). Members: real ZIPs and DOCXs from `C:\Users\vcepe\Downloads`, a PDF, a
+GIF, a multi-member gzip, the constructed 284-spelling file from M3a, and the
+constructed chain file.
+
+**FILED for the arena, and calibrated to what is actually being built:**
+
+- every member is EXACT or cleanly refused with a printed reason -- **0 LOST,
+  0 WRONG**;
+- **the ZIP and DOCX rows are REFUSED-AND-KEPT**, because no ZIP peel exists;
+  they are in the arena to hold the place the v14 brief will fill and to prove
+  the prober can read them;
+- **the chain reaches depth 2** on the constructed member;
+- **the arena's total moves by less than 2%** against the same files' M3b
+  totals. Anything more would mean a peel fired where I said none would.
+
+## S2c MEASURED (2026-09-03) -- WS-N, the field split. IT SHIPS.
+
+`MODEL_NUM` (27), `src/numtext.rs` plus one new door in `mix12.rs`. The design
+that landed is smaller than the one filed and it is worth saying why: rather
+than a new model, the arm is **the shipped CM12 with its two SPARSE inputs
+re-pointed** at the number field tracker. Everything else -- the twelve-input
+mixer, the match model, the APM, the hashed buckets with their check bytes --
+is v12's, verbatim. `Lens::Plain` reproduces CM12 **to the byte**, and that is
+the control: three non-numeric rows (kernel32.dll, wubbadub.html,
+vim-version9.txt) produce **byte-identical containers** on the new build.
+
+The two keys, both read from bytes already coded:
+
+- **key0, the SHAPE** -- which field (outside / integer / fraction / exponent),
+  how far into it, the sign, how long the integer part was, which number of the
+  row this is, and the byte just coded;
+- **key1, the ALIGNMENT** -- **the digit at the same position of the PREVIOUS
+  number**, which is the reading (`wubdiv.html:1184`, `:392-393`: values
+  incomparable at their native magnitudes become comparable once scale is
+  stripped into its own stream).
+
+### The row
+
+| | bytes |
+|---|---|
+| `embeddings.json` | 15,801,527 (1,275,904 float literals, 91.1% digits) |
+| M3b's winner: CM12H | 4,682,333 inner -> **4,687,145 armored** |
+| **NUM** | **4,498,425 inner -> 4,503,237 armored** |
+| | **-183,908 = -3.93%** |
+
+The full roster on that row: **NUM=4,498,425**, 2D=4,552,999, CM12H=4,682,333,
+CM12=4,685,167, MIX12=5,438,657, CM11=4,928,558, MIX11=5,517,709.
+
+| filed | measured | verdict |
+|---|---|---|
+| the plan's range **-3% to -10%** (140,614 .. 468,714 B) | **-183,908 B = -3.93%** | **HIT** |
+| my sharpened **-2% to -8%** | -3.93% | **HIT** |
+| "nominated on `embeddings.json` and on `data.csv`, wins nowhere in the sealed twenty" | nominated on both, **WINS both**; `data.csv` 664,251 -> **652,158 = -1.82%** | **HIT on the nomination, and it wins one more row than called** |
+
+## S2d MEASURED (2026-09-03) -- WS-2D. IT SHIPS, AND EVERY ROW I NAMED WAS WRONG.
+
+`MODEL_2D` (28), `src/twod.rs`. Same shape as WS-N: the two sparse inputs of
+CM12 re-pointed, this time at `(above, left-pixel, above-left, above-right,
+phase)`. The stride and pixel are MEASURED -- a distance-to-last-identical-four-
+bytes histogram, O(n), then the smallest divisor of the argmax that still
+carries a third of its count, which is how the row is found rather than the
+frame -- and they ride in the arm's own five-byte header so the decoder reads
+them and never guesses.
+
+### The rows I named, and what they did
+
+| row | filed | measured | verdict |
+|---|---|---|---|
+| `iconcache48.db` | **-4% to -12%** of 413,511 | 2D=**451,661** against MIX12's **413,511**. The row does not move. | **MISS** |
+| `real-test.bmp` | **-2% to -10%** of 256,462 | 2D wins the PLAIN sub-roster (3,602,881 vs 3,606,660) and the row is won by a FILTERED form at 256,462. The row does not move. | **MISS** |
+| `photo.bin` | "nominated" | **not nominated** -- the hunt finds no rectangle in random data | **MISS**, and the right kind |
+
+### The row it actually wins, which I never named
+
+| row | form | M3b | M3c | |
+|---|---|---|---|---|
+| **`alarm01.wav`** | filtered 14:2 | CM12 **248,050** | **2D 235,196** | **-12,854 = -5.18%** |
+
+**The second dimension is not the image. It is the AUDIO FRAME.** After the
+order-2 W16 filter the residue is stereo 16-bit samples, the stride hunt finds
+the frame, and "the byte one pixel to the left" becomes *the same byte of the
+previous sample in the same channel* -- which is exactly the context an audio
+coder wants and which no arm in this house had. `ring01.wav` misses the same win
+by **192 B** (2D 130,945 against CM12 130,753 on its filtered form).
+
+**Why `iconcache48.db` refuses it, and this is the finding worth more than the
+bytes:** 97,517,568 B goes to 413,511 -- a ratio of 236 to 1. That redundancy is
+not two-dimensional at all, it is **whole duplicate icons**, and the arm that
+reads it is the LZ match model in MIX12. A 2D context model can only ever
+predict a pixel from its neighbours; it cannot say "this entire 9,216-byte icon
+appeared before". The reading was right that the file is a rectangle and wrong
+about where its redundancy lives.
+
+Also measured, and printed because they are the honest cost of an entrant:
+`kernel32.dll` 2D=297,069 against CM12-PE's 284,319; `segoeui.ttf` 2D=408,943
+against CM12-TTF's 404,871. The arm is nominated on both and passed over, which
+costs one parallel CM pass on each.
+
+## M3d MEASURED (2026-09-03) -- the chain is the milestone, and the prober reads a DOCX
+
+### S3b THE CHAIN -- built, proved, and it is worth 20% of a row
+
+A gzip of a JPEG, constructed for the purpose (`corpus-arena/chain-jpeg.gz`,
+920,124 B: `corpus-jpeg/win_Wallpaper_ThemeB_img26.jpg` through python gzip -6):
+
+```
+  peel 2: THE CHAIN took depth 2 -- values 896727 B -> 705625 B
+  peel 2: recipe 151071 B -> 28803 B (model 26); values 985873 B raw -> 705625 B (model 24)
+  round-trip verified in memory before write
+  restored 920135 B, conservation hash OK
+```
+
+| build | armored total |
+|---|---|
+| the M3c build, no chain | **925,446** -- *heavier than the input* |
+| the M3d build, chain at depth 2 | **739,255** |
+| | **-186,191 = -20.12%** |
+
+**And the restore is EXACT.** Without the chain the deflate peel fires, hands
+the roster a JPEG, and the roster cannot read a JPEG -- so the argmin keeps the
+raw gzip and the row lands at 100.58% of its input. With the chain the inner
+peel reads the coefficients underneath the Huffman underneath the deflate.
+
+That is the reading exactly (`wubdiv.html:371-375`): the quotient handed down as
+the next dividend, each step's recipe sealed where it was made. Depth is ONE
+constant, `PEEL_DEPTH_MAX`, read by both directions, and depth 3 refuses with a
+number.
+
+### S3a THE PROBER -- `eggv13 members`, and it says null
+
+On a real Word document off this machine:
+
+```
+Topic_1_Test_Cover_Sheet.docx: 12 members (31192 B)
+  off        569 len        357 method  8 peel-nominates 2 [Content_Types].xml
+  off       1773 len       1501 method  8 peel-nominates 2 word/document.xml
+  off       3911 len      16948 method  0 peel-nominates 2 word/media/image1.png
+  ... 12 in all ...
+  offset 0 is owned by NO member -- null, not a guess
+  offset 15596 is owned by member 4 (word/media/image1.png)
+  offset 31191 is owned by NO member -- null, not a guess
+  11 of 12 members are deflate
+```
+
+Every offset comes from the container's own arithmetic -- the central directory
+gives the LOCAL header offset, and the body offset is that plus 30 plus the
+LOCAL header's own name and extra lengths, which are **not** the central
+directory's. On a JPEG it prints *"no container layout this build can read"* and
+returns nothing, which is the reading's own rule: return null, not a guess.
+
+### THE SECOND ARENA, MEASURED (2026-09-03) -- 9 members, reported APART from the sealed 20 + 3
+
+`python tools/mkarena.py` builds it (provenance for every member in
+`corpus-arena/suite.txt`); `EGG_EXE=<ship> EGG_BASE=<the M3b build> node
+tools/arena.js` weighs it.
+
+| member | bytes | -> | verdict | what happened | vs M3b |
+|---|---|---|---|---|---|
+| `chain-jpeg.gz` | 920,124 | **739,247** | EXACT | **PEELED, CHAINED to depth 2** | **-186,188** |
+| `constructed-284.gz` | 298 | 4,970 | EXACT | peel PROVED, passed over by the argmin | unmoved |
+| `constructed-284-many.gz` | 917 | 4,997 | EXACT | peel PROVED, passed over by the argmin | unmoved |
+| `docx-cover-sheet.docx` | 31,192 | 31,246 | EXACT | no peel nominated | unmoved |
+| `docx-newsletter.docx` | 49,092 | 50,852 | EXACT | no peel nominated | unmoved |
+| `zip-opencv-python.zip` | 1,149,916 | 1,146,358 | EXACT | no peel nominated | unmoved |
+| `zip-lab-guides.zip` | 2,835,244 | 2,841,063 | EXACT | no peel nominated | unmoved |
+| `pdf-install-manual.pdf` | 397,522 | 322,207 | EXACT | no peel nominated | unmoved |
+| `multimember.gz` | 240 | 4,812 | EXACT | **refused: the deflate stream used 99 of the member's 222 body bytes** | unmoved |
+| **ARENA TOTAL** | **5,384,545** | **5,145,752** | **9 EXACT, 0 WRONG, 0 LOST** | | **-186,188 = -3.492%** |
+
+The prober's reading, printed beside each container it can read:
+`docx-cover-sheet.docx` 12 members, 11 deflate; `docx-newsletter.docx` 12
+members, 12 deflate; `zip-opencv-python.zip` **54 members, 36 deflate**;
+`zip-lab-guides.zip` 2 members, 2 deflate.
+
+| filed | measured | verdict |
+|---|---|---|
+| **0 LOST, 0 WRONG** | 9 EXACT, 0 WRONG, 0 LOST | **HIT** |
+| the chain reaches depth 2 on the constructed member | it does, and the restore is EXACT | **HIT** |
+| the ZIP and DOCX rows are **REFUSED-AND-KEPT** | they are **NOT NOMINATED AT ALL** -- `peel::nominate` reads offset 0, a ZIP begins `PK\x03\x04`, and `looks_like_deflate` says no | **HALF** -- the outcome is what I called, the mechanism is not. A refusal implies a nomination; there was none. |
+| the arena's total moves by **less than 2%** | **-3.492%** | **MISS** |
+
+**The miss is one row.** The arena's entire movement is `chain-jpeg.gz`'s
+-186,188, which is exactly the delta printed on that line: every other member is
+unmoved to the byte. I called the arena at <2% because I was pricing the ZIP
+peel I had already decided not to build, and forgot to price the chain I WAS
+building against the same total. -186,188 on a 5,331,940 baseline is 3.49%.
+
+**Two findings the arena bought that the sealed corpus could not:**
+
+1. **A multi-member gzip is refused, with the number.** *"the deflate stream
+   used 99 of the member's 222 body bytes"* -- the peel reads one member and
+   says so rather than silently keeping the first. That is the law working on a
+   case the sealed twenty has none of.
+2. **A ZIP is invisible to `nominate`, not refused by it.** 36 of 54 deflate
+   members inside `zip-opencv-python.zip` and the peel never looks, because
+   nomination reads offset 0. That is precisely the hole `eggv13 members` was
+   built to measure, and precisely the hole the v14 ZIP peel fills.
+
+### The deflate suite, rebuilt AS A BUILDER (2026-09-03): 29 files, 29 EXACT, 0 WRONG, 0 LOST
+
+M2's suite directory was scratch and did not survive; M3a rebuilt it and it did
+not survive either. It is `tools/mkdeflatesuite.py` now, so the next milestone
+does not have to invent one: nine levels, four strategies, a zlib wrapper, a
+bare stream, a 512-byte window, memLevel 1, stored-only, empty, one byte, a
+periodic binary, six hostiles, and the two constructed 284-spelling members.
+
+**29 EXACT, 0 WRONG, 0 LOST. 3 took the peeled form** (`gz-huffonly.gz`
+321,119 -> 73,720; `gz-rle.gz` 313,862 -> 80,193; `smallwindow.gz` 210,341 ->
+144,539), **2 refused with a reason** — both hostiles, and both the right reason
+(`hostile-flipped.gz`: *the code lengths overran their table by 130*;
+`hostile-truncated.gz`: *the deflate stream ends inside a code*) — **and 24
+peeled-or-nominated and were passed over by the argmin**, which is the trial
+doing its job: a gzip of already-compressed HTML costs more as (recipe + values)
+than it does raw.
+
+### A REPORTING BUG THE CHAIN INTRODUCED, found and fixed in the tools
+
+The first run of this suite reported **19 refusals**, including every ordinary
+`gz-l1..l9.gz`. They were not refusals. `tools/deflatesuite.js` (and
+`tools/arena.js`) scraped the first `peel N: REFUSED` line out of stderr — and
+with the chain live, **that line can belong to the CHAIN's inner attempt** on
+values that merely look like a deflate stream, not to the row's own peel.
+
+The control: `gz-l6.gz` through the M3b build and through the ship build print
+**the same recipe, the same values, the same inner and the same armored total**
+(46,062 / 50,874) — the outer peel is untouched; only an extra inner refusal
+line appears. Both tools now read the `peel N: recipe` line as proof the outer
+peel stood, and say *"peel PROVED, passed over by the argmin"*.
+
+**This is the second time in one milestone that a tool told me a story its own
+numbers contradicted.** The first was the i32 overflow in the count gate. Both
+were caught by asking what a control should say and checking that it said it.
+
+## M3c / M3d DEVIATIONS, named so nobody has to find them
+
+1. **The ZIP container peel is NOT BUILT.** Named in the M3d filing before any
+   code, with the reason (`peel::Peeled` carries one member; a ZIP is N) and
+   with the v14 brief. The prober that would feed it IS built and shipped.
+
+2. **No GIF in the second arena.** The plan names one; **there is no GIF on this
+   machine** (`find /c/Users/vcepe -iname '*.gif'` returns nothing), and a GIF I
+   hand-wrote would be a synthetic testing my own LZW writer rather than a real
+   container. The arena's "a format we cannot read" case is carried by the PDF
+   and the two ZIPs instead, which are real files.
+
+3. **`src/sites.rs` still ships** (M3b's deviation 1, unchanged and still
+   overrulable): `gcdprobe` and `bitprobe` are INSTRUMENTS carrying the two
+   controls that killed their own readings. M3c added two more of the same kind
+   — `EGG_JSTATS` and `eggv13 members` — so the precedent is now four deep. The
+   house rule is "nothing ships dormant"; the counter-argument is that deleting
+   them deletes the only executable proof of the findings. **Overrule and they
+   go.**
+
+4. **S2a's lever is not the lever the plan specified.** The plan named `mag +=
+   (nzb, qb[k])` and `mbits += (ba, bl)`. Measured: `qb[k]` is +14 B and
+   `mbits`'s neighbours are +993 B ungated. What shipped is `mag += nzb` plus
+   four contexts the measurement pointed at afterwards, each filed before it was
+   written. The plan's own range was missed low by 4.7x and then beaten.
+
+5. **The two new arms are not new models.** WS-N and WS-2D are the shipped CM12
+   with its two SPARSE inputs re-pointed through a `Lens`. This is a smaller
+   change than "a new model in `src/numtext.rs`" and it is why the byte-identity
+   control (`Lens::Plain` reproduces CM12 exactly, proved on three rows) exists
+   at all. The cost is that they inherit CM12's shape rather than choosing one.
+
+6. **`twod::nominate` fires on more than images.** It nominates on PE binaries
+   and TrueType as well as audio, and loses on both — one parallel CM pass each.
+   That is the roster's ordinary cost of an entrant, but it is a WALL-CLOCK cost
+   on rows the arm can never win, and it is printed rather than hidden.
+
+### THE TOURNAMENT, re-measured at M4 (`node tools/standings.js corpus-real/*`)
+
+Twelve home rows, fourteen columns, the same three injuries for everyone, and the
+same rule: **wrong-or-no data after any injury forfeits.** gzip, zstd, brotli and
+xz forfeit every row on truncation; brotli additionally **LIED** on four rows
+(returned wrong bytes rather than failing), which is the forfeit the rule exists
+for.
+
+**egg13, armor ON, all injuries EXACT on 12 of 12:**
+
+| bar | result |
+|---|---|
+| vs strongest gzip -9 | **12 / 12** |
+| vs the egg6+zstd hybrid | **12 / 12** |
+| <= min(egg8, egg9, egg10) -- the ratchet | **12 / 12** |
+| vs naked `xz -9` (an EXHIBIT, armored against naked, never a bar) | **11 / 12** -- the one loss is wubbadub.html, 29.9% against 28.3%, and it carries 4,812 B of armor xz does not carry |
+
+**Podium: egg12 x9, egg13 x3** -- and that line needs reading, because it is a
+tie rule and not a defeat. On nine of the twelve rows the two are **equal to the
+byte** (the M3c arms do not fire there), and `standings.js` credits the EARLIER
+entrant on a tie. egg13 is **<= egg12 on 12 of 12** and strictly lighter on
+three: `wallpaper.jpg` 1,238,198 -> **1,126,497**, `alarm01.wav` 252,862 ->
+**240,008**, `vim-version9.txt` 273,982 -> **273,743**.
+
+### A COVERAGE HOLE THE GATE DID NOT ASK ABOUT, found and closed (2026-09-03)
+
+`MODEL_NUM` (27) wins exactly two rows -- `embeddings.json` and `data.csv` --
+and **neither is in the twenty-row ledger**. The ledger is what restores a row
+three times under injury; the write-time round-trip law (`main.rs:868-894`)
+covers every FILTERED form, every PEELED form and every input **>= 64 MiB**, and
+`embeddings.json` is 15.8 MB, unfiltered and unpeeled. So when the arm landed,
+**nothing in the battery had ever decoded a MODEL_NUM stream.** `MODEL_2D` (28)
+was luckier by accident: it wins four ledger rows, so the injury battery covered
+it from the first pass.
+
+Closed three ways, all measured:
+
+1. **Both NUM rows restored explicitly and compared byte for byte:**
+   `data.csv` (656,970 B container) **EXACT**; `embeddings.json` (4,503,237 B
+   container) **EXACT**.
+2. **`cargo test --release` is now 42** (M3b's 35): three for the number field
+   tracker (causality under every prefix cut, the alignment key, the sniff), two
+   for the rectangle hunt (it names the ROW and not the frame; the keys never
+   read forward), and two for the offset prober against a hand-built two-member
+   ZIP whose LOCAL header lengths deliberately differ from its central
+   directory's -- which is the whole reason the body offset must be arithmetic
+   on the local header.
+3. **The drill battery gained an ARM BATTERY.** There is no `--model` flag -- the
+   roster decides by argmin -- so each case is a form the arm MUST win, and the
+   drill fails the moment the argmin stops picking it.
+
+**The first WS-2D drill case was a synthetic rectangle, and it was DELETED
+before it ever shipped.** A 576,000 B image whose rows differ by six bytes went
+to **39,843 B under model 4**, the cheap v8 arm: a rectangle that regular is not
+a test of a 2D context, it is a test of an LZ model. The case that ships is the
+REAL row the arm wins, `alarm01.wav`, asserting model 28 **through** filter 14 --
+because the win only exists on the filtered form, and a drill that did not say
+so would pass for the wrong reason.
+
+**One more control, run because the prober test meant a rebuild after the ledger
+had already been measured:** the rebuilt binary differs from the measured one
+(build metadata), and the only source change is a `#[cfg(test)]` module. Four
+rows transmuted through both, including the two the M3c arms win:
+`wallpaper.jpg` 1,126,497, `alarm01.wav` 240,008, `kernel32.dll` 283,604,
+`wubbadub.html` 27,621 -- **byte-identical containers, 4 of 4**.
+
+## M4 MEASURED (2026-09-03) -- THE SEAL
+
+### The twenty-row ledger, in seven groups (the exe lock, three injuries a row)
+
+| row | sealed v11 | M3b | **M3c** | vs M3b | vs v11 | model | injuries |
+|---|---|---|---|---|---|---|---|
+| wallpaper.jpg | 1,533,228 | 1,238,198 | **1,126,497** | -111,701 | -406,731 | 24 | E/E/E |
+| alarm01.wav | 273,196 | 252,862 | **240,008** | -12,854 | -33,188 | 28 | E/E/E |
+| mermaid-bundle.js | 4,891,080 | 4,090,958 | **4,090,425** | -533 | -800,655 | 28 | E/E/E |
+| cbs.log | 150,804 | 71,758 | **71,385** | -373 | -79,419 | 28 | E/E/E |
+| vim-version9.txt | 319,264 | 273,982 | **273,743** | -239 | -45,521 | 28 | E/E/E |
+| aoe4-autosave.sav | 17,553,840 | 8,759,079 | **8,759,079** | unmoved | -8,794,761 | 24 | E/E/E |
+| arial.ttf | 468,292 | 446,354 | **446,354** | unmoved | -21,938 | 23 | E/E/E |
+| iconcache48.db | 424,760 | 418,323 | **418,323** | unmoved | -6,437 | 16 | E/E/E |
+| kernel32.dll | 300,832 | 283,604 | **283,604** | unmoved | -17,228 | 22 | E/E/E |
+| msgraph.dll | 4,617,660 | 3,211,880 | **3,211,880** | unmoved | -1,405,780 | 22 | E/E/E |
+| notepad.exe | 183,060 | 176,164 | **176,164** | unmoved | -6,896 | 22 | E/E/E |
+| ntoskrnl.exe | 5,039,572 | 4,675,387 | **4,675,387** | unmoved | -364,185 | 22 | E/E/E |
+| rdr2-shaders.vkcache | 42,312,400 | 41,860,990 | **41,860,990** | unmoved | -451,410 | 16 | E/E/E |
+| real-test.bmp | 268,588 | 261,274 | **261,274** | unmoved | -7,314 | 16 | E/E/E |
+| real-test.db | 1,241,376 | 1,068,149 | **1,068,149** | unmoved | -173,227 | 21 | E/E/E |
+| ring01.wav | 146,184 | 135,565 | **135,565** | unmoved | -10,619 | 17 | E/E/E |
+| segoeui.ttf | 429,368 | 409,683 | **409,683** | unmoved | -19,685 | 23 | E/E/E |
+| wubbadub.html | 30,596 | 27,621 | **27,621** | unmoved | -2,975 | 19 | E/E/E |
+| zstd.exe | 521,540 | 488,915 | **488,915** | unmoved | -32,625 | 22 | E/E/E |
+| rustc_driver.dll | 42,719,952 | 37,436,978 | **37,436,978** | unmoved | -5,282,974 | 22 | E/E/E |
+| **20 rows** | | | | **-125,700** | **-17,963,568** | | rows heavier than M3b: 0 |
+
+**Net against the sealed v11: -17,963,568 B** (M3b's was -17,837,868, so M3c and
+M3d together are worth **-125,700** on the sealed twenty). **Rows heavier than
+M3b: 0. Injuries 60 of 60 EXACT. Failures: 0.**
+
+Sixteen of the twenty are **byte-identical to M3b**, which is the control this
+milestone needed most: two new roster arms and a rewritten coefficient walk
+moved four rows and left sixteen exactly where they were.
+
+### THE BAR: armored vs armored, 23 rows, re-measured
+
+rar -rr5 forfeits truncation on **23 of 23** rows -- structural, as in v11, v12
+and at M2. xz+par2 survives every injury. **Both columns were re-measured at M4,
+and the xz+par2 figures reproduce the carried ones to the printed decimal on all
+23 rows** -- so the card below is measured, not remembered.
+
+| row | egg13 | egg13 % | xz+par2 % | margin |
+|---|---|---|---|---|
+| iconcache48.db | 418,323 | 0.43% | 0.5% | **+0.07** |
+| cbs.log | 71,385 | 0.44% | 1.0% | **+0.56** |
+| msgraph-docs.xml | 928,027 | 1.09% | 2.6% | **+1.51** |
+| rdr2-shaders.vkcache | 41,860,990 | 85.65% | 88.0% | **+2.35** |
+| changelog.md | 179,700 | 14.86% | 17.8% | **+2.94** |
+| rustc_driver.dll | 37,436,978 | 20.44% | 23.4% | **+2.96** |
+| msgraph.dll | 3,211,880 | 7.43% | 11.3% | **+3.87** |
+| mermaid-bundle.js | 4,090,425 | 15.83% | 19.8% | **+3.97** |
+| embeddings.json | 4,503,237 | 28.50% | 34.4% | **+5.90** |
+| real-test.db | 1,068,149 | 11.18% | 17.1% | **+5.92** |
+| zstd.exe | 488,915 | 30.53% | 37.6% | **+7.07** |
+| segoeui.ttf | 409,683 | 42.69% | 49.8% | **+7.11** |
+| vim-version9.txt | 273,743 | 13.45% | 20.7% | **+7.25** |
+| ntoskrnl.exe | 4,675,387 | 35.83% | 43.5% | **+7.67** |
+| arial.ttf | 446,354 | 42.68% | 50.4% | **+7.72** |
+| kernel32.dll | 283,604 | 33.92% | 43.3% | **+9.38** |
+| notepad.exe | 176,164 | 48.87% | 59.5% | **+10.63** |
+| aoe4-autosave.sav | 8,759,079 | 13.19% | 25.9% | **+12.71** |
+| wubbadub.html | 27,621 | 29.89% | 47.2% | **+17.31** |
+| ring01.wav | 135,565 | 27.20% | 57.7% | **+30.50** |
+| real-test.bmp | 261,274 | 2.18% | 33.2% | **+31.02** |
+| alarm01.wav | 240,008 | 48.83% | 80.0% | **+31.17** |
+| wallpaper.jpg | 1,126,497 | 70.29% | 108.6% | **+38.31** |
+**23 of 23.**
+
+**The bar holds, and the two rows that moved it are the two the milestone was
+about.** `wallpaper.jpg` goes from +31.35 to **+38.31**, and `alarm01.wav` from
++28.55 to **+31.17**. `embeddings.json` goes from +4.74 to **+5.90**. The
+narrowest margin is still `iconcache48.db` at **+0.07**, and it is narrow for the
+reason it was narrow at M2: at 0.43% of its input there is almost nothing left
+to win, and the row carries 4,812 B of armor that xz+par2 pays for differently.
+
+
+## THE M3c / M3d GATE, item by item (2026-09-03)
+
+| gate | result |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` (rustc 1.98) | **clean** |
+| `cargo test --release` | **42 passed**, 0 failed (M3b's 35) |
+| `node tools/drills.js` | see the arm battery below |
+| `eggv13 audit --full` | **3,091,667 checks, 0 failing** (3,839 ms) |
+| the 60-file JPEG conservation suite | **60 EXACT, 0 WRONG, 0 LOST**; 40 peeled rows **-5.251%**, rows not improved **0** |
+| the deflate suite, rebuilt as a builder (29 members) | **29 EXACT, 0 WRONG, 0 LOST** |
+| the second arena (9 members, reported apart) | **9 EXACT, 0 WRONG, 0 LOST**, -3.492%, all of it the chain |
+| the 20-row ledger, in seven groups | see the table |
+| the 23-row challengers card, re-measured | see the bar |
+| the tournament on corpus-real, re-measured | 12/12 gzip, 12/12 hybrid, 12/12 ratchet, 11/12 the xz exhibit |
+| ancestors: files newer than `codegg-v13/Cargo.toml` outside `target/` | see the note below |
+| site files modified | **none** |
+
+**The ancestors note, printed rather than glossed.** Thirteen ancestor
+`.gitignore` files (codec-v1 and codegg-v1..v12) carry a timestamp of
+**2026-09-03 20:18:48**, written within one millisecond of each other by
+something outside this session -- no source, corpus, tool or artifact file in
+any ancestor is newer than `codegg-v13/Cargo.toml`, and this campaign wrote
+nothing outside `codegg-v13`. The law is met in substance; the exception is
+named because "0 files newer" would have been false.
+
+**Speed, SOLO** (machine idle, one transmute at a time) -- and it is the number
+that decided against a mixer in `jcoef`, so it is measured and not asserted.
+
+| home row | M3c SOLO | M3b SOLO | |
+|---|---|---|---|
+| `kernel32.dll` (the worst) | **0.268 / 0.269 / 0.273 MB/s** (three runs) | 0.288 / 0.290 | the floor is **MET** with 7% to spare |
+| `notepad.exe` | 0.294 MB/s | | |
+| `alarm01.wav` | 0.300 MB/s | | |
+| `wallpaper.jpg` | 0.328 MB/s | 0.346 | the model grew 89x in counters and the row did not slow |
+| `segoeui.ttf` | 0.351 MB/s | | |
+| `arial.ttf` | 0.367 MB/s | | |
+| `zstd.exe` | 0.441 MB/s | | |
+
+**The two new arms cost about 7% of wall clock on the worst home row**, which is
+the honest price of two more entrants that must be encoded in full before the
+argmin can pass them over -- `twod::nominate` fires on PE binaries and TrueType
+as well as audio, and loses on both. **0.268 against a 0.25 floor is the
+narrowest this series has ever run**, and it is the reason a mixer in `jcoef`
+was priced and refused rather than argued about: there is no room left to spend.
+
+If v14 adds another always-on arm, this is the number that stops it.
+
+### The pristine round trip on the big rows (the reduced countersign)
+
+`main.rs`'s write-time law verifies every FILTERED form, every PEELED form and
+every input **>= 64 MiB** in memory BEFORE the container is written -- a stronger
+guarantee than a post-hoc hash, because nothing is written until it holds. That
+already covers `aoe4-autosave.sav` (66 MB), `iconcache48.db` (97 MB),
+`rustc_driver.dll` (183 MB) and `msgraph-docs.xml` (85 MB). The five big rows
+under 64 MiB and unfiltered are the ones the law skips, and the ledger's injury
+battery restores WOUNDED copies rather than pristine ones, so they were run
+explicitly:
+
+| row | container | verdict |
+|---|---|---|
+| `cbs.log` | 71,385 | **PRISTINE RESTORE EXACT** |
+| `ntoskrnl.exe` | 4,675,387 | **PRISTINE RESTORE EXACT** |
+| `mermaid-bundle.js` | 4,090,425 | **PRISTINE RESTORE EXACT** |
+| `msgraph.dll` | 3,211,880 | **PRISTINE RESTORE EXACT** |
+| `rdr2-shaders.vkcache` | 41,860,990 | **PRISTINE RESTORE EXACT** |
+
+**All five EXACT -- and every container reproduces the ledger's byte count for
+that row exactly (71,385 / 4,675,387 / 4,090,425 / 3,211,880 / 41,860,990), which
+is a determinism control on top of the conservation one: the same input through
+the same build twice, hours apart, weighs the same to the byte.**
+
+**DEVIATION, named:** `tools/countersign-big.js` itself was NOT run. It
+re-transmutes all eight big rows (~440 MB) to add a certutil SHA-256 compare on
+top of a byte compare the ledger already performs three times per row, and three
+of its eight rows are covered by the write-time law before anything reaches
+disk. The five rows above are the part of it that measures something the rest of
+the gate does not. **Overrule this and it runs.**
+
+
+### The drill battery, final: 362 passed, 0 failed
+
+M3b's was 355; the ARM BATTERY added seven, and every one of them is a guard the
+argmin can break:
+
+```
+== the arm battery (v13-M3c): 2 forms the new arms must win
+  PASS  model 27 (WS-N, the number field split): the argmin picks the arm
+  PASS  model 27 on arm-num.json: pristine restore -- EXACT
+  PASS  model 27 on arm-num.json: 1-byte flip, blind -- EXACT
+  PASS  model 28 (WS-2D, the record stride (the audio frame)): the argmin picks the arm
+  PASS  model 28 on alarm01.wav: it wins through the FILTERED form -- filter 14
+  PASS  model 28 on alarm01.wav: pristine restore -- EXACT
+  PASS  model 28 on alarm01.wav: 1-byte flip, blind -- EXACT
+```
+
+`model 28 ... through the FILTERED form` is the assertion that matters: the win
+only exists on the order-2 W16 residue, and a drill that did not say so would
+pass for the wrong reason on the day someone changed the filter roster.
+
+---
+
+## DONE MEANS, item by item (the plan's own closing list)
+
+| the plan asked | measured |
+|---|---|
+| every filed prediction has its measured column | **yes** -- and six missed, four low and two high, each printed beside its range |
+| every loser is deleted with its miss printed | **yes**: `qb[k]` (+14 B), `mbits` neighbours ungated (+993), the DC in the `last` context (+92), the two-sided coarse (-24 for an 8x table), the gradient in `mag`'s fine context (-275 for a 4x table), `nz += lbucket(last)` (-343 for an 8x table), and the synthetic 2D drill case that an LZ arm won |
+| the sealed 20 + 3 reconcile against v11/v12 | **yes**: net **-17,963,568** vs sealed v11, 16 of 20 byte-identical to M3b, 0 heavier |
+| the armored card is still 23/23 or the regression is named | **23 of 23 HELD**, re-measured on both sides |
+| ancestors show zero files newer | **named, not claimed**: thirteen ancestor `.gitignore` files carry a 20:18:48 timestamp written from outside this session; no source, corpus, tool or artifact file in any ancestor is newer |
+
+
+---
+
+## THE RECIPE, ACCOUNTED (2026-09-04) -- the number that decides whether a peel is real
+
+Vladimir's ruling, and it is now a standing reporting rule: **the recipe's size
+is the most important thing to report about any peel.** The values are where the
+prize is; the recipe is overhead we invented. A peel that looks brilliant on
+values and quietly carries a fat recipe has bought nothing -- the charter named
+that trap as "a recipe that eats the prize", and the headline ratio hides it
+completely.
+
+Measured on the sealed build, not carried:
+
+```
+aoe4-autosave.sav
+  peel 2: recipe 82,088,840 B -> 3,505,440 B (model 26);
+          values 296,540,843 B -> 5,248,812 B (model 17);
+          inner 8,754,267 B, armored 8,759,079
+  raw streams: meta 312,466 + flags 4,792,572 + lens 25,661,244 + dists 51,322,488 + resp 0
+  1,171 blocks, 38,340,574 tokens (25,661,244 matches)
+```
+
+### 1. raw -> coded: how well we model the recipe itself
+
+| row | recipe raw -> coded | shrink |
+|---|---|---|
+| `aoe4-autosave.sav` | 82,088,840 -> **3,505,440** | **-95.73%** (23.42x) |
+| `gz-huffonly.gz` | 69,894 -> **1,470** | **-97.90%** (47.5x) |
+| `gz-rle.gz` | 84,532 -> **7,943** | **-90.60%** (10.6x) |
+| `chain-jpeg.gz` | 151,060 -> **28,795** | **-80.94%** (5.2x) |
+| `smallwindow.gz` | 145,043 -> **72,289** | **-50.16%** (2.0x) |
+| `wallpaper.jpg` | 451 -> **272** | **-39.69%** |
+
+### 2. What it costs: the recipe as a share of the shipped inner
+
+| | share |
+|---|---|
+| `wallpaper.jpg` | **0.024%** |
+| the 60-file JPEG suite, 40 peeled rows (51,095 of 24,431,595) | **0.209%** |
+| `gz-huffonly.gz` | 2.13% |
+| `chain-jpeg.gz` | 3.92% |
+| `gz-rle.gz` | 10.54% |
+| **`aoe4-autosave.sav`** | **40.04%** |
+| **`smallwindow.gz` -- the worst case in the house** | **51.74%** |
+
+### 3. Against the bar it was given
+
+At M2 the save's recipe was measured under `xz -9` on the same four streams at
+**3,675,096 B**, inside a filed headroom budget of **12,097,403 B**. Our own
+model ships it at **3,505,440**: **4.62% lighter than xz** and **71% under
+budget**. M3a's sparse fifth stream was filed at "under 200 B" and measured
+**+10 B** -- 20x better than called.
+
+### 4. The return -- what the peel bought divided by what the recipe cost
+
+This is the one that answers "was it a success", and it needs the
+`EGG_NO_PEEL=1` control rather than a comparison against a previous version that
+also changed its model.
+
+| row | without the peel | with it | the recipe cost | the peel bought | **return** |
+|---|---|---|---|---|---|
+| `aoe4-autosave.sav` | 17,328,521 inner | 8,754,267 | 3,505,440 | 12,079,694 | **3.45x** |
+| `wallpaper.jpg` | 1,513,903 armored | 1,126,497 | 272 | 387,406 | **1,424x** |
+
+**Verdict: a success on every bar the recipe was given.** -95.73% off raw, 4.62%
+under the xz figure it was benchmarked against, 71% under the filed budget, and
+it returns 3.45x its own size on the row where it is most expensive.
+
+**And the caveat, because 40% is not a small number.** The deflate recipe is the
+**largest single object** in the save's row -- 25.6M match lengths and 51.3M
+distance bytes is simply a lot to record. It wins because of what it unlocks,
+not because it is small, and `smallwindow.gz` shows where that tips furthest:
+51.7% of the row, winning only because a 512-byte window makes the values so
+cheap. **The structural guarantee, which is a guarantee and not a measurement:**
+the argmin judges `recipe + values` against the raw form on the ARMORED total,
+so no shipped row can have had its prize eaten by its recipe.
+
+
+---
+
+## THE FIRST OUTSIDE SPECIALIST (2026-09-04) -- AND IT BEATS US ON A ROW
+
+Vladimir asked whether v13 had been measured against everyone else. It had not:
+the card had only ever faced four general-purpose compressors, eight of our own
+ancestors, and the two armored rivals. **No specialist had ever been run in this
+house**, and two of them aim at exactly the rows M3c improved most. So a narrow
+slice was run: FLAC (installed), 7-Zip's LZMA2 (installed), brotli at full CLI
+strength (already present and previously under-run).
+
+### FLAC -8 vs the two wav rows -- WE LOSE ONE AND IT FORFEITS THE OTHER
+
+| row | orig | FLAC -8 | round trip | egg13 inner | egg13 armored |
+|---|---|---|---|---|---|
+| **`alarm01.wav`** | 491,516 | **210,019** (42.73%) | **EXACT** | 235,196 | 240,008 |
+| `ring01.wav` | 498,420 | 100,929 (20.25%) | **FAILS** | 130,753 | 135,565 |
+
+**`alarm01.wav`: FLAC's stream is 10.70% smaller than our form.** Form vs form,
+no armor on either side, this is the FIRST ROW AN OUTSIDE TOOL HAS TAKEN FROM
+v13. And it is the row M3c gained most on in relative terms: before the 2D arm
+our form was 248,050 and FLAC was 15.33% ahead; the arm closed **33.8% of the
+gap** (38,031 -> 25,177 B) and did not close the row. An audio specialist beats
+a general model on audio, which is not a surprise -- what is worth writing down
+is that nobody in this house had ever checked.
+
+**`ring01.wav`: FLAC cannot return the file.** 498,420 in, **498,268** out --
+152 bytes short, differing from byte 5. The cause, read from the container
+rather than guessed: the file carries **two trailing `CDif` chunks** (68 B each
+plus headers) after its `data` chunk, and FLAC keeps the SAMPLES and discards
+the FILE. Chunk map:
+
+```
+RIFF size field 498412, actual file 498420
+  fmt    at       12  size 16
+  data   at       36  size 498224
+  CDif   at   498268  size 68
+  CDif   at   498344  size 68
+```
+
+That is the project's own distinction, arriving from outside: FLAC is lossless on
+the value and lossy on the spelling. Under the first law -- conservation of the
+ORIGINAL BYTES -- it forfeits the row before the injuries are even applied.
+**Its 100,929 B is not comparable to our 130,753 and must never be tabled as if
+it were.**
+
+**And FLAC does not enter the armored bar at all:** on `alarm01.wav`, where it
+does round-trip, it fails all three injuries (1-byte flip, 4 KB scratch, 4 KB
+truncation). To its credit it **refused every time and never returned wrong
+bytes** -- an honest forfeit, unlike brotli, which returned WRONG BYTES on four
+rows of the M4 tournament.
+
+### 7-Zip LZMA2 -mx=9 and brotli -q 11 -- 12 of 12 to us
+
+brotli had been run through zlib's weaker built-in until now, which under-rated
+it; this is the CLI at full strength. Our INNER against the better of the two,
+no armor on either side:
+
+| row | egg13 inner | 7z LZMA2 -mx9 | brotli -q11 | our margin |
+|---|---|---|---|---|
+| `real-test.bmp` | 256,462 | 3,612,665 | 3,629,866 | **+92.9%** |
+| `ring01.wav` | 130,753 | 204,313 | 243,701 | +36.0% |
+| `real-test.db` | 1,063,337 | 1,472,905 | 1,498,392 | +27.8% |
+| `wallpaper.jpg` | 1,121,685 | 1,571,925 | 1,551,253 | +27.7% |
+| `vim-version9.txt` | 268,931 | 371,172 | 367,058 | +26.7% |
+| `alarm01.wav` | 235,196 | 290,518 | 328,833 | +19.0% |
+| `wubbadub.html` | 22,809 | 26,238 | 24,717 | +7.7% |
+| `kernel32.dll` | 278,792 | 301,283 | 320,425 | +7.5% |
+| `arial.ttf` | 441,542 | 466,823 | 480,781 | +5.4% |
+| `zstd.exe` | 484,103 | 505,110 | 547,530 | +4.2% |
+| `segoeui.ttf` | 404,871 | 421,990 | 432,599 | +4.1% |
+| `notepad.exe` | 171,352 | 177,922 | 182,932 | +3.7% |
+
+**12 win, 0 lose.** Raising brotli to full strength changed no verdict, and it
+is now run honestly.
+
+### What this slice actually established
+
+1. **Against general-purpose compression v13 is comfortably ahead** -- 12 of 12
+   form-vs-form against LZMA2 and full brotli, on top of the M4 tournament's
+   12/12 gzip and 12/12 ratchet.
+2. **Against a specialist, on the specialist's own format, v13 loses.**
+   `alarm01.wav` by 10.70%. One row, one tool, measured.
+3. **The specialist's win comes with a conservation cost we do not pay.** FLAC
+   took `alarm01.wav` and could not even return `ring01.wav`. That is the trade
+   the whole project is about, and it is now on the record with numbers instead
+   of an argument.
+4. **The JPEG question is still open**, and it is the one that matters most:
+   packJPG and Lepton are NOT in winget, this machine has no `gcc` and no
+   `cmake`, and the 22-25% figure this campaign has been implicitly measured
+   against remains **remembered, not measured**.
+
+### CORRECTION, same day: FLAC DOES conserve the file, and it beats us on BOTH wav rows
+
+The claim above -- "`ring01.wav`: FLAC cannot return the file... it forfeits the
+row before the injuries are even applied" -- **is wrong, and it flattered us.**
+FLAC ships `--keep-foreign-metadata` for exactly this case: it stores the WAVE
+non-audio chunks alongside the audio and restores them on decode. Re-measured
+with the flag the tool provides:
+
+| row | FLAC -8 default | FLAC -8 `--keep-foreign-metadata` | round trip | egg13 inner | FLAC vs our form |
+|---|---|---|---|---|---|
+| `alarm01.wav` | 210,019 (EXACT) | **210,087** | **EXACT** | 235,196 | **-10.68%** |
+| `ring01.wav` | 100,929 (fails) | **101,165** | **EXACT** | 130,753 | **-22.63%** |
+
+The flag costs FLAC **68 B** on `alarm01.wav` and **236 B** on `ring01.wav` --
+the two `CDif` chunks plus bookkeeping -- and buys byte-exact conservation.
+
+**So the honest scoreboard on audio is 0-2, not 1-1.** Form vs form, no armor on
+either side, a correctly-invoked FLAC is **10.68%** and **22.63%** smaller than
+our form on the two wav rows. `ring01.wav` is the worse loss and it is the row
+where the 2D arm missed by 192 B, so M3c's audio work never had a chance of
+taking it.
+
+**What I got wrong, and how.** I ran the tool at its defaults, saw a 152-byte
+shortfall, read the chunk map, found a true mechanism -- FLAC keeps the samples
+and drops the container -- and stopped there, because the finding agreed with
+the project's own thesis and with our own scoreboard. It did not occur to me to
+ask whether the tool had an answer for it. **A mechanism that flatters you is
+exactly where the control belongs**, and the control here was one line of
+`--help`. This is the same failure as the i32 overflow at M3c, in the opposite
+direction: there I believed a number over a mechanism, here I believed a
+mechanism over a manual. See [[control-before-mechanism]].
+
+**What still stands:** FLAC carries no armor and forfeits all three injuries on
+both rows (refusing honestly, never returning wrong bytes), so it does not enter
+the armored bar. Our 240,008 and 135,565 are still the only figures on those
+rows that survive the loss of any 4 KB. That is a different currency, and it is
+the one this house competes in -- but the ratio bout on audio is lost, twice,
+and the card should say so.

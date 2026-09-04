@@ -61,6 +61,92 @@ pub fn nominate(src: &[u8]) -> u8 {
     PEEL_NONE
 }
 
+/// one member of a container, as its own LAYOUT declares it (v13-M3d, S3a).
+/// The reading is `atlas.html:355-356` and `461-462`: compute which member owns
+/// an offset from arithmetic, and return NULL, not a guess, when the offset
+/// lands outside any member.
+pub struct Member {
+    pub off: usize,
+    pub len: usize,
+    /// the container's own method number (8 = deflate, 0 = stored)
+    pub method: u16,
+    pub name: String,
+}
+
+/// THE OFFSET-TO-MEMBER PROBER. Reads a ZIP's central directory -- which is the
+/// container's own arithmetic, not a scan -- and returns every member's body
+/// offset and length. `None` means "this is not a container I can read", never
+/// "there are no members": a guess here is exactly the thing the reading
+/// forbids, and `looks_like_deflate` returning true-with-no-check on block type
+/// 1 is what a guess costs (9 of the sealed twenty already pay for a peel
+/// attempt that fails).
+pub fn members(src: &[u8]) -> Option<Vec<Member>> {
+    // the End Of Central Directory record, hunted from the tail (its comment
+    // may be up to 65,535 B, so the window is bounded and so is the hunt)
+    let n = src.len();
+    if n < 22 {
+        return None;
+    }
+    let lo = n.saturating_sub(22 + 65_535);
+    let mut eocd = None;
+    let mut i = n - 22;
+    loop {
+        if &src[i..i + 4] == b"PK\x05\x06" {
+            eocd = Some(i);
+            break;
+        }
+        if i == lo {
+            break;
+        }
+        i -= 1;
+    }
+    let e = eocd?;
+    let count = u16::from_le_bytes([src[e + 10], src[e + 11]]) as usize;
+    let cdsize = u32::from_le_bytes([src[e + 12], src[e + 13], src[e + 14], src[e + 15]]) as usize;
+    let cdoff = u32::from_le_bytes([src[e + 16], src[e + 17], src[e + 18], src[e + 19]]) as usize;
+    if cdoff.checked_add(cdsize)? > n {
+        return None;
+    }
+    let mut out = Vec::with_capacity(count);
+    let mut at = cdoff;
+    while at + 46 <= cdoff + cdsize {
+        if &src[at..at + 4] != b"PK\x01\x02" {
+            return None;
+        }
+        let method = u16::from_le_bytes([src[at + 10], src[at + 11]]);
+        let csize = u32::from_le_bytes([src[at + 20], src[at + 21], src[at + 22], src[at + 23]]) as usize;
+        let nlen = u16::from_le_bytes([src[at + 28], src[at + 29]]) as usize;
+        let elen = u16::from_le_bytes([src[at + 30], src[at + 31]]) as usize;
+        let clen = u16::from_le_bytes([src[at + 32], src[at + 33]]) as usize;
+        let lho = u32::from_le_bytes([src[at + 42], src[at + 43], src[at + 44], src[at + 45]]) as usize;
+        let name = String::from_utf8_lossy(src.get(at + 46..at + 46 + nlen)?).into_owned();
+        // the LOCAL header carries its own name and extra lengths, and they
+        // are NOT the central directory's: the body offset is arithmetic on
+        // the local header, which is the whole point of the reading
+        if lho + 30 > n || &src[lho..lho + 4] != b"PK\x03\x04" {
+            return None;
+        }
+        let lnlen = u16::from_le_bytes([src[lho + 26], src[lho + 27]]) as usize;
+        let lelen = u16::from_le_bytes([src[lho + 28], src[lho + 29]]) as usize;
+        let off = lho + 30 + lnlen + lelen;
+        if off.checked_add(csize)? > n {
+            return None;
+        }
+        out.push(Member { off, len: csize, method, name });
+        at += 46 + nlen + elen + clen;
+    }
+    if out.len() != count {
+        return None;
+    }
+    Some(out)
+}
+
+/// which member, if any, owns this offset -- and NULL, not a guess, when it
+/// lands outside every one of them
+pub fn owner(ms: &[Member], off: usize) -> Option<usize> {
+    ms.iter().position(|m| off >= m.off && off < m.off + m.len)
+}
+
 /// what a peel produced, before it is modelled
 pub struct Peeled {
     pub id: u8,
@@ -221,4 +307,89 @@ pub fn read_preamble(b: &[u8]) -> Result<(u8, u8, usize, usize, u8, usize), Stri
         b[10],
         u32::from_le_bytes(b[11..15].try_into().unwrap()) as usize,
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// a minimal two-member ZIP, built here so the prober is tested against a
+    /// layout this file knows the answer to. The LOCAL header carries its own
+    /// name and extra lengths and they are deliberately NOT the central
+    /// directory's -- that difference is the whole reason the body offset is
+    /// arithmetic on the local header, and a prober that reads the central
+    /// directory's lengths would land in the wrong place.
+    fn tiny_zip() -> (Vec<u8>, Vec<(usize, usize)>) {
+        let names: [&[u8]; 2] = [b"a.txt", b"dir/b.bin"];
+        let bodies: [&[u8]; 2] = [b"hello", b"0123456789"];
+        let mut z: Vec<u8> = Vec::new();
+        let mut lho = Vec::new();
+        let mut want = Vec::new();
+        for i in 0..2 {
+            lho.push(z.len());
+            z.extend_from_slice(b"PK\x03\x04");
+            z.extend_from_slice(&[20, 0, 0, 0, 0, 0, 0, 0, 0, 0]); // version..time
+            z.extend_from_slice(&0u32.to_le_bytes()); // crc
+            z.extend_from_slice(&(bodies[i].len() as u32).to_le_bytes());
+            z.extend_from_slice(&(bodies[i].len() as u32).to_le_bytes());
+            z.extend_from_slice(&(names[i].len() as u16).to_le_bytes());
+            z.extend_from_slice(&4u16.to_le_bytes()); // LOCAL extra: four bytes
+            z.extend_from_slice(names[i]);
+            z.extend_from_slice(&[0, 0, 0, 0]);
+            want.push((z.len(), bodies[i].len()));
+            z.extend_from_slice(bodies[i]);
+        }
+        let cdoff = z.len();
+        for i in 0..2 {
+            z.extend_from_slice(b"PK\x01\x02");
+            z.extend_from_slice(&[20, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0]); // ..method 0
+            z.extend_from_slice(&0u32.to_le_bytes()); // crc
+            z.extend_from_slice(&(bodies[i].len() as u32).to_le_bytes());
+            z.extend_from_slice(&(bodies[i].len() as u32).to_le_bytes());
+            z.extend_from_slice(&(names[i].len() as u16).to_le_bytes());
+            z.extend_from_slice(&0u16.to_le_bytes()); // CENTRAL extra: none
+            z.extend_from_slice(&0u16.to_le_bytes()); // comment
+            z.extend_from_slice(&[0u8; 8]); // disk(2) + internal(2) + external(4) = 8, and
+            // NOT ten: the local-header offset lives at byte 42 of this record
+            z.extend_from_slice(&(lho[i] as u32).to_le_bytes());
+            z.extend_from_slice(names[i]);
+        }
+        let cdsize = z.len() - cdoff;
+        z.extend_from_slice(b"PK\x05\x06");
+        z.extend_from_slice(&[0, 0, 0, 0]);
+        z.extend_from_slice(&2u16.to_le_bytes());
+        z.extend_from_slice(&2u16.to_le_bytes());
+        z.extend_from_slice(&(cdsize as u32).to_le_bytes());
+        z.extend_from_slice(&(cdoff as u32).to_le_bytes());
+        z.extend_from_slice(&0u16.to_le_bytes());
+        (z, want)
+    }
+
+    #[test]
+    fn the_prober_reads_a_layout_and_says_null_outside_it() {
+        let (z, want) = tiny_zip();
+        let ms = members(&z).expect("a ZIP layout");
+        assert_eq!(ms.len(), 2);
+        for (i, (off, len)) in want.iter().enumerate() {
+            assert_eq!(ms[i].off, *off, "member {} body offset", i);
+            assert_eq!(ms[i].len, *len, "member {} body length", i);
+        }
+        assert_eq!(ms[0].name, "a.txt");
+        assert_eq!(ms[1].name, "dir/b.bin");
+        // owner() is arithmetic, and it returns NULL rather than guessing
+        assert_eq!(owner(&ms, ms[0].off), Some(0));
+        assert_eq!(owner(&ms, ms[1].off + ms[1].len - 1), Some(1));
+        assert_eq!(owner(&ms, 0), None, "the local header belongs to no member");
+        assert_eq!(owner(&ms, z.len() - 1), None, "the EOCD belongs to no member");
+    }
+
+    #[test]
+    fn the_prober_refuses_what_it_cannot_read() {
+        assert!(members(b"not a container at all").is_none());
+        assert!(members(&[0xFFu8; 4096]).is_none());
+        let (mut z, _) = tiny_zip();
+        let n = z.len();
+        z[n - 6] = 0xFF; // a central-directory offset past the end of the file
+        assert!(members(&z).is_none(), "a layout that does not fit must be refused, not guessed");
+    }
 }

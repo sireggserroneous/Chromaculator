@@ -5,5 +5,7 @@ corpus-fmt/
 corpus-jpeg/
 corpus-real/
 corpus-rle/
+corpus-arena/
+corpus-deflate/
 *.egg13
 *.out

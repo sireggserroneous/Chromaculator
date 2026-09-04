@@ -797,6 +797,68 @@ battery('.judge', ['--judge']);
   }
 }
 
+// ---- the ARM battery (v13-M3c) ----
+// The two arms M3c added win rows the 20-row ledger does not contain, so
+// nothing in the battery covered them. There is no `--model` flag -- the roster
+// decides by argmin -- so each case is a form the arm MUST win, and the drill
+// fails the moment the argmin stops picking it. That is the point: a drill that
+// can pass without the arm running is worth nothing.
+//
+// WS-N gets a CONSTRUCTED form (float literals in rows, the shape of
+// embeddings.json, which is 15.8 MB and too big for a drill). WS-2D gets the
+// REAL row it wins, alarm01.wav -- a first synthetic was tried and DELETED
+// because the cheap v8 arm won it at 39,843 B of 576,000: a rectangle that
+// regular is not a test of a 2D context, it is a test of an LZ model.
+{
+  const mkNum = () => {
+    let s = 0x9E3779B1 >>> 0;
+    const rnd = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s; };
+    const rows = [];
+    for (let i = 0; i < 6000; i++) {
+      const v = [];
+      for (let k = 0; k < 8; k++) v.push(((rnd() % 2000000) / 1000000 - 1).toFixed(7));
+      rows.push('[' + v.join(',') + ']');
+    }
+    return Buffer.from('[' + rows.join(',\n') + ']\n', 'latin1');
+  };
+  const cases = [
+    ['arm-num.json', 27, mkNum(), null, 'WS-N, the number field split'],
+    ['alarm01.wav', 28, null, 14, 'WS-2D, the record stride (the audio frame)'],
+  ];
+  console.log(`\n== the arm battery (v13-M3c): ${cases.length} forms the new arms must win`);
+  for (const [name, want, buf, wantFilter, label] of cases) {
+    let src, orig;
+    if (buf) {
+      src = path.join(tmp, name);
+      fs.writeFileSync(src, buf);
+      orig = buf;
+    } else {
+      src = path.join(root, 'corpus-real', name);
+      if (!fs.existsSync(src)) { report(`model ${want}: ${name} present`, false, 'missing'); continue; }
+      orig = fs.readFileSync(src);
+    }
+    const cont = path.join(tmp, name + '.arm.egg13');
+    let g = null;
+    try {
+      transmute(src, cont, []);
+      g = info(cont);
+    } catch (e) {
+      report(`model ${want} (${label}): transmutes`, false, String(e).slice(0, 90));
+      continue;
+    }
+    report(`model ${want} (${label}): the argmin picks the arm`,
+      g.model === want, `info says model ${g.model}, expected ${want}`);
+    if (wantFilter !== null) {
+      report(`model ${want} on ${name}: it wins through the FILTERED form`,
+        g.filter === wantFilter, `info says filter ${g.filter}, expected ${wantFilter}`);
+    }
+    const c = fs.readFileSync(cont);
+    drill(`model ${want} on ${name}: pristine restore`, c, orig, [], 'EXACT');
+    drill(`model ${want} on ${name}: 1-byte flip, blind`,
+      wound(c, Math.floor(c.length / 2), 1), orig, [], 'EXACT');
+  }
+}
+
 // the pigeonhole, asserted as a PASS: random MUST transmute larger
 {
   const f = 'photo.bin';
