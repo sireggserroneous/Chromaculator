@@ -1,0 +1,12 @@
+alarm01.wav            303392   61.73%  m5 f6:2  d8       0  mmhit  83%  EXACT  mirror-OK  1.4 MB/s
+arial.ttf              505156   48.31%  m6 f0    d8   -3072  mmhit  78%  EXACT  mirror-OK  2.6 MB/s
+kernel32.dll           342316   40.94%  m6 f0    d8   -1024  mmhit  70%  EXACT  mirror-OK  2.5 MB/s
+notepad.exe            195348   54.20%  m6 f0    d8       0  mmhit  69%  EXACT  mirror-OK  1.7 MB/s
+real-test.bmp          274208    2.29%  m5 f5:6000  d8       0  mmhit  86%  EXACT  mirror-OK  2.1 MB/s
+real-test.db          1465336   15.34%  m6 f0    d8  -29696  mmhit  85%  EXACT  mirror-OK  1.4 MB/s
+ring01.wav             208660   41.86%  m5 f6:2  d8       0  mmhit  86%  EXACT  mirror-OK  1.7 MB/s
+segoeui.ttf            460600   47.99%  m6 f0    d8   -3072  mmhit  78%  EXACT  mirror-OK  2.6 MB/s
+vim-version9.txt       396076   19.46%  m6 f0    d8   -3596  mmhit  87%  EXACT  mirror-OK  1.7 MB/s
+wallpaper.jpg         1550852   96.76%  m5 f0    d8       0  mmhit  74%  EXACT  mirror-OK  1.7 MB/s
+wubbadub.html           34264   37.08%  m5 f0    d8       0  mmhit  81%  EXACT  mirror-OK  0.8 MB/s
+zstd.exe               581968   36.34%  m6 f0    d8   -2560  mmhit  73%  EXACT  mirror-OK  2.3 MB/s

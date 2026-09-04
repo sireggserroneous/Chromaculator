@@ -1,0 +1,21 @@
+THE TOURNAMENT -- rule: wrong-or-no data after any injury forfeits; smallest lossless survivor wins
+injuries per artifact: 1-byte flip (blind) / 4 KB scratch (addressed) / 4 KB truncation
+
+file                    orig B      gzip    zstd  brotli      xz    egg6 e6+zstd    egg7    egg8    egg9   WINNER (size)
+----------------------------------------------------------------------------------------------------------------------------------------
+archive.zst              946623      dq      dq    LIED      dq  107.3%  107.3%  107.7%  102.8%  102.6%   egg9 (971160)
+big.xml                 4156948      dq      dq    LIED      dq  102.5%   10.9%   11.9%   10.9%    6.8%   egg9 (280864)
+corpus-1489k.bin        1489000      dq      dq    LIED      dq  102.6%   30.7%   31.1%   29.5%   29.4%   egg9 (438072)
+data.csv                4960761      dq      dq      dq      dq  102.4%   24.5%   24.3%   23.9%   16.7%   egg9 (826752)
+photo.bin               4194304      dq      dq    LIED      dq  102.5%  102.5%  103.3%  102.8%  102.6%   egg6 (4297640)
+program.exe              265216      dq      dq      dq      dq  108.0%   48.1%   49.7%   46.3%   44.7%   egg9 (118628)
+real-test.bmp          12000054      dq      dq    LIED      dq  102.4%   31.0%   31.2%    2.3%    2.3%   egg9 (272160)
+real-test.db            9551872      dq      dq    LIED      dq  102.4%   17.7%   16.4%   15.7%   14.8%   egg9 (1411564)
+repo-bundle.bin          215055      dq      dq    LIED      dq  108.4%   36.7%   38.2%   32.0%   31.3%   egg9 (67276)
+server-log.json         7549839      dq      dq      dq      dq  102.4%   13.5%   14.3%   13.6%   10.9%   egg9 (823680)
+----------------------------------------------------------------------------------------------------------------------------------------
+podium: egg9 x9, egg6 x1
+victory ledger (egg9, armor ON, all injuries EXACT, of 10 files):
+  THE BAR vs xz -9             : 5/10  (needs >=8 of 12) -- NOT met
+  held: vs strongest gzip -9   : 8/10  (v8 bar >=10) -- NOT met
+  held: vs egg6+zstd hybrid    : 9/10  (v8 bar >=6) -- MET
