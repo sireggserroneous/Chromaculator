@@ -842,3 +842,46 @@ FILED, before any code:
 4. **No row moves except the peeled ones**, and all 29 deflate-suite files still
    re-spell bit for bit. The peel's law is unchanged: one byte of difference and
    the peel is discarded for that file.
+
+## N3b MEASURED (step 1) — the parse IS predictable, and v12's door was never the right door
+
+`deflate.rs` records why v13 chose to store the parse: *"v12 shut this door by
+searching for the encoder: 1,260 zlib configurations, best agreement 3 bytes of
+4,096, first difference at byte 0."*
+
+**v12 compared COMPRESSED BYTES.** Huffman tree construction and block splitting
+diverge on the first block for any re-compression, so that search could only ever
+return zero — it was measuring the wrong layer. Preflate never re-compresses: it
+keeps the stream's own declared trees and block boundaries (which our recipe
+already stores, and cheaply) and predicts only the **match/literal parse**.
+
+Measured at the parse layer, on the first 4,000,000 output bytes of
+`aoe4-autosave.sav` (1,420,054 original tokens):
+
+| predictor | tokens | positions shared | identical where shared | **original tokens predicted exactly** |
+|---|---|---|---|---|
+| zlib -6 | 1,411,188 | 99.08% | 99.44% | **98.52%** |
+| zlib -9 | 1,407,545 | 98.53% | 99.36% | 97.90% |
+| zlib -1 | 1,175,077 | 79.94% | 85.89% | 68.66% |
+
+**A first cut of this measurement compared tokens ELEMENTWISE by index and
+reported 2.2-2.8% agreement.** That is an artifact: one differing token shifts
+every index after it, so the number measures desynchronisation, not disagreement.
+Aligning by OUTPUT POSITION is the only comparison that means anything, and the
+token counts differing by just 0.6% was the clue that the elementwise reading
+was wrong.
+
+**Filed prediction 1 said >= 99.5%, with < 95% stopping the milestone. Measured
+98.52% — above the kill line by a wide margin, below the filed figure.** It is
+judged a MISS on the number and a PASS on the gate, and the gap is explained:
+this predictor runs zlib INDEPENDENTLY and desynchronises, which is what the
+0.92% of unshared positions are. Preflate advances by the ACTUAL token, so it
+never desyncs, and it also INFERS the matcher parameters per stream rather than
+assuming stock level 6. **98.52% is therefore a floor, not the estimate.** The
+lockstep measurement is step 2 and it is what prediction 1 should have named.
+
+Crude byte arithmetic at the floor: 1.48% of 38,340,574 tokens is ~567,000
+corrections, plus a flag stream at that density (~38.3M x H(0.0148) = ~531 KB
+coded) — call it ~1.1 MB against today's 3,505,440, so **~2.4 MB even if lockstep
+buys nothing.** precomp's 24,160 B says lockstep plus parameter inference buys a
+great deal more.
