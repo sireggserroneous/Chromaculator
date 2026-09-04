@@ -1,0 +1,12 @@
+target/
+corpus/
+corpus-big/
+corpus-fmt/
+corpus-jpeg/
+corpus-real/
+corpus-rle/
+corpus-arena/
+corpus-deflate/
+*.egg13
+*.egg14
+*.out
