@@ -59,3 +59,16 @@ console.log(`  ${'TOTAL WON'.padEnd(20)} +${n(won).padStart(11)} B`);
 console.log(`  ${'NET'.padEnd(20)}  ${n(won - lost).padStart(12)} B`);
 const rec = byRow['aoe4-autosave.sav'];
 if (rec && rec.best != null) console.log(`\nfix the recipe alone and the corpus-wide net goes ${n(won - lost)} -> ${n(won - lost + (rec.ours - rec.best))} B`);
+
+// ---- against SINGLE tools, not a per-row oracle. The `best rival` column
+// above picks the winner per row, which cherry-picks paq8px on the rows
+// paq8px wins -- at 87x our wall clock. These are the comparisons a real
+// competitor could actually make.
+const allOursT = rows.reduce((s, r) => s + r.ours, 0);
+const zAll = rows.reduce((s, r) => s + (C.zpaq_m5[r.f] ?? r.ours), 0);
+const sav = 'aoe4-autosave.sav';
+const zPre = zAll - C.zpaq_m5[sav] + C.precomp_best[sav];
+console.log(`\nagainst single tools (all ${rows.length} rows):`);
+console.log(`  ours                            ${n(allOursT)}`);
+console.log(`  zpaq -m5 alone                  ${n(zAll)}   ${pct(zAll, allOursT)} (we WIN)`);
+console.log(`  precomp on the save + zpaq      ${n(zPre)}   ${pct(zPre, allOursT)}`);
