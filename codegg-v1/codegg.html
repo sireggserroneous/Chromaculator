@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The error spells its own address · chronochromatic.org</title>
+<meta name="description" content="The square is a number, so a residue of its value is a complete syndrome: a corrupted cell announces its own position, sign and size. Arithmetic coding in the site's own colours.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../base.css">
+<style>
+.wrap{max-width:960px; margin:0 auto; padding:34px 24px 80px; display:flex; flex-direction:column; gap:26px}
+.mast{display:flex; flex-direction:column; gap:9px; padding-bottom:18px; border-bottom:2px solid var(--ink)}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:clamp(1.9rem,5vw,2.6rem);
+  margin:0; letter-spacing:-.02em; line-height:1.04}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.17em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.sub{color:var(--ink2); max-width:72ch; margin:0}
+.sub code{font-family:"IBM Plex Mono",monospace; font-size:.82rem; color:var(--ink)}
+.bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--panel);
+  border:1px solid var(--rule); border-radius:6px; padding:11px 14px}
+.bar label{font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+button{font:inherit; font-size:.85rem; color:var(--ink); background:var(--panel);
+  border:1px solid var(--rule2); border-radius:5px; padding:5px 11px; cursor:pointer}
+button:hover{border-color:var(--brass)}
+button:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.act{border-color:var(--brass); color:var(--brass)}
+.stage{display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start}
+.col{display:flex; flex-direction:column; gap:8px}
+.col h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; margin:0}
+.gridwrap{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px;
+  box-shadow:var(--shadow)}
+table.grid{border-collapse:collapse; font-family:"IBM Plex Mono",monospace; font-size:.72rem}
+table.grid td{width:1.7rem; height:1.7rem; text-align:center; border:1px solid var(--rule);
+  color:var(--ink3); padding:0}
+#tblA td{cursor:pointer}
+td.b{background:var(--blue-w); color:var(--blue); font-weight:600}
+td.r{background:var(--red-w); color:var(--red); font-weight:600}
+td.g{background:var(--sunk)}
+td.hit{outline:2px solid var(--brass); outline-offset:-2px}
+td.quiet{opacity:.45}
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px;
+  min-width:min(300px,100%); flex:1; display:flex; flex-direction:column; gap:9px}
+.panel h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; margin:0;
+  padding-bottom:6px; border-bottom:1px solid var(--rule)}
+.readout{font-family:"IBM Plex Mono",monospace; font-size:.76rem; line-height:1.75; color:var(--ink2);
+  white-space:pre-wrap; margin:0}
+.readout b{color:var(--ink)}
+.note{color:var(--ink3); font-size:.82rem; line-height:1.6; margin:0; max-width:70ch}
+.foot{border-top:1px solid var(--rule); padding-top:18px; color:var(--ink3); font-size:.84rem;
+  line-height:1.6; max-width:74ch}
+.foot code{font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--ink2)}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="../index.html">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="../index.html">Home</a>
+    <a href="../spectrometer.html">Spectrometer</a>
+    <a href="../atlas.html">Atlas</a>
+    <a href="../wub.html">Wub ±</a>
+    <a href="../wubx.html">Wub ×</a>
+    <a href="../wubdiv.html">Wub ÷</a>
+    <a href="../wubbadub.html">Wubba Dub</a>
+    <a href="../spec.html">Spec</a>
+    <a href="../inspirations.html">Inspirations</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <header class="mast">
+    <span class="eyebrow">codegg v1</span>
+    <h1>The error spells its own address</h1>
+  </header>
+
+  <p class="sub">The square is a number: cell <code>i</code> weighs <code>2^(L-1-i)</code>, so every
+  cell has a distinct magnitude. Damage of size <code>d</code> at cell <code>i</code> moves the value by
+  exactly <code>d·2^(L-1-i)</code> &mdash; one quantity that names the cell, the direction and the size
+  at once. Keep the value mod two small primes, and that difference <em>is</em> the diagnosis: drawn in
+  the site's own colours, the syndrome is a single lit cell sitting exactly where the wound is.</p>
+
+  <p class="sub">The product code next door needs <code>4N&minus;1</code> sums to triangulate a
+  position. Here two residues &mdash; about three bytes for a 128-byte square &mdash; do it alone,
+  because position was encoded in place value all along. And since <b>push</b> conserves the value,
+  the check survives respelling: press Push below and watch every colour move while both residues
+  stand still.</p>
+
+  <div class="bar">
+    <label for="side">Side</label>
+    <input id="side" type="range" min="4" max="12" step="1" value="8">
+    <button id="one">Corrupt one cell</button>
+    <button id="erase">Erase one (&minus;1)</button>
+    <button id="push">Push (respell)</button>
+    <button id="repair" class="act">Repair</button>
+    <button id="reset">Reset</button>
+  </div>
+
+  <div class="stage">
+    <div class="col">
+      <h2>The square</h2>
+      <div class="gridwrap"><table class="grid" id="tblA"><tbody id="tbA"></tbody></table></div>
+    </div>
+    <div class="col">
+      <h2>The syndrome, drawn</h2>
+      <div class="gridwrap"><table class="grid" id="tblS"><tbody id="tbS"></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2>The arithmetic</h2>
+      <p class="readout" id="out">&mdash;</p>
+      <p class="note" id="hint"></p>
+    </div>
+  </div>
+
+  <p class="foot">A magnitude-2 error &mdash; a cell crossing from <code>&minus;1</code> to
+  <code>+1</code> &mdash; spells itself one place to the left, because <code>2·2^w = 2^(w+1)</code>:
+  the syndrome square lights the neighbouring cell and says so. This is a residue code in the
+  arithmetic-codes lineage (Avizienis 1971 &mdash; the same Avizienis whose 1961 signed digits the
+  digits page already credits). Its honest costs, measured in <code>tools/codegg.test.js</code>: a
+  silent floor of about <code>1/(p·q)</code>, and a multi-error syndrome can imitate a smaller one.
+  The product code has neither failure mode; it pays five times the redundancy to be that sure.</p>
+</div>
+
+<script src="../stalk.js"></script>
+<script src="codegg.js"></script>
+<script>
+/* The syndrome, drawn. All decisions live in diagnose(), a plain function
+   over plain data, so the DOM harness can drive it directly -- the keeps()
+   discipline. Every element handle is optional: a harness with none of these
+   ids draws nothing and throws nothing. */
+
+let PN = 8, PCODE = null, cells = [], check = null;
+
+function build(){
+  PCODE = makeCode(PN);
+  cells = [];
+  for(let i = 0; i < PCODE.L; i++) cells.push(Math.random() < 0.5 ? 1 : 0);
+  check = [residue(cells, PCODE.p), residue(cells, PCODE.q)];
+}
+
+/* what do the residues say about the current cells?
+   status: clean | erasure | located | detected
+   clean is checked FIRST via verify(), so a pushed respelling -- full of
+   legitimate -1 cells but carrying the same value -- reads clean, which is
+   the whole point. */
+function diagnose(){
+  if(verify(cells, check, PCODE))
+    return {status: "clean", hits: [],
+            sp: 0, sq: 0, pushed: cells.some(v => v === -1)};
+  const sp = (residue(cells, PCODE.p) - check[0] + PCODE.p) % PCODE.p;
+  const sq = (residue(cells, PCODE.q) - check[1] + PCODE.q) % PCODE.q;
+  const erased = [];
+  for(let i = 0; i < cells.length; i++) if(cells[i] === -1) erased.push(i);
+  if(erased.length) return {status: "erasure", hits: erased.map(i => ({i, d: null, n: PN})), sp, sq};
+  const hits = [];
+  for(const c of (PCODE.P.t.get(sp) || []))
+    if(((c.d * PCODE.Q.w[c.i]) % PCODE.q + PCODE.q) % PCODE.q === sq
+       && cells[c.i] - c.d >= 0 && cells[c.i] - c.d <= 1)
+      hits.push({i: c.i, d: c.d, n: PN});
+  if(hits.length === 1) return {status: "located", hits, sp, sq};
+  return {status: "detected", hits: [], sp, sq};
+}
+
+function doRepair(){
+  const d = diagnose();
+  if(d.status === "located"){ cells[d.hits[0].i] -= d.hits[0].d; }
+  else if(d.status === "erasure"){
+    /* brute force the erased cells against both residues, the same move the
+       codec's repairSquare makes */
+    const F = [];
+    for(let i = 0; i < cells.length; i++) if(cells[i] === -1) F.push(i);
+    if(F.length && F.length <= 12){
+      const base = cells.slice();
+      for(const i of F) base[i] = 0;
+      const rp0 = residue(base, PCODE.p), rq0 = residue(base, PCODE.q);
+      for(let a = 0; a < (1 << F.length); a++){
+        let rp = rp0, rq = rq0;
+        for(let j = 0; j < F.length; j++)
+          if(a & (1 << j)){ rp = (rp + PCODE.P.w[F[j]]) % PCODE.p; rq = (rq + PCODE.Q.w[F[j]]) % PCODE.q; }
+        if(rp === check[0] && rq === check[1]){
+          for(let j = 0; j < F.length; j++) cells[F[j]] = (a >> j) & 1;
+          break;
+        }
+      }
+    }
+  }
+  draw();
+}
+
+/* ---- drawing ---- */
+function CLS(v){ return v > 0 ? "b" : v < 0 ? "r" : "g"; }
+function GLY(v){ return v > 0 ? "1" : v < 0 ? "−" : "0"; }
+
+function draw(){
+  const d = diagnose();
+  report(d);
+  const tbA = document.getElementById("tbA"), tbS = document.getElementById("tbS");
+  if(!tbA || typeof tbA.innerHTML !== "string") return;
+
+  const hot = {};
+  for(const h of d.hits) hot[h.i] = h;
+
+  let a = "";
+  for(let r = 0; r < PN; r++){
+    a += "<tr>";
+    for(let c = 0; c < PN; c++){
+      const i = r * PN + c;
+      a += '<td class="' + CLS(cells[i]) + (hot[i] ? " hit" : "") + '" data-i="' + i + '"'
+        + ' title="cell ' + i + ', weight 2^' + (PCODE.L - 1 - i) + '">' + GLY(cells[i]) + "</td>";
+    }
+    a += "</tr>";
+  }
+  tbA.innerHTML = a;
+
+  /* the syndrome square: the same geometry, lit only where the damage spells
+     itself. For a located error that is the damaged cell, in the colour of
+     its sign. For erasures, the erased cells. Clean is all quiet. */
+  if(tbS && typeof tbS.innerHTML === "string"){
+    let s = "";
+    for(let r = 0; r < PN; r++){
+      s += "<tr>";
+      for(let c = 0; c < PN; c++){
+        const i = r * PN + c, h = hot[i];
+        if(h && h.d !== null)
+          s += '<td class="' + (h.d > 0 ? "b" : "r") + ' hit">' + (Math.abs(h.d) === 2 ? "2" : GLY(h.d)) + "</td>";
+        else if(h) s += '<td class="r hit">?</td>';
+        else s += '<td class="quiet g"></td>';
+      }
+      s += "</tr>";
+    }
+    tbS.innerHTML = s;
+  }
+}
+
+function report(d){
+  const out = document.getElementById("out"), hint = document.getElementById("hint");
+  const L = [];
+  L.push("side       N = " + PN + "   L = " + PCODE.L + " cells");
+  L.push("moduli     p = " + PCODE.p + "   q = " + PCODE.q);
+  L.push("checks     V mod p = " + check[0] + "   V mod q = " + check[1]);
+  L.push("received   " + residue(cells, PCODE.p) + " / " + residue(cells, PCODE.q));
+  L.push("syndrome   " + d.sp + " / " + d.sq);
+  L.push("");
+  if(d.status === "clean")
+    L.push(d.pushed
+      ? "<b>clean</b> — respelled, every colour moved, both residues did not"
+      : "<b>clean</b> — the value is the one the checks remember");
+  else if(d.status === "located"){
+    const h = d.hits[0];
+    L.push("<b>located</b> — syndrome = " + (h.d > 0 ? "+" : "−") + Math.abs(h.d)
+      + " · 2^" + (PCODE.L - 1 - h.i) + ", so cell " + h.i
+      + " moved by " + (h.d > 0 ? "+" : "") + h.d);
+  }
+  else if(d.status === "erasure")
+    L.push("<b>erasure</b> — " + d.hits.length + " cell" + (d.hits.length > 1 ? "s" : "")
+      + " read −1, which no stored bit can; Repair solves them against both residues");
+  else
+    L.push("<b>detected</b> — the syndrome is not any single cell's spelling;"
+      + " more damage than one address");
+  if(out && typeof out.innerHTML === "string") out.innerHTML = L.join("\n");
+
+  const H = {
+    clean: "Click a cell to corrupt it, or press Push and watch the checks hold still while everything moves.",
+    located: "The syndrome square lights the damaged cell in the colour of its error. Position was in the place value all along.",
+    erasure: "A −1 announces itself. Repair tries every reading of the erased cells against both residues.",
+    detected: "Detected and reported, not guessed at. The product code next door pays 5× the redundancy to place this.",
+  };
+  if(hint && typeof hint.textContent === "string") hint.textContent = H[d.status] || "";
+}
+
+/* ---- wiring; every handle optional ---- */
+function on(id, ev, fn){
+  const el = document.getElementById(id);
+  if(el && typeof el.addEventListener === "function") el.addEventListener(ev, fn);
+}
+on("one", "click", function(){
+  const i = Math.floor(Math.random() * PCODE.L);
+  cells[i] = cells[i] === 1 ? 0 : 1;
+  draw();
+});
+on("erase", "click", function(){
+  cells[Math.floor(Math.random() * PCODE.L)] = -1;
+  draw();
+});
+on("push", "click", function(){
+  if(typeof pushLeft === "function") cells = pushLeft(cells);
+  draw();
+});
+on("repair", "click", doRepair);
+on("reset", "click", function(){ build(); draw(); });
+on("side", "input", function(e){
+  const v = +(e && e.target ? e.target.value : PN);
+  if(v >= 4 && v <= 12){ PN = v; build(); draw(); }
+});
+on("tblA", "click", function(e){
+  const t = e && e.target;
+  if(!t || typeof t.getAttribute !== "function") return;
+  const i = t.getAttribute("data-i");
+  if(i === null) return;
+  cells[+i] = cells[+i] === 1 ? 0 : (cells[+i] === 0 ? 1 : 0);
+  draw();
+});
+
+build();
+draw();
+</script>
+</body>
+</html>
