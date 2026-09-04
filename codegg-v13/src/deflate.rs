@@ -647,6 +647,19 @@ pub fn respell(d: &Deflate) -> Result<Vec<u8>, String> {
                     i = 27;
                     ri += 1;
                 }
+                if 257 + i >= lc.len() {
+                    // the bound, not the definition: a block may declare an
+                    // HLIT that does not reach this symbol at all, and indexing
+                    // first would panic where every other refusal here returns
+                    // a reason. The distance side below has always had this
+                    // guard; the length side did not, and M3a's spelling list
+                    // is a second way to reach a high symbol.
+                    return Err(format!(
+                        "the recipe asks for length symbol {} beyond this block's table of {}",
+                        257 + i,
+                        lc.len()
+                    ));
+                }
                 let (c, l) = lc[257 + i];
                 if l == 0 {
                     return Err(format!("the recipe asks for length symbol {} which this block does not define", 257 + i));
