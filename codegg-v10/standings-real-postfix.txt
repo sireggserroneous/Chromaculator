@@ -1,0 +1,23 @@
+THE TOURNAMENT -- rule: wrong-or-no data after any injury forfeits; smallest lossless survivor wins
+injuries per artifact: 1-byte flip (blind) / 4 KB scratch (addressed) / 4 KB truncation
+
+file                    orig B       gzip       zstd     brotli         xz       egg6  egg6+zstd       egg7       egg8       egg9      egg10   WINNER (size)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+alarm01.wav              491516  78.2%(dq)  77.3%(dq)  66.8%(dq)  70.1%(dq)     107.3%      83.3%      84.5%      61.7%      56.4%      55.8%   egg10 (274208)
+arial.ttf               1045720  54.1%(dq)  48.2%(dq)  45.5%(dq)  44.6%(dq)     107.3%      51.8%      53.3%      48.6%      46.8%      45.2%   egg10 (472900)
+kernel32.dll             836208  47.3%(dq)  40.3%(dq)  38.3%LIED  37.8%(dq)     107.4%      43.4%      45.2%      41.1%      39.0%      36.0%   egg10 (300832)
+notepad.exe              360448  56.2%(dq)  52.6%(dq)  50.8%(dq)  50.5%(dq)     107.4%      57.0%      58.0%      54.2%      52.5%      51.2%   egg10 (184584)
+real-test.bmp          12000054  30.5%(dq)  30.2%(dq)  30.3%LIED  30.1%(dq)     102.4%      31.0%      31.2%       2.3%       2.3%       2.2%   egg10 (269600)
+real-test.db            9551872  19.5%(dq)  17.3%(dq)  17.7%LIED  15.4%(dq)     102.4%      17.7%      16.4%      15.7%      14.8%      13.3%   egg10 (1273812)
+ring01.wav               498420  58.9%(dq)  56.5%(dq)  48.7%LIED  49.8%(dq)     107.6%      61.1%      62.0%      41.9%      30.4%      29.8%   egg10 (148744)
+segoeui.ttf              959752  57.1%(dq)  48.1%(dq)  45.1%LIED  44.0%(dq)     107.3%      51.8%      53.0%      48.3%      46.4%      45.3%   egg10 (434488)
+vim-version9.txt        2035039  24.2%(dq)  18.7%(dq)  18.0%(dq)  18.2%(dq)     102.5%      20.1%      21.3%      19.6%      18.0%      16.0%   egg10 (326432)
+wallpaper.jpg           1602752  99.1%(dq)  98.0%(dq)  96.8%LIED  98.1%(dq)     102.5%     100.5%      97.7%      96.8%      96.8%      96.8%   egg8 (1550852)
+wubbadub.html             92408  31.0%(dq)  29.0%(dq)  26.7%(dq)  28.3%(dq)     109.3%      39.0%      40.1%      37.1%      36.5%      33.7%   egg10 (31120)
+zstd.exe                1601409  42.6%(dq)  36.2%(dq)  34.2%(dq)  33.4%(dq)     102.5%      38.9%      40.1%      36.5%      35.3%      32.7%   egg10 (524100)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+podium: egg10 x11, egg8 x1
+victory ledger (egg10, armor ON, all injuries EXACT, of 12 files):
+  THE BAR vs xz -9             : 8/12  (needs >=8 of 12) -- MET
+  held: vs strongest gzip -9   : 11/12  (v8 bar >=10) -- MET
+  held: vs egg6+zstd hybrid    : 12/12  (v8 bar >=6) -- MET

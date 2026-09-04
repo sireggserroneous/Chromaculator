@@ -1,0 +1,13 @@
+THE CHALLENGERS CARD -- same injuries, same rule: every wound EXACT or forfeit. 12 lanes.
+file                    orig B          rar   f/s/t        xz+par2   f/s/t
+------------------------------------------------------------------------------------------
+aoe4-autosave.sav      66417543    28.6%(dq)   E/E/x           25.9%   E/E/E   
+cbs.log                16187036     1.2%(dq)   E/E/x            1.0%   E/E/E   
+iconcache48.db         97517568     0.8%(dq)   E/E/x            0.5%   E/E/E   
+mermaid-bundle.js      25842004    22.7%(dq)   E/E/x           19.8%   E/E/E   
+msgraph.dll            43249696    13.9%(dq)   E/E/x           11.3%   E/E/E   
+ntoskrnl.exe           13047280    45.1%(dq)   E/E/x           43.5%   E/E/E   
+rdr2-shaders.vkcache   48872878    91.2%(dq)   E/E/x           88.0%   E/E/E   
+rustc_driver.dll      183111168    26.8%(dq)   E/E/x           23.4%   E/E/E   
+------------------------------------------------------------------------------------------
+E=EXACT restore, x=failed, W=wrong bytes; (dq) = forfeited at least one injury

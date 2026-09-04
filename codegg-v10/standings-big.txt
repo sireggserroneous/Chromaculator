@@ -1,0 +1,19 @@
+THE TOURNAMENT -- rule: wrong-or-no data after any injury forfeits; smallest lossless survivor wins
+injuries per artifact: 1-byte flip (blind) / 4 KB scratch (addressed) / 4 KB truncation
+
+file                    orig B       gzip       zstd     brotli         xz       egg6  egg6+zstd       egg7       egg8       egg9      egg10   WINNER (size)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+aoe4-autosave.sav      66417543  84.6%(dq)  26.5%(dq)  27.3%LIED  25.2%(dq)     102.4%      27.1%      27.1%      26.8%      26.7%      26.8%   egg9 (17751984)
+cbs.log                16187036   2.5%(dq)   0.8%(dq)   1.0%LIED   0.9%(dq)     102.4%       0.8%       1.0%       0.9%       0.9%       0.9%   egg6+zstd (136884)
+iconcache48.db         97517568  26.6%(dq)   0.7%(dq)   0.7%LIED   0.4%(dq)     102.4%       0.8%   0.5%(dq)   0.5%(dq)   0.4%(dq)       0.4%   egg10 (427320)
+mermaid-bundle.js      25842004  24.4%(dq)  20.0%(dq)  21.6%(dq)  19.2%(dq)     102.4%      20.5%      21.2%      20.6%      20.4%      19.2%   egg10 (4959348)
+msgraph.dll            43249696  22.0%(dq)  14.5%(dq)  15.3%(dq)  11.0%(dq)     102.4%      14.8%      15.8%      14.1%      12.4%      10.8%   egg10 (4665400)
+ntoskrnl.exe           13047280  54.2%(dq)  44.7%(dq)  47.9%LIED  42.2%(dq)     102.4%      45.8%      47.2%      45.5%      41.6%      39.1%   egg10 (5096588)
+rdr2-shaders.vkcache   48872878  96.8%(dq)  90.1%(dq)  92.9%LIED  85.9%(dq)     102.4%      92.3%      88.7%      87.8%      87.7%      87.8%   egg9 (42865608)
+rustc_driver.dll      183111168  35.3%(dq)  25.6%(dq)  27.8%(dq)  22.8%(dq)     102.4%      26.3%  26.9%(dq)  25.6%(dq)  24.1%(dq)      23.7%   egg10 (43415092)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+podium: egg10 x5, egg9 x2, egg6+zstd x1
+victory ledger (egg10, armor ON, all injuries EXACT, of 8 files):
+  THE BAR vs xz -9             : 2/8  (needs >=8 of 12) -- NOT met
+  held: vs strongest gzip -9   : 8/8  (v8 bar >=10) -- NOT met
+  held: vs egg6+zstd hybrid    : 7/8  (v8 bar >=6) -- MET
