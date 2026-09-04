@@ -885,3 +885,51 @@ corrections, plus a flag stream at that density (~38.3M x H(0.0148) = ~531 KB
 coded) — call it ~1.1 MB against today's 3,505,440, so **~2.4 MB even if lockstep
 buys nothing.** precomp's 24,160 B says lockstep plus parameter inference buys a
 great deal more.
+
+## N3b step 1b — HOW FAR THE DEFLATE PEEL REACHES, and the answer is one row
+
+Before spending a milestone on the recipe, the milestone had to be sized: how
+many corpus rows does the deflate peel touch at all? `precomp -cn -intense`
+across all twenty rows finds streams in **twelve** of them —
+
+```
+kernel32.dll 10/10   zstd.exe 46/46   ntoskrnl.exe 77/77   msgraph.dll 4/4
+notepad.exe 1/1      real-test.bmp 2/2  real-test.db 1/1   segoeui.ttf 1/2
+wallpaper.jpg 1/1 (+JPG 1/1)           rdr2-shaders.vkcache 5/6
+aoe4-autosave.sav 10/10 (+GZip 1/1)    rustc_driver.dll 1594/1597
+```
+
+— which looks like a corpus-wide opportunity and **is not one.** `-intense`
+scans for raw zlib headers, and inside a PE image most hits are short byte runs
+that happen to inflate. The count decides nothing; whether peeling BUYS bytes
+decides it:
+
+| row | streams | ours (inner) | zpaq -m5 alone | precomp -intense + zpaq | verdict |
+|---|---|---|---|---|---|
+| kernel32.dll | 10 | 278,792 | 269,792 | 271,365 | peel **LOSES** +0.58% |
+| zstd.exe | 46 | 484,103 | 474,147 | 476,059 | peel **LOSES** +0.40% |
+| ntoskrnl.exe | 77 | 4,670,575 | 4,437,863 | 4,512,893 | peel **LOSES** +1.69% |
+| msgraph.dll | 4 | 3,207,068 | 3,145,272 | 3,146,364 | peel **LOSES** +0.03% |
+
+**Peeling those streams loses on every binary row.** The expansion costs more
+than the peel saves, on the strongest coder available. So the deflate peel
+reaches **one row** — `aoe4-autosave.sav`, a real single 66 MB gzip member.
+
+**N3b is therefore re-sized before it is built:** ~3.45 MB on one row (3.3% of
+the ~105.5 MB sealed corpus) plus unblocking N4's ZIP peel, where deflate
+members are the whole file rather than an artifact of a header scan. It is not a
+corpus-wide win, and the earlier framing implied it might be.
+
+**Two more rows for the zpaq column, taken from the same runs:** `ntoskrnl.exe`
+**-5.0%** (4,437,863 against our 4,670,575) and `msgraph.dll` **-1.9%**
+(3,145,272 against 3,207,068). zpaq -m5 now beats us on **9 of the 14 rows
+measured**.
+
+### The weight of the corpus is somewhere nobody has looked
+
+Summing the sealed twenty: **`rdr2-shaders.vkcache` (41,860,990) and
+`rustc_driver.dll` (37,436,978) are 79.3 MB of ~105.5 MB — 75% of the corpus by
+weight — and no rival has ever been run on either.** Every card measurement in
+this project's history has been taken on rows that together are a quarter of
+what we ship. A 5% gap on those two is 4 MB, the size of all of N3b, and it
+costs an hour to find out.
