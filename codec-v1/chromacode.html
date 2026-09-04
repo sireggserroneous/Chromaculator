@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product code · chronochromatic.org</title>
+<meta name="description" content="The square that spec.md builds for a dimensional reason is the geometry of a product code. Row, column and anti-diagonal sums locate a corrupted cell exactly.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../base.css">
+<style>
+.wrap{max-width:960px; margin:0 auto; padding:34px 24px 80px; display:flex; flex-direction:column; gap:26px}
+.mast{display:flex; flex-direction:column; gap:9px; padding-bottom:18px; border-bottom:2px solid var(--ink)}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:clamp(1.9rem,5vw,2.6rem);
+  margin:0; letter-spacing:-.02em; line-height:1.04}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.17em;
+  text-transform:uppercase; color:var(--brass); font-weight:600}
+.sub{color:var(--ink2); max-width:72ch; margin:0}
+.sub code{font-family:"IBM Plex Mono",monospace; font-size:.82rem; color:var(--ink)}
+.bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--panel);
+  border:1px solid var(--rule); border-radius:6px; padding:11px 14px}
+.bar label{font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink3); font-weight:600}
+button{font:inherit; font-size:.85rem; color:var(--ink); background:var(--panel);
+  border:1px solid var(--rule2); border-radius:5px; padding:5px 11px; cursor:pointer}
+button:hover{border-color:var(--brass)}
+button:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.act{border-color:var(--brass); color:var(--brass)}
+.stage{display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start}
+.gridwrap{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:16px;
+  box-shadow:var(--shadow); overflow-x:auto}
+table.grid{border-collapse:collapse; font-family:"IBM Plex Mono",monospace; font-size:.7rem}
+table.grid td{width:1.55rem; height:1.55rem; text-align:center; border:1px solid var(--rule);
+  color:var(--ink3); cursor:pointer; padding:0}
+td.b{background:var(--blue-w); color:var(--blue); font-weight:600}
+td.r{background:var(--red-w); color:var(--red); font-weight:600}
+td.g{background:var(--sunk)}
+td.sum{background:transparent; border:1px dashed var(--rule2); color:var(--ink3); cursor:default}
+td.sum.bad{border-color:var(--brass); color:var(--brass); font-weight:700; background:var(--blue-w)}
+td.hit{outline:2px solid var(--brass); outline-offset:-2px}
+td.lane{box-shadow:inset 0 0 0 99px var(--wash-b)}
+td.corner{border:0; cursor:default}
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px;
+  min-width:min(320px,100%); flex:1; display:flex; flex-direction:column; gap:9px}
+.panel h2{font-family:"Zilla Slab",Georgia,serif; font-size:1.05rem; font-weight:500; margin:0;
+  padding-bottom:6px; border-bottom:1px solid var(--rule)}
+.readout{font-family:"IBM Plex Mono",monospace; font-size:.76rem; line-height:1.7; color:var(--ink2);
+  white-space:pre-wrap; margin:0}
+.readout b{color:var(--ink)}
+.note{color:var(--ink3); font-size:.82rem; line-height:1.6; margin:0; max-width:70ch}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:.78rem; color:var(--ink3)}
+.legend span{display:flex; gap:5px; align-items:center}
+.sw{width:.8rem; height:.8rem; border:1px solid var(--rule2); border-radius:2px; display:inline-block}
+.foot{border-top:1px solid var(--rule); padding-top:18px; color:var(--ink3); font-size:.84rem;
+  line-height:1.6; max-width:74ch}
+.foot code{font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--ink2)}
+</style>
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="../index.html">chronochromatic<span>.org</span></a>
+  <nav aria-label="Main">
+    <a href="../index.html">Home</a>
+    <a href="../spectrometer.html">Spectrometer</a>
+    <a href="../atlas.html">Atlas</a>
+    <a href="../wub.html">Wub ±</a>
+    <a href="../wubx.html">Wub ×</a>
+    <a href="../wubdiv.html">Wub ÷</a>
+    <a href="../wubbadub.html">Wubba Dub</a>
+    <a href="../spec.html">Spec</a>
+    <a href="../inspirations.html">Inspirations</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <header class="mast">
+    <span class="eyebrow">codec v1</span>
+    <h1>The square is a product code</h1>
+  </header>
+
+  <p class="sub">The spec builds a square for a purely dimensional reason: <code>n = ceil(sqrt(L))</code>
+  is the smallest one that holds the stalk. That shape is also the geometry of a product code. Sum every
+  row, every column and every anti-diagonal, and a single corrupted cell is not merely detected &mdash;
+  it is <em>located</em>, at the intersection of the sums that disagree.</p>
+
+  <p class="sub">Anti-diagonals are not decoration here. Cell weight in this representation depends only
+  on <code>r + c</code>, so the anti-diagonals <em>are</em> the place values &mdash; and they are what
+  catch the four-corner rectangle that defeats plain row and column parity.</p>
+
+  <div class="bar">
+    <label for="side">Side</label>
+    <input id="side" type="range" min="4" max="12" step="1" value="8">
+    <button id="one">Corrupt one cell</button>
+    <button id="two">Corrupt two</button>
+    <button id="rect">Four corners</button>
+    <button id="repair" class="act">Repair</button>
+    <button id="reset">Reset</button>
+    <label style="margin-left:auto; text-transform:none; letter-spacing:0">
+      <input id="diags" type="checkbox" checked> anti-diagonals</label>
+  </div>
+
+  <div class="stage">
+    <div class="gridwrap">
+      <table class="grid" id="tbl"><tbody id="tb"></tbody></table>
+    </div>
+    <div class="panel">
+      <h2>What the sums say</h2>
+      <p class="readout" id="out">&mdash;</p>
+      <p class="note" id="hint"></p>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--blue-w)"></i> +1</span>
+        <span><i class="sw" style="background:var(--sunk)"></i> 0</span>
+        <span><i class="sw" style="background:var(--red-w)"></i> &minus;1</span>
+        <span><i class="sw" style="border-style:dashed"></i> parity sum</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">The rim carries <code>N</code> row sums, <code>N</code> column sums and
+  <code>2N-1</code> anti-diagonal sums &mdash; <code>4N-1</code> for <code>N^2</code> cells, so the
+  overhead is <code>(4N-1)/N^2</code>: 64% at <code>N=6</code> but 12.4% at <code>N=32</code>. Turn the
+  anti-diagonals off and press Four corners: every row and column sum stays balanced, and the damage
+  becomes invisible. That is what the extra vector buys.</p>
+</div>
+
+<script src="../stalk.js"></script>
+<script src="../chroma-ui.js"></script>
+<script>
+/* The square as a product code, drawn.
+ *
+ * Everything that decides anything lives in a plain function over plain data:
+ * parities(), differ() and classify() take arrays and return arrays. The DOM
+ * harness leaves querySelectorAll empty and swallows canvas, so keeping the
+ * decisions out of the drawing is the only way any of this is testable -- the
+ * same discipline inspirations.html uses for keeps().
+ *
+ * Every element handle is optional, so a harness with none of these ids draws
+ * nothing and throws nothing rather than inventing a pass. */
+
+let N = 8, grid = [], want = null;
+
+/* the three parity vectors. One function, so the expected and observed sides
+   cannot drift apart. */
+function parities(g, n){
+  const rows = new Array(n).fill(0), cols = new Array(n).fill(0),
+        diags = new Array(2 * n - 1).fill(0);
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){
+    rows[r] += g[r][c]; cols[c] += g[r][c]; diags[r + c] += g[r][c];
+  }
+  return {rows, cols, diags};
+}
+function differ(a, b){
+  const out = [];
+  for(let i = 0; i < a.length; i++) if(a[i] !== b[i]) out.push(i);
+  return out;
+}
+
+/* which sums disagree, and where that puts the damage.
+   status is one of:
+     clean      every sum agrees
+     located    a perfect matching -- exactly one cell per bad row and column
+     ambiguous  disagreements exist but no unique matching; report, never guess
+     hidden     only one direction disagrees, so nothing can be placed at all
+                (the four-corner rectangle with the diagonals switched off) */
+function classify(g, n, expected, useDiags){
+  const got = parities(g, n);
+  const badR = differ(expected.rows, got.rows);
+  const badC = differ(expected.cols, got.cols);
+  const badD = useDiags ? differ(expected.diags, got.diags) : [];
+  let cand = [];
+  for(const r of badR) for(const c of badC) cand.push([r, c]);
+  if(useDiags && badD.length){
+    const dset = {};
+    for(const d of badD) dset[d] = true;
+    const kept = cand.filter(function(rc){ return dset[rc[0] + rc[1]]; });
+    if(kept.length) cand = kept;
+  }
+  const rs = {}, cs = {};
+  let dupe = false;
+  for(const rc of cand){
+    if(rs[rc[0]] || cs[rc[1]]) dupe = true;
+    rs[rc[0]] = true; cs[rc[1]] = true;
+  }
+  const uniq = !dupe && cand.length === badR.length && cand.length === badC.length;
+  let status = "clean";
+  if(badR.length || badC.length || badD.length)
+    status = (!badR.length || !badC.length) ? "hidden" : (uniq ? "located" : "ambiguous");
+  return {badR: badR, badC: badC, badD: badD, cand: cand, status: status, got: got};
+}
+
+/* ---- state ---- */
+function build(){
+  grid = [];
+  for(let r = 0; r < N; r++){
+    const row = [];
+    for(let c = 0; c < N; c++) row.push([1, 0, -1][Math.floor(Math.random() * 3)]);
+    grid.push(row);
+  }
+  want = parities(grid, N);
+}
+function corrupt(cells){
+  for(const rc of cells){
+    const alts = [1, 0, -1].filter(function(v){ return v !== grid[rc[0]][rc[1]]; });
+    grid[rc[0]][rc[1]] = alts[Math.floor(Math.random() * alts.length)];
+  }
+}
+function pick(){ return [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; }
+
+/* ---- draw ---- */
+function CLS(v){ return v > 0 ? "b" : v < 0 ? "r" : "g"; }
+function GLY(v){ return v > 0 ? "1" : v < 0 ? "−" : "0"; }
+
+function diagsOn(){
+  const el = document.getElementById("diags");
+  return el && el.checked !== undefined ? !!el.checked : true;
+}
+
+function draw(){
+  const tb = document.getElementById("tb");
+  const useDiags = diagsOn();
+  const c = classify(grid, N, want, useDiags);
+  report(c, useDiags);
+  if(!tb || typeof tb.innerHTML !== "string") return;   /* harness: nothing to draw into */
+
+  const hit = {}, badR = {}, badC = {}, badD = {};
+  for(const rc of c.cand) hit[rc[0] + "," + rc[1]] = true;
+  for(const i of c.badR) badR[i] = true;
+  for(const i of c.badC) badC[i] = true;
+  for(const i of c.badD) badD[i] = true;
+
+  let html = "";
+  for(let r = 0; r < N; r++){
+    html += "<tr>";
+    for(let cc = 0; cc < N; cc++){
+      const lane = (badR[r] || badC[cc]) ? " lane" : "";
+      const mark = hit[r + "," + cc] ? " hit" : "";
+      html += '<td class="' + CLS(grid[r][cc]) + lane + mark + '"'
+        + ' data-r="' + r + '" data-c="' + cc + '"'
+        + ' title="r' + r + ' c' + cc + ', diagonal ' + (r + cc) + '">'
+        + GLY(grid[r][cc]) + "</td>";
+    }
+    html += '<td class="sum' + (badR[r] ? " bad" : "") + '">' + c.got.rows[r] + "</td></tr>";
+  }
+  html += "<tr>";
+  for(let cc = 0; cc < N; cc++)
+    html += '<td class="sum' + (badC[cc] ? " bad" : "") + '">' + c.got.cols[cc] + "</td>";
+  html += '<td class="corner"></td></tr>';
+  if(useDiags){
+    /* the first N anti-diagonals fit the table's width; the rest are reported
+       in the panel rather than silently dropped */
+    html += "<tr>";
+    for(let d = 0; d < N; d++)
+      html += '<td class="sum' + (badD[d] ? " bad" : "") + '">' + c.got.diags[d] + "</td>";
+    html += '<td class="corner"></td></tr>';
+  }
+  tb.innerHTML = html;
+}
+
+function report(c, useDiags){
+  const out = document.getElementById("out");
+  const hint = document.getElementById("hint");
+  const nSums = useDiags ? 4 * N - 1 : 2 * N;
+  const L = [];
+  L.push("side        N = " + N);
+  L.push("parity      " + N + " rows + " + N + " cols + "
+    + (useDiags ? (2 * N - 1) + " diagonals" : "0 diagonals")
+    + " = " + nSums + " sums for " + (N * N) + " cells");
+  L.push("overhead    " + (100 * nSums / (N * N)).toFixed(1) + "%");
+  L.push("");
+  L.push("rows       " + (c.badR.length ? c.badR.join(" ") : "all agree"));
+  L.push("columns    " + (c.badC.length ? c.badC.join(" ") : "all agree"));
+  L.push("diagonals  " + (useDiags ? (c.badD.length ? c.badD.join(" ") : "all agree") : "(switched off)"));
+  L.push("");
+  if(c.status === "clean") L.push("<b>clean</b> — every sum agrees");
+  else if(c.status === "located")
+    L.push("<b>located</b> — " + c.cand.map(function(rc){
+      return "r" + rc[0] + " c" + rc[1] + " (diagonal " + (rc[0] + rc[1]) + ")"; }).join(", "));
+  else if(c.status === "ambiguous")
+    L.push("<b>detected, not placed</b> — " + c.cand.length
+      + " candidates, no unique matching");
+  else
+    L.push("<b>hidden</b> — sums disagree in only one direction; nothing can be placed");
+
+  if(out && typeof out.innerHTML === "string") out.innerHTML = L.join("\n");
+
+  const H = {
+    clean: "Click any cell, or use the buttons, and watch which sums break.",
+    located: "The lit sums intersect at the damaged cell. Repair subtracts the delta its row sum reports.",
+    ambiguous: "More errors than this much parity can place. Detected is the honest answer, and better than a confident wrong one.",
+    hidden: "Rows and columns cancelled out. With the anti-diagonals off a four-corner rectangle is invisible — switch them back on.",
+  };
+  if(hint && typeof hint.textContent === "string") hint.textContent = H[c.status] || "";
+}
+
+function repair(){
+  const useDiags = diagsOn();
+  const c = classify(grid, N, want, useDiags);
+  if(c.status !== "located"){ draw(); return; }
+  /* each located cell is off by exactly the delta its row sum reports */
+  for(const rc of c.cand){
+    let now = 0;
+    for(let i = 0; i < N; i++) now += grid[rc[0]][i];
+    grid[rc[0]][rc[1]] += want.rows[rc[0]] - now;
+  }
+  draw();
+}
+
+/* ---- wiring. Every handle is optional so the page survives a harness that
+   has none of these elements. ---- */
+function on(id, ev, fn){
+  const el = document.getElementById(id);
+  if(el && typeof el.addEventListener === "function") el.addEventListener(ev, fn);
+}
+on("one", "click", function(){ corrupt([pick()]); draw(); });
+on("two", "click", function(){
+  let a = pick(), b = pick(), guard = 0;
+  while((a[0] === b[0] || a[1] === b[1]) && guard++ < 40) b = pick();
+  corrupt([a, b]); draw();
+});
+/* the four-corner rectangle, done correctly.
+   Row and column sums cancel only if the four deltas alternate +1 -1 -1 +1 --
+   applying the SAME step to all four corners would cancel under XOR but not
+   under an integer sum. So a rectangle is only usable when its corners have
+   room to move that way: two of them must be <= 0 and two must be >= 0. */
+function findRect(){
+  for(let tries = 0; tries < 400; tries++){
+    const r1 = Math.floor(Math.random() * N), r2 = Math.floor(Math.random() * N);
+    const c1 = Math.floor(Math.random() * N), c2 = Math.floor(Math.random() * N);
+    if(r1 === r2 || c1 === c2) continue;
+    if(grid[r1][c1] <= 0 && grid[r2][c2] <= 0 && grid[r1][c2] >= 0 && grid[r2][c1] >= 0)
+      return [r1, r2, c1, c2];
+  }
+  return null;
+}
+on("rect", "click", function(){
+  const f = findRect();
+  if(!f){ draw(); return; }              /* no usable rectangle in this grid */
+  const r1 = f[0], r2 = f[1], c1 = f[2], c2 = f[3];
+  grid[r1][c1] += 1; grid[r2][c2] += 1;
+  grid[r1][c2] -= 1; grid[r2][c1] -= 1;
+  draw();
+});
+on("repair", "click", repair);
+on("reset", "click", function(){ build(); draw(); });
+on("side", "input", function(e){
+  const v = +(e && e.target ? e.target.value : N);
+  if(v >= 4 && v <= 12){ N = v; build(); draw(); }
+});
+on("diags", "change", function(){ draw(); });
+on("tbl", "click", function(e){
+  const t = e && e.target;
+  if(!t || typeof t.getAttribute !== "function") return;
+  const r = t.getAttribute("data-r"), c = t.getAttribute("data-c");
+  if(r === null || c === null) return;
+  corrupt([[+r, +c]]); draw();
+});
+
+build();
+draw();
+</script>
+</body>
+</html>
