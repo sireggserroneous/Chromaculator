@@ -162,3 +162,36 @@ are multi-listing doing its job:
 But the spine is the long list's **final tie break**, which is how the declared
 accent run survives inside the sound order:
 `a á à ă â ǎ å ǻ ä ǟ ã ȧ ǡ ą ā ȁ ȃ` then every other script's `a`.
+
+## Sorting filenames
+
+    python3 tools/chroma_sort.py shit 飼 this isit
+    python3 tools/chroma_sort.py --lang ja-on shit 飼 this isit
+    ls ~/Downloads | python3 tools/chroma_sort.py --lang en -
+
+A word is not a bag of characters: `shit` is /ʃ/ /ɪ/ /t/, not /s/ /h/ /ɪ/ /t/.
+So a string is segmented into graphemes first, longest match wins, and each
+grapheme carries the same branches a character does.
+
+    no language declared        Japanese (ja-on)
+      isit                        isit
+      shit                        飼    shi
+      飼    si                     shit
+      this                        this
+
+飼 moves because /ʃi/ is a prefix of /ʃit/. Separators (`. _ - /` and spaces)
+sort below every letter and spell nothing.
+
+A string with branching graphemes occupies more than one position, exactly as a
+character does — `this` has 9, 飼 has 7. To *sort* you need one position per
+string, so the key is the **primary** branch of each grapheme, not the minimum:
+taking the minimum read `isit` as `ishit`, because `s` has a /ʃ/ branch in
+German and `sh` sorts before `si`. A real position for the string, a nonsense
+canonical for it.
+
+On a real directory, 5 of 16 positions differ from alphabetical, and every
+mover is a `c` that sounds like `k` — `canvas.png` sorts under K.
+
+`tools/chroma_sort_test.py` carries the requirement a filename sort has that a
+character index does not: **it must be a permutation.** Drop or duplicate a
+file and the sort is worse than useless.
