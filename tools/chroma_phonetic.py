@@ -241,13 +241,29 @@ if __name__ == "__main__":
           f"{'yes' if plain == decl else 'NO'}   ({len(plain)} of 306; "
           f"{len(branched & set(order306))} are multi-listed by sound)")
     if plain != decl: fails.append(6)
+    # [7][8] the flat code: same construction as the short list, one ring up.
+    # 306 entries need ring 9 and 10-bit codes; 370,571 need ring 19 and 20-bit
+    # codes. Position in the sorted index becomes the code, so the long list is
+    # addressable by a fixed-width integer exactly as the base table is.
+    RING = max(1, (len(es) - 1).bit_length())
+    FLOOR = 1 << RING
+    widths = {(FLOOR + i).bit_length() for i in range(len(es))}
+    print(f"  [7] fixed width    every code {widths.pop() if len(widths)==1 else widths} bits, "
+          f"ring {RING}: {FLOOR:,} slots, codes {FLOOR:,}..{FLOOR+len(es)-1:,}, "
+          f"{FLOOR-len(es):,} spare")
+    if len(widths) or (1 << (RING - 1)) >= len(es): fails.append(7)
+    byc = sorted(range(len(es)), key=lambda i: FLOOR + i)
+    print(f"  [8] code == order  flat 20-bit code reproduces the key order: "
+          f"{'yes' if [es[i] for i in byc] == es else 'NO'}")
+    if [es[i] for i in byc] != es: fails.append(8)
     print(f"\n  {'ALL PROPERTIES HOLD' if not fails else 'FAILED: ' + str(sorted(set(fails)))}")
     with open(os.path.join(DATA, "chroma-phonetic.tsv"), "w", encoding="utf8") as f:
-        f.write("# pos\treading\tlang\tipa\tchar\tcp\ttone\tstrokes\n")
+        f.write("# pos\tcode\treading\tlang\tsound\tchar\tcp\ttone\tstrokes\n")
         for i, e in enumerate(es):
             # some characters ARE tabs and newlines. Print them only when printable.
             glyph = e[3] if u.category(e[3])[0] not in "CZ" else ""
             read  = e[0] if e[0].isprintable() else ""
-            f.write(f"{i}\t{read}\t{e[1]}\t{e[2]}\t{glyph}\t{ord(e[3]):04X}"
+            f.write(f"{i}\t{(1 << max(1, (len(es)-1).bit_length())) + i}"
+                    f"\t{read}\t{e[1]}\t{e[2]}\t{glyph}\t{ord(e[3]):04X}"
                     f"\t{e[4]}\t{e[5]}\n")
     print(f"  wrote data/chroma-phonetic.tsv  ({len(es):,} rows)")

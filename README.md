@@ -133,3 +133,32 @@ Sound discards the accent — á, ä and ǎ all read `a` — so entries that tie
 sound fall back to Chroma UTF's own declared order rather than to the
 codepoint. The `a` run reads `a á à ă â ǎ å ǻ ä ǟ ã ȧ ǡ ą ā ȁ ȃ` inside the
 phonetic index too.
+
+## Two lists
+
+Same construction twice: position in the sorted list becomes the code, in the
+smallest ring that holds the list. Ring *r* gives *r*+1 bit codes.
+
+| | entries | ring | slots | code width | codes | spare |
+|---|---|---|---|---|---|---|
+| **short** — Chroma UTF base | 306 | 9 | 512 | 10 bits | 512..817 | 206 (40%) |
+| **long** — phonetic index | 370,571 | 19 | 524,288 | 20 bits | 524,288..894,858 | 153,717 (29%) |
+
+Ring 18 holds 262,144 — too small — so 19 is the smallest ring that takes the
+long list.
+
+The short list is the **spine**: 306 characters in spelling order,
+`base | case | accent`. The long list is the **index**: one entry per
+(character, reading, language), in sound order.
+
+They are two *orders*, not one nested inside the other. The short list is not a
+subsequence of the long one — 3 of its 305 steps run backwards, and all three
+are multi-listing doing its job:
+
+    Ư reads 'U' at 204,050   ->   v reads 'b' /b/  at   5,311   (betacism)
+    Ŵ reads 'V' at 204,778   ->   x reads 'kh' /x/ at 128,094
+    X reads 'KH' at 136,258  ->   y reads 'i' /i/  at 112,255
+
+But the spine is the long list's **final tie break**, which is how the declared
+accent run survives inside the sound order:
+`a á à ă â ǎ å ǻ ä ǟ ã ȧ ǡ ą ā ȁ ȃ` then every other script's `a`.
