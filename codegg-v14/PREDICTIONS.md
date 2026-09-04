@@ -1171,3 +1171,36 @@ avoids setting `fid != 0` and firing the in-memory round-trip law -- a full
 serial decode of the winning arm, which N2c measured at 28% of a row. **The
 margin is a good trade and does not want changing.** Measured and closed rather
 than left as a suspicion.
+
+### N4 FORECAST, filed before a line of it is written
+
+What matters is not what precomp gets on a ZIP but what WE would get. Inflating
+every member and handing the concatenated payload to our own coder:
+
+| row | our values coded | precomp -cn + zpaq (whole file) | ours today |
+|---|---|---|---|
+| python312.zip | **1,865,974** (model 21) | 1,847,299 | 3,753,980 |
+| ipf.zip | **2,587,675** (model 22) | 2,534,113 | 5,653,821 |
+
+Our model is within **1.0%** and **2.1%** of the rival's COMPLETE number while
+still owing its own recipe and the ZIP wrappers. With N3b's predicted recipe --
+599 members of block structure and Huffman tables, call it 40-60 KB coded on
+`python312.zip`, plus ~60 KB of local headers and central directory that ship
+verbatim -- the row should land near **1,920,000-1,960,000**.
+
+**FILED: `python312.zip` goes from 3,753,980 to under 2,000,000 -- a fall of at
+least 45% -- and lands within 6% of precomp+zpaq.** Above 2,100,000 and the
+per-member meta is the thing to look at, exactly as `meta` was the open question
+on the save.
+
+**The cost is now concrete, not a guess.** `peel::members` (`peel.rs:83`)
+already reads the central directory and is tested against a `tiny_zip` fixture
+and a hostile bad-offset case; `deflate::peel` already handles one member; THE
+CHAIN already reaches depth 2. The gap is exactly what the handoff said: `Peeled`
+holds `deflate: Option<Deflate>` -- **one** member -- where a ZIP needs many, and
+the blob needs to carry N recipes plus the inter-member bytes verbatim.
+
+**And the shape that would break a careless N4:**
+`intellij.libraries.icu4j.jar`, 35.6 MB of **5,826 STORED members, zero
+deflate**. Nothing to peel; only the member boundaries matter. A ZIP peel that
+assumes deflate would refuse it, or worse, expand it.
