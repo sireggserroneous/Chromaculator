@@ -139,6 +139,10 @@ const WIDTH = 16;                    /* cells a card's items are cut to */
 /* a card is a black body; what you type in it is its rack */
 let CARDS = [{src: "a = 3"}, {src: "a, a*5"}, {src: "a+1, a+2, a+3"}];
 let SEL = 0, T = 0, RUN = true, COLLAPSE = false;
+/* the path each body's tip has walked, newest last — what makes the other
+   pages read as moving rather than as a still picture */
+let TRAIL = [];
+const TRAIL_MAX = 260;
 let SPIN = 0.6, TILT = 0.35, DRAG = null;
 
 /* ---- sphere packing: the Fibonacci lattice ----
@@ -242,15 +246,22 @@ function buildEnv(){
 }
 function model(){
   buildEnv();
-  const bodies = CARDS.map(c => c.def ? {items: [], good: [], isDef: true}
-                                      : readCard(c.src));
+  /* A definition is a knob AND a body. It has a value, so it draws — typing
+     a = 3 and getting an empty field was the page refusing to show the one
+     thing on it. The slider is what makes it a knob; the value still wubs. */
+  const bodies = CARDS.map(c => {
+    if(!c.def) return readCard(c.src);
+    const b = readCard(String(c.slider != null ? c.slider : c.def.body));
+    b.isDef = true;
+    b.name = c.def.name;
+    return b;
+  });
   /* only the cards that draw take a seat and a phase; a definition is a knob,
      not a body, so it does not consume one of the n slots */
-  const draws = bodies.filter(b => !b.isDef);
-  const pos = sites(draws.length);
-  draws.forEach((b, i) => {
+  const pos = sites(bodies.length);
+  bodies.forEach((b, i) => {
     b.seat = pos[i];
-    b.bp = bodyPhasor(b, i, draws.length);
+    b.bp = bodyPhasor(b, i, bodies.length);
   });
   return bodies;
 }
@@ -280,7 +291,7 @@ const SAMPLES = 360;
 function recompute(){
   BODIES = model();
   CURVES = BODIES.map(b => {
-    if(b.isDef || !b.good.length) return [];
+    if(!b.good.length) return [];
     const c = [];
     let mx = 1e-9;
     for(let i = 0; i <= SAMPLES; i++){
@@ -298,7 +309,6 @@ function recompute(){
   });
   /* each body's own swing, normalised so no card's total drowns the others */
   for(const b of BODIES){
-    if(b.isDef) continue;
     let m = 1e-9;
     for(let i = 0; i <= 120; i++){
       const v = comp(b.bp, TAU * i / 120);
@@ -307,6 +317,7 @@ function recompute(){
     b.bpMax = m;
   }
   SPAN = Math.max(1e-9, ...CURVES.map(c => c.max || 0));
+  TRAIL = BODIES.map(() => []);
   traces();
 }
 function traces(){
@@ -354,10 +365,15 @@ function draw(){
   const {g, w, h} = fit(cv);
   g.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2;
-  const many = BODIES.length > 1;
-  /* the swing each body takes about {:}, and the scale its own points get */
-  const SEP = many ? Math.min(w, h) * 0.30 : Math.min(w, h) * 0.16;
-  const R = Math.min(w, h) * (many ? 0.12 : 0.30) / SPAN;
+  const N = Math.max(1, BODIES.length);
+  const many = N > 1;
+  const S = Math.min(w, h);
+  /* Size the curves as big as they FIT rather than as small as is safe. Bodies
+     sit on a shell of radius SEP; two neighbours are 2*SEP*sin(pi/N) apart, so
+     a curve of 0.42 of that gap can never touch its neighbour's. */
+  const SEP = many ? S * 0.30 : 0;
+  const gap = many ? 2 * SEP * Math.sin(Math.PI / N) : S * 0.78;
+  const R = (COLLAPSE ? S * 0.36 : Math.min(gap * 0.42, S * 0.36)) / SPAN;
   const rule = css("--rule"), brass = css("--brass"), ink3 = css("--ink3"),
         blue = css("--blue"), red = css("--red"), green = css("--green");
   /* the shell the bodies swing on */
@@ -366,7 +382,6 @@ function draw(){
   /* back to front, so near bodies cover far ones */
   /* collapsed, every body sits ON {:}; open, each swings to its own tip */
   const order = BODIES.map((b, i) => ({b, i}))
-    .filter(o => !o.b.isDef)
     .map(o => Object.assign(o, {at: COLLAPSE ? proj([0, 0, 0], cx, cy, SEP)
                                              : proj(bodyAt(o.b, T), cx, cy, SEP)}))
     .sort((p, q) => p.at.d - q.at.d);
@@ -398,8 +413,32 @@ function draw(){
     g.globalAlpha = 1;
     const C = CURVES[i] || [];
     if(!C.length) continue;
+    /* a faint shell for the body to ride in, the way the other pages give one */
+    g.strokeStyle = rule; g.lineWidth = 1; g.setLineDash([3, 4]);
+    for(let k = -1; k <= 1; k++){
+      const cl = Math.cos(k * Math.PI / 5), sl = Math.sin(k * Math.PI / 5);
+      g.beginPath();
+      for(let q = 0; q <= 60; q++){
+        const a2 = TAU * q / 60;
+        const pt = proj([SPAN * cl * Math.cos(a2), SPAN * cl * Math.sin(a2),
+                         SPAN * sl], bx, by, R);
+        q ? g.lineTo(pt.px, pt.py) : g.moveTo(pt.px, pt.py);
+      }
+      g.globalAlpha = near * 0.28; g.stroke();
+    }
+    g.setLineDash([]); g.globalAlpha = 1;
+    /* the trail the tip has actually walked */
+    const tr = TRAIL[i] || [];
+    g.lineWidth = 2;
+    for(let k = 1; k < tr.length; k++){
+      const a2 = proj(tr[k - 1], bx, by, R), b2 = proj(tr[k], bx, by, R);
+      g.strokeStyle = green;
+      g.globalAlpha = near * (k / tr.length) * (b2.d > 0 ? 0.9 : 0.35);
+      g.beginPath(); g.moveTo(a2.px, a2.py); g.lineTo(b2.px, b2.py); g.stroke();
+    }
+    g.globalAlpha = 1;
     /* the curve the rack traces round it */
-    g.lineWidth = i === SEL ? 1.8 : 1.2;
+    g.lineWidth = i === SEL ? 2 : 1.4;
     for(let k = 1; k < C.length; k++){
       const a = proj(C[k - 1], bx, by, R), q = proj(C[k], bx, by, R);
       g.strokeStyle = q.d > 0 ? brass : rule;
@@ -446,7 +485,7 @@ function draw(){
   g.fillText("{:}", cx, cy + 19);
 
   drawWaves();
-  const drawn = BODIES.filter(b => !b.isDef);
+  const drawn = BODIES;
   const tot = drawn.reduce((a, b) => a + b.good.length, 0);
   $("#hud").innerHTML = `<b>${drawn.length}</b> black bod${drawn.length === 1
     ? "y" : "ies"} &middot; <b>${tot}</b> phasor${tot === 1 ? "" : "s"}`
@@ -454,7 +493,7 @@ function draw(){
         ? " &middot; <b>collapsed</b> &mdash; every point measured from {:}"
         : ` &middot; swinging about <b>{:}</b> at `
           + `${Math.round(360 / Math.max(1, drawn.length))}&deg;`)
-    + "<br>" + BODIES.map((b, i) => b.isDef ? "" : (i + 1) + ": " + b.good.length
+    + "<br>" + BODIES.map((b, i) => (i + 1) + ": " + b.good.length
         + (b.good.length ? " at " + Math.round(360 / b.good.length) + "&deg;" : ""))
       .filter(Boolean).join("  ");
 }
@@ -621,7 +660,18 @@ let LAST = null;
 function frame(ts){
   if(LAST == null) LAST = ts;
   const dt = Math.min(0.05, (ts - LAST) / 1000); LAST = ts;
-  if(RUN){ T += dt * 0.9; if(!DRAG) SPIN += dt * 0.09; }
+  if(RUN){
+    T += dt * 0.9;
+    if(!DRAG) SPIN += dt * 0.09;
+    BODIES.forEach((b, i) => {
+      if(!b.good.length) return;
+      let x = 0, y = 0, z = 0;
+      for(const it of b.good){ const v = comp(it.p, T); x += v[0]; y += v[1]; z += v[2]; }
+      if(!TRAIL[i]) TRAIL[i] = [];
+      TRAIL[i].push([x, y, z]);
+      while(TRAIL[i].length > TRAIL_MAX) TRAIL[i].shift();
+    });
+  }
   draw();
   requestAnimationFrame(frame);
 }

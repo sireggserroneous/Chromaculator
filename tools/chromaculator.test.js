@@ -198,13 +198,16 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   set(["a = 3", "a, a*5", "a+1, a+2, a+3"]);
   ok(p.run("String(ENV.a.num)") === "3", "a should be 3");
   ok(p.run("BODIES.filter(b => b.isDef).length") === 1, "one definition");
-  ok(p.run("BODIES.filter(b => !b.isDef).length") === 2, "two bodies");
-  /* a definition does not take one of the n slots, so two bodies are 180 apart */
-  const ph = p.run(`JSON.stringify(BODIES.filter(b => !b.isDef)
-    .map(b => Math.round(b.bp.phase * 180 / Math.PI)))`);
-  ok(ph === "[0,180]", `two drawn bodies should be 180 apart, got ${ph}`);
+  /* a definition is a knob AND a body: it has a value, so it draws. Typing
+     a = 3 and getting an empty field was the page refusing to show the one
+     thing on it. */
+  ok(p.run("BODIES.length") === 3, "every card draws, definitions included");
+  ok(p.run("BODIES[0].good.length") === 1, "a = 3 should draw its value");
+  const ph = p.run(`JSON.stringify(BODIES.map(b =>
+    Math.round(b.bp.phase * 180 / Math.PI)))`);
+  ok(ph === "[0,120,240]", `three bodies should be 120 apart, got ${ph}`);
   /* the slider drives everything downstream */
-  const items = () => p.run(`JSON.stringify(BODIES.filter(b => !b.isDef)
+  const items = () => p.run(`JSON.stringify(BODIES.slice(1)
     .map(b => b.good.map(i => String(i.f.num))))`);
   const before = items();
   p.run("CARDS[0].slider = 7; recompute();");
@@ -224,6 +227,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   /* one definition can build on an earlier one */
   set(["a = 3", "b = a*4", "b, b+1"]);
   ok(p.run("String(ENV.b.num)") === "12", "b should be a*4 = 12");
+  ok(p.run("BODIES[1].good.length") === 1 && p.run("String(BODIES[1].total.num)") === "12",
+     "b = a*4 should draw as 12");
   ok(p.run(`JSON.stringify(BODIES[2].good.map(i => String(i.f.num)))`)
      === '["12","13"]', "the third card should read 12, 13");
   console.log("  [9] variables      a = 3 is a knob not a body; sliding it to 7 moves");
@@ -259,14 +264,13 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   set(["3", "5", "7"]);
   p.run("COLLAPSE = true;");
   const same = p.run(`(() => {
-    const o = BODIES.filter(b => !b.isDef)
-      .map(() => proj([0, 0, 0], 100, 100, 50));
+    const o = BODIES.map(() => proj([0, 0, 0], 100, 100, 50));
     return o.every(q => q.px === o[0].px && q.py === o[0].py); })()`);
   ok(same, "collapsed, every body should share the origin");
   /* open, they are apart */
   p.run("COLLAPSE = false;");
   const apart = p.run(`(() => {
-    const o = BODIES.filter(b => !b.isDef).map(b => bodyAt(b, 0.4));
+    const o = BODIES.map(b => bodyAt(b, 0.4));
     let m = 0;
     for(let i = 0; i < o.length; i++) for(let j = i + 1; j < o.length; j++)
       m = Math.max(m, Math.hypot(o[i][0]-o[j][0], o[i][1]-o[j][1], o[i][2]-o[j][2]));
@@ -280,6 +284,41 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("  [10] collapse       every point measured from {:}, and nothing else");
   console.log("                      changes: 3, 5, 7 stay three waves at 120°, worth");
   console.log("                      the same at every t. It is not a sum.");
+}
+
+/* ---- 11. a lone definition still draws, and the curves are sized to fit ----
+ * Typing a = 3 gave an empty field: the definition was a knob and nothing else,
+ * so the one thing on the page refused to render.
+ */
+{
+  p.run(`CARDS = [{src: "a = 3"}]; recompute();`);
+  ok(p.run("BODIES.length") === 1 && p.run("BODIES[0].good.length") === 1,
+     "a lone definition must still draw");
+  ok(p.run("String(BODIES[0].total.num)") === "3", "and be worth what it says");
+  p.run("CARDS[0].slider = 5; recompute();");
+  ok(p.run("String(BODIES[0].total.num)") === "5", "and follow its slider");
+  /* the trail fills and stays finite */
+  p.run(`CARDS = [{src: "3, 5"}]; recompute();
+    for(let i = 0; i < 50; i++){ T += 0.05;
+      BODIES.forEach((b, k) => { if(!b.good.length) return;
+        let x = 0, y = 0, z = 0;
+        for(const it of b.good){ const v = comp(it.p, T);
+          x += v[0]; y += v[1]; z += v[2]; }
+        if(!TRAIL[k]) TRAIL[k] = [];
+        TRAIL[k].push([x, y, z]);
+        while(TRAIL[k].length > TRAIL_MAX) TRAIL[k].shift(); }); }`);
+  ok(p.run("TRAIL[0].length") === 50, "the trail should fill");
+  ok(p.run("TRAIL[0].every(v => v.every(Number.isFinite))"), "the trail has a hole");
+  /* and every count of bodies draws clean */
+  for(const n of [1, 2, 3, 5, 9]){
+    p.run(`CARDS = ${JSON.stringify([...Array(9).keys()]
+      .map(i => ({src: String(i + 3)})))}.slice(0, ${n}); recompute();`);
+    const r = p.run("(() => { try { draw(); return true; } catch(e){ return e.message; } })()");
+    ok(r === true, `${n} bodies threw: ${r}`);
+  }
+  console.log("  [11] every card draws  a lone definition renders and follows its");
+  console.log("                      slider; trails fill; 1, 2, 3, 5 and 9 bodies "
+    + "all draw clean");
 }
 
 console.log("\n  certified.");

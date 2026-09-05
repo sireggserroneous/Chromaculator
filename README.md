@@ -603,8 +603,10 @@ so `3` travels as far as `47*127` and neither drowns the other.
 
 ### Variables
 
-A card that reads `name = expr` is a **knob, not a body**: it takes a slider and
-every card after it can use the name. Slide `a` and everything downstream moves.
+A card that reads `name = expr` is a **knob and a body**: it takes a slider,
+every card after it can use the name, and it still draws — it has a value.
+(Typing `a = 3` and getting an empty field was the page refusing to show the one
+thing on it.) Slide `a` and everything downstream moves.
 Definitions read in order, so one can build on another — and an unknown name is
 an **error**, not a zero, because a typo should say so rather than quietly draw
 the wrong thing.
