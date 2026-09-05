@@ -16,7 +16,7 @@ const ROOT = path.join(__dirname, "..");
 eval(fs.readFileSync(path.join(ROOT, "stalk.js"), "utf8"));
 
 const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
-const W = 12;                       // ring 9 + 3: the field a code is padded into
+const W = 16;                       // four nibbles: the field a code is padded into
 const X = 1n << BigInt(W);          // so x = 1/X
 
 /* readings, branch counts and codes come from the one Python implementation */

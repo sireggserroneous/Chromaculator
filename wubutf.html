@@ -187,6 +187,14 @@ dis, this, thin</textarea>
           </div>
         </div>
         <div class="field">
+          <label>Proportion</label>
+          <div class="seg" id="ft">
+            <button data-v="fit" class="on">Fit</button><button data-v="raw">True</button>
+          </div>
+        </div>
+      </div>
+      <div class="two" style="margin-top:8px">
+        <div class="field">
           <label for="speed">Speed</label>
           <input type="range" id="speed" min="0" max="30" value="8"
             style="width:100%; accent-color:var(--brass)">
@@ -291,46 +299,49 @@ function squareEl(code){
  * was a smear rather than a shape.
  */
 function phasorsOf(item){
-  if(!item || !item.phasors) return [];
-  const n = item.phasors.length;
-  /* 2^-(k+1) is the POSITIONAL weight. It is correct for the value and ruinous
-     for a picture: over eight characters the first is 96x the last, so phasor 0
-     draws a circle and everything else is a wobble on it. Even weights make the
-     word a RACK, which is what Wub +- draws and what makes a shape. Keep both,
-     default to the one you can see. */
-  const out = item.phasors.map((p, k) => ({
-    phase: TAU * p.turn,
-    rateA: k + 1,                 /* position is the harmonic */
-    rateB: 2 * (k + 1),           /* the spectrometer's fixed L/R = 2 */
-    w: 1,
-    fold: Math.max(p.fold, 0.35), /* a phasor with no lit fold still needs a radius */
-    inner: p.inner, outer: p.outer,
-    ch: (item.reading || "")[k] || ""
-  }));
-  /* A square has 6 inner cells, 4 on the fold and 6 outer, so the height term
-     reaches 6 while the radius caps at 4 and the whole rack came out three
-     times taller than wide. Normalise each phasor to unit size: the SHAPE still
-     carries the inner/fold/outer balance, only the scale is equalised. */
-  for(const p of out){
+  if(!item || !item.codes) return [];
+  /* A character IS an integer, so it fills a ring the way an integer does:
+     phasor() reads its whole cell arrangement for the radius, the height and
+     both rates. This used to build a different, flatter phasor per character —
+     one spoke each instead of a ring — which is why it looked like nothing. */
+  const P = item.codes.filter(c => c > 2).map(c => phasor(c, false));
+  const N = P.length || 1;
+  P.forEach((p, j) => {
+    p.phase = TAU * j / N;              /* position in the rack stays positional */
+    p.ch = (item.reading || "").replace(/\u0001/g, " ")[j] || "";
+  });
+  /* A display scale, not a model change. settled() weighs cell i by 2^-(i+1)
+     and the INNER region holds the most significant cells, so inner outweighs
+     fold — the radius — at any width, and every ring came out a spike three
+     hundred times taller than wide. Normalising each ring to unit size keeps
+     its shape, which is what carries the inner/fold/outer balance, and only
+     equalises how big it is drawn.
+
+     WEIGHT "value" restores the positional weight 2^-(j+1). It is what makes
+     0.word correct and it is ruinous for a picture: over eight characters the
+     first is 96x the last. */
+  P.forEach((p, j) => {
     let m = 1e-9;
     for(let i = 0; i <= 120; i++){
-      const c = comp({...p, w: 1}, TAU * i / 120);
+      const c = comp(p, TAU * i / 120);
       m = Math.max(m, Math.hypot(c[0], c[1], c[2]));
     }
-    p.w = (WEIGHT === "value" ? item.phasors[out.indexOf(p)].w * 2 : 1 / n) / m;
-  }
-  return out;
+    p.scale = (WEIGHT === "value" ? Math.pow(2, -(j + 1)) * 2 : 1 / N) / m;
+  });
+  return P;
 }
-const comp = (p, t) => {
-  const A = p.phase + p.rateA * t, B = p.phase + p.rateB * t;
-  const sB = Math.sin(B), rr = p.fold * Math.cos(B);
-  const m = (p.inner + p.outer) / 2, d = (p.inner - p.outer) / 2;
-  return [p.w * rr * Math.cos(A), p.w * rr * Math.sin(A),
-          p.w * (m * sB + d * Math.abs(sB))];
-};
+/* the house comp(), scaled for display */
+const cmp3 = (p, t) => { const c = comp(p, t);
+  return [c[0] * p.scale, c[1] * p.scale, c[2] * p.scale]; };
+
 const SAMPLES = 480;
 const TRAIL_MAX = 420;
 let CURVE = [], JOINTS = [], EXTENT = 1, PH = [], TRAIL = [], WEIGHT = "even";
+/* inner holds the most significant cells, so it outweighs fold — the radius —
+   and a rack comes out six times taller than wide. Each 2D projection here
+   already scales to what it contains; AX does the same for the sphere. Uniform
+   scaling is one click away for anyone who wants the raw proportion. */
+let AX = [1, 1, 1], FIT = true;
 function recompute(){
   PH = phasorsOf(SEL);
   CURVE = []; JOINTS = PH.map(() => []); TRAIL = [];
@@ -339,7 +350,7 @@ function recompute(){
     const t = TAU * i / SAMPLES;
     let x = 0, y = 0, z = 0;
     PH.forEach((p, k) => {
-      const c = comp(p, t);
+      const c = cmp3(p, t);
       x += c[0]; y += c[1]; z += c[2];
       JOINTS[k].push([x, y, z]);
     });
@@ -347,7 +358,15 @@ function recompute(){
     mx = Math.max(mx, Math.abs(x), Math.abs(y), Math.abs(z));
   }
   EXTENT = mx;
+  if(FIT && CURVE.length){
+    AX = [0, 1, 2].map(k => {
+      let m = 1e-9;
+      for(const v of CURVE) m = Math.max(m, Math.abs(v[k]));
+      return mx / m;
+    });
+  } else AX = [1, 1, 1];
 }
+const fitv = v => [v[0] * AX[0], v[1] * AX[1], v[2] * AX[2]];
 
 /* ---- the camera ---- */
 let SPIN = 0.55, TILT = 0.42, AUTOSPIN = true, DRAG = null, T = 0, SPEED = 0.8;
@@ -420,7 +439,7 @@ function drawSphere(){
   /* the traced curve */
   g.lineWidth = 1.6;
   for(let i = 1; i < CURVE.length; i++){
-    const a = proj(CURVE[i - 1], cx, cy, R), b = proj(CURVE[i], cx, cy, R);
+    const a = proj(fitv(CURVE[i - 1]), cx, cy, R), b = proj(fitv(CURVE[i]), cx, cy, R);
     g.strokeStyle = b.d > 0 ? brass : rule;
     g.globalAlpha = b.d > 0 ? 0.95 : 0.35;
     g.beginPath(); g.moveTo(a.px, a.py); g.lineTo(b.px, b.py); g.stroke();
@@ -429,7 +448,7 @@ function drawSphere(){
   /* the trail the tip has actually walked */
   g.lineWidth = 2;
   for(let i = 1; i < TRAIL.length; i++){
-    const a = proj(TRAIL[i - 1], cx, cy, R), b = proj(TRAIL[i], cx, cy, R);
+    const a = proj(fitv(TRAIL[i - 1]), cx, cy, R), b = proj(fitv(TRAIL[i]), cx, cy, R);
     g.strokeStyle = green;
     g.globalAlpha = (i / TRAIL.length) * (b.d > 0 ? 0.95 : 0.4);
     g.beginPath(); g.moveTo(a.px, a.py); g.lineTo(b.px, b.py); g.stroke();
@@ -439,9 +458,9 @@ function drawSphere(){
   let x = 0, y = 0, z = 0;
   let prev = proj([0, 0, 0], cx, cy, R);
   PH.forEach((p, k) => {
-    const c = comp(p, T);
+    const c = cmp3(p, T);
     x += c[0]; y += c[1]; z += c[2];
-    const q = proj([x, y, z], cx, cy, R);
+    const q = proj(fitv([x, y, z]), cx, cy, R);
     const col = k % 2 ? blue : red;
     g.strokeStyle = col; g.lineWidth = 1.6; g.globalAlpha = 0.5 + 0.45 * Math.max(0, q.d);
     g.beginPath(); g.moveTo(prev.px, prev.py); g.lineTo(q.px, q.py); g.stroke();
@@ -631,20 +650,21 @@ function selectCard(card, idx){
 function chrome(){
   $("#lang").disabled = !PHONETIC;
   for(const pair of [["alp", ALPHA], ["pho", PHONETIC ? "1" : "0"],
-                     ["wt", WEIGHT]]){
+                     ["wt", WEIGHT], ["ft", FIT ? "fit" : "raw"]]){
     const host = $("#" + pair[0]);
     if(!host || !host.querySelectorAll) continue;
     for(const x of host.querySelectorAll("button"))
       x.className = x.dataset.v === pair[1] ? "on" : "";
   }
 }
-for(const id of ["alp", "pho", "wt"]){
+for(const id of ["alp", "pho", "wt", "ft"]){
   const host = $("#" + id);
   if(host) host.addEventListener("click", e => {
     const b = e.target && e.target.closest && e.target.closest("button");
     if(!b || !b.dataset) return;
     if(id === "alp") ALPHA = b.dataset.v;
     else if(id === "wt"){ WEIGHT = b.dataset.v; chrome(); recompute(); return; }
+    else if(id === "ft"){ FIT = b.dataset.v === "fit"; chrome(); recompute(); return; }
     else PHONETIC = b.dataset.v === "1";
     if(ALPHA === "ipa") PHONETIC = true;
     chrome(); go();
@@ -732,7 +752,7 @@ function frame(ts){
     T += dt * SPEED;
     if(!DRAG) SPIN += dt * 0.12;
     let x = 0, y = 0, z = 0;
-    for(const p of PH){ const c = comp(p, T); x += c[0]; y += c[1]; z += c[2]; }
+    for(const p of PH){ const c = cmp3(p, T); x += c[0]; y += c[1]; z += c[2]; }
     TRAIL.push([x, y, z]);
     while(TRAIL.length > TRAIL_MAX) TRAIL.shift();
   }

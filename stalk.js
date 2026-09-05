@@ -442,3 +442,60 @@ function spreadRight(cells){
   return {d, bar: true, at: last + 1,
           short: {num: BigInt(s), den: 1n << BigInt(L)}};
 }
+
+/* ---- an integer as a phasor on the ring ----
+ * Lifted out of wub.html so Wub UTF can use it unchanged. A character is just
+ * an integer, so a character fills a ring exactly the way an integer does:
+ * its whole cell arrangement decides the radius, the height and both rates.
+ * Building a second, different phasor for characters was the mistake — it gave
+ * every letter one flat spoke instead of a ring.
+ */
+/* c.w is the general form. hexRegions sets w = i + 1, so a hex cell weighs
+   2^-(i+1) as it always did; productRegions sets w = r + c + 2, and a rectangle
+   cell has no single i to fall back on. Merging these two bodies to the hex
+   special case silently broke Wub x — they were never the same function. */
+const wOf = c => c.v * Math.pow(2, -c.w);
+const settled = cells => cells.reduce((s, c) => s + wOf(c), 0);
+const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c.w) : 0), 0);
+
+function phasor(k, push){
+  const {v, neg} = parse(String(k));
+  const {n, raw, cells} = hexSequence(v, neg);
+  const shown = push ? pushLeft(raw) : raw;
+  const full = shown.concat(cells.slice(raw.length));
+  const R = hexRegions(full, n);
+  const runs = full.reduce((c, d, i) => c + (i && d !== full[i-1] ? 1 : 0), full.length ? 1 : 0);
+  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
+  return {
+    k, push, n, R, shown,
+    inner, outer, fold,
+    greens: full.filter(d => d === 0).length,
+    spread: spreadOf(R.outer),
+    amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
+    /* handedness must reverse with the sign, always. the Fold usually says
+       which way, but it can be exactly zero — then the integer's own sign
+       does, rather than defaulting everything to one direction. */
+    dir: Math.sign(fold) || (neg ? -1 : 1),
+    /* the hex string is nibble-quantised, so its length alone would put every
+       integer under 16 on the same rate. the bit length is what actually
+       varies, and it is what the stalk length stood for before. */
+    rateA: Math.max(1, v === 0n ? 1 : v.toString(2).length),
+    rateB: Math.max(1, runs),                // one per run of like colour
+    value: hexValue(shown),
+  };
+}
+
+const angleA = (p, t) => p.phase + p.dir * p.rateA * t;
+/* r is a width and cannot go negative, so a negative integer carries its sign
+   in B's phase instead — that keeps negation an exact reflection. */
+const angleB = (p, t) => p.phase + (p.dir < 0 ? Math.PI : 0) + p.dir * p.rateB * t;
+/* the regions keep the meaning the fold gives them: Fold is the equator, Inner
+   reaches north, Outer reaches south. A is longitude, B latitude, so a phasor
+   rides an ellipsoid whose two halves have different heights. */
+const comp = (p, t) => {
+  const A = angleA(p, t), B = angleB(p, t);
+  const sB = Math.sin(B), rr = p.fold * Math.cos(B);
+  const m = (p.inner + p.outer) / 2, d = (p.inner - p.outer) / 2;
+  return [rr * Math.cos(A), rr * Math.sin(A), m * sB + d * Math.abs(sB)];
+};
+

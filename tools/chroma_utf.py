@@ -92,10 +92,15 @@ RANK  = {ch: i + 1 for i, ch in enumerate(TABLE)}     # the ORDER, and the arith
 # of character it is. Blocks ALONE are barely better than packed, because inside
 # a block every member shares its leading bits; the stride within the block is
 # what kills them.
-WIDTH  = 12                                           # declared, three nibbles
-BLOCKS = [("address", 0x000, 0x0FF),                  # separators and markers
-          ("digit",   0x100, 0x2FF),
-          ("letter",  0x400, 0xFFF)]
+# 16 bits, not 12. Twelve bits pad into a 4x4 with four cells left over, and
+# every one of those four lands in the OUTER region — so outer was always zero
+# and fold, which is the radius a phasor rides on, could only use three cells.
+# Every character came out a spike with no width. Sixteen bits is four whole
+# nibbles and fills the 4x4 exactly: no padding, and all three regions live.
+WIDTH  = 16                                           # four nibbles, a full 4x4
+BLOCKS = [("address", 0x0000, 0x0FFF),                # separators and markers
+          ("digit",   0x1000, 0x2FFF),
+          ("letter",  0x4000, 0xFFFF)]
 
 
 def typeof(ch):

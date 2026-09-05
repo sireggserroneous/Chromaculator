@@ -122,8 +122,8 @@ def api_sort(q, lang, push="", read="sound", alphabet="chroma"):
             "sorted": [r for _k, r in ent]}
 
 
-CODE_BITS = 12          # RING + 3: three whole nibbles, so a character never
-                        # straddles a nibble and 4-wide rows are whole characters
+CODE_BITS = 16          # four whole nibbles: fills the 4x4 exactly, so the
+                        # square has no padding and all three regions live
 MAX_ITEMS = 48
 
 # An alphabet is one choice: it fixes the digits, the base, the frame they draw
@@ -195,7 +195,11 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
             ph = []
             for k, c in enumerate(codes):
                 bits = format(c, "0%db" % A["bits"])
-                side = 4 if A["bits"] == 12 else 3   # not n: n holds the integer
+                # side from the width, not from a magic 12: pad to whole
+                # nibbles, then the smallest square that holds them
+                nib = -(-A["bits"] // 4) * 4
+                side = 1
+                while side * side < nib: side += 1
                 cells = [int(b) for b in bits] + [0] * (side*side - len(bits))
                 reg = lambda f: sum(v for j, v in enumerate(cells)
                                     if f(j//side + j%side, side - 1))
@@ -399,7 +403,7 @@ def demo():
     # an alphabet fixes the digits AND the base, not just the order
     cc = api_cards("shit", "en", "", "sound", "chroma")
     ci = api_cards("shit", "en", "", "sound", "ipa")
-    assert cc["base"] == 4096 and cc["codeBits"] == 12, cc["base"]
+    assert cc["base"] == 65536 and cc["codeBits"] == 16, cc["base"]
     assert ci["base"] == 256 and ci["codeBits"] == 8, ci["base"]
     ic = cc["cards"][0]["items"][0]; ii = ci["cards"][0]["items"][0]
     assert len(ii["codes"]) < len(ic["codes"]), (ic["codes"], ii["codes"])
@@ -420,7 +424,7 @@ def demo():
     # the whole point of the third alphabet: fewer digits AND narrower ones
     assert it["bits"] < it["chromaBits"], it
     b = api_base()
-    assert b["count"] == 306 and b["ring"] == 9 and b["width"] == 12
+    assert b["count"] == 306 and b["ring"] == 9 and b["width"] == 16
     cs = [r["code"] for r in b["table"]]
     # the invariant that let the codes be respaced without touching an ordering
     assert all(cs[i] > cs[i-1] for i in range(1, len(cs))), "code must rise with rank"

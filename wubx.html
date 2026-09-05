@@ -305,16 +305,12 @@ const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
    the stalk's three regions each become a channel. a green is undecided, so
    rolling it red-or-blue gives one concrete draw from inside that region's
    range; with no greens the region is a single number and never jitters. */
-const wOf = c => c.v * Math.pow(2, -c.w);
-const settled = cells => cells.reduce((s, c) => s + wOf(c), 0);
 /* a green is undecided, so it is rolled. BIAS leans that coin: -1 always red,
    +1 always blue, 0 an even chance. */
 let BIAS = 0;
 const coin = () => (Math.random() < (BIAS + 1) / 2 ? 1 : -1);
 const rolled = cells => cells.reduce((s, c) =>
   s + (c.v !== 0 ? wOf(c) : coin() * Math.pow(2, -c.w)), 0);
-const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c.w) : 0), 0);
-
 /* an operand as it is spelled: hex bits, most significant first, optionally
    pushed toward the coarse end. */
 function operandDigits(e){
@@ -541,20 +537,11 @@ function model(){
   return {P, N, g, period: g ? TAU / g : TAU};
 }
 
-const angleA = (p, t) => p.phase + p.dir * p.rateA * t;
 /* r is a width and cannot go negative, so a negative integer carries its sign
    in B's phase instead — that keeps negation an exact reflection. */
-const angleB = (p, t) => p.phase + (p.dir < 0 ? Math.PI : 0) + p.dir * p.rateB * t;
 /* the regions keep the meaning the fold gives them: Fold is the equator, Inner
    reaches north, Outer reaches south. A is longitude, B latitude, so a phasor
    rides an ellipsoid whose two halves have different heights. */
-const comp = (p, t) => {
-  const A = angleA(p, t), B = angleB(p, t);
-  const sB = Math.sin(B), rr = p.fold * Math.cos(B);
-  const m = (p.inner + p.outer) / 2, d = (p.inner - p.outer) / 2;
-  return [rr * Math.cos(A), rr * Math.sin(A), m * sB + d * Math.abs(sB)];
-};
-
 let M = model(), CURVE = [], EXTENT = 1, RAD = [], RMAX = 1, RMEAN = 1;
 let WX = [], WY = [], WZ = [], AVGX = [], AVGY = [], AVGZ = [];
 let T = 0, FREQ = 0.12, LAST = null, DIVS = 0, LASTSLOT = null, DRAWN = null, PREV = null, BOUND = 0;

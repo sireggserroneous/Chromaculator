@@ -122,7 +122,7 @@ function seeded(q, lang, push, read, alphabet){
   await drain();
   const share = w => p.run(`(() => { WEIGHT = ${JSON.stringify(w)}; recompute();
     const m = PH.map(ph => { let x = 0;
-      for(let i = 0; i <= 180; i++){ const c = comp(ph, Math.PI*2*i/180);
+      for(let i = 0; i <= 180; i++){ const c = cmp3(ph, Math.PI*2*i/180);
         x = Math.max(x, Math.hypot(c[0], c[1], c[2])); }
       return x; });
     const t = m.reduce((a, b) => a + b, 0);
@@ -131,6 +131,10 @@ function seeded(q, lang, push, read, alphabet){
   const ratio = a => Math.max(...a) / Math.min(...a);
   ok(ratio(val) > 20, "the positional weight should be lopsided; that is the point");
   ok(ratio(even) < 6, `even weights are still lopsided: ${ratio(even).toFixed(1)}x`);
+  /* a character fills a RING: it comes from the shared phasor(), so its radius,
+     height and both rates are read off its whole cell arrangement */
+  ok(p.run("PH.every(x => x.rateA > 1 && x.rateB > 0 && x.n === 4)"),
+     "a character is not filling a ring");
   p.run('WEIGHT = "even"; recompute()');
   /* and a card is a rack: every item's phasors, laid end to end */
   p.run("selectCard(CARDS[1], 1)");
@@ -145,13 +149,18 @@ function seeded(q, lang, push, read, alphabet){
 {
   const c = api("api_cards", "shit", "en", "", "sound", "chroma");
   const i = api("api_cards", "shit", "en", "", "sound", "ipa");
-  ok(c.base === 4096 && c.codeBits === 12, "chroma should be 12-bit, base 4096");
+  /* 16 bits, not 12: twelve pads into a 4x4 with four cells left over and every
+     one of them lands in the OUTER region, so outer was always zero and fold —
+     the radius a phasor rides on — could only use three cells. */
+  ok(c.base === 65536 && c.codeBits === 16, "chroma should be 16-bit, base 65536");
   ok(i.base === 256 && i.codeBits === 8, "ipa should be 8-bit, base 256");
   const ci = c.cards[0].items[0], ii = i.cards[0].items[0];
   ok(ii.codes.length < ci.codes.length && ii.bits < ci.bits,
      "IPA should need fewer, narrower digits");
   ok(ii.phasors.every(p => p.n === 3) && ci.phasors.every(p => p.n === 4),
      "IPA draws 3x3 and Chroma 4x4");
+  ok(ci.phasors.every(p => p.inner + p.fold + p.outer === p.lit),
+     "the regions must account for every lit cell");
   console.log(`  [7] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
     + `in 4x4; ipa ${ii.codes.length}/${ii.bits} in 3x3`);
 }

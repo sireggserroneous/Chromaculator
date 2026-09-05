@@ -36,7 +36,7 @@ const facet = ch => FACET.get(ch);
    not rebuilt here — building it a second time is how this certificate ended up
    certifying a scheme the Python no longer used. */
 const RING = Math.ceil(Math.log2(ordered.length));
-const WIDTH = 12;                        /* declared: three whole nibbles */
+const WIDTH = 16;                        /* declared: four nibbles, a full 4x4 */
 const FLOOR = 2 ** RING;
 const digitsOfCode = k => k.toString(2).padStart(WIDTH, "0").split("").map(c => +c);
 const value = ch => hexValue(digitsOfCode(CODE.get(ch)));
