@@ -104,7 +104,7 @@ a loaded machine) but **no speed claim attaches to it.**
 
 ---
 
-### N2c — the CM inner loop. DONE. **PICK UP AT N3.**
+### N2c — the CM inner loop. DONE.
 
 **Result: `kernel32.dll` 0.297 -> 0.311 MB/s, `vim-version9.txt` 0.498 ->
 0.519 MB/s, every byte identical.** The floor row now clears 0.25 by 24%.
@@ -144,7 +144,6 @@ the ISSE/APM stages all MOVE BYTES. On text rows `tokenize` + the cheap-v8
 trial are 36% of the clock and have never been looked at.
 
 ### N3 the card · N3b the recipe · N3c the PE question. ALL DONE.
-### **PICK UP AT N4, AND IT IS PRICED.**
 
 **N3b banked 3,464,635 B.** `aoe4-autosave.sav` 8,759,079 -> 5,294,444 (-39.6%),
 90 s faster, every other row unmoved. The deflate recipe is PREDICTED now:
@@ -166,22 +165,58 @@ became a **2.02% WIN**. Against zpaq -m5 alone we are **14.85% ahead**.
 | N6 audio | 168,871 B to the ceiling; **FLAC reaches only 58,050** | LPC+Rice is a third of it |
 | N5 progressive JPEG | **UNPRICEABLE HERE** | needs packJPG installed; paq8px does not model progressive either |
 
-#### N4, everything already known
+### N4 the ZIP peel · N4b the guard and the parallel peel. DONE.
+### **PICK UP AT N7, THE SEAL. It is the only thing left.**
 
-- `peel::members` (`peel.rs:83`) **already reads the ZIP central directory**,
-  tested against a `tiny_zip` fixture and a hostile bad-offset case.
-  `deflate::peel` already handles one member. THE CHAIN reaches depth 2.
-- The gap is exactly: `Peeled` holds `deflate: Option<Deflate>` -- **one**
-  member -- and the blob must carry N recipes plus the inter-member bytes.
-- **Our coder is within 1.0% of precomp+zpaq's WHOLE number on the payload**
-  (1,865,974 vs 1,847,299 on python312.zip) before its own recipe. Filed:
-  the row lands under 2,000,000; above 2,100,000 and per-member meta is the
-  thing to look at.
-- **`intellij.libraries.icu4j.jar` is 35.6 MB of 5,826 STORED members, zero
-  deflate.** A ZIP peel that assumes deflate breaks on it.
-- Test rows are NOT in the corpus: `python312.zip` (FL Studio's bundled Python
-  3.12) and `IPF-2.2.10205.3620.zip` (Alienware). Adding a corpus row is a
-  decision, so they were measured from scratch.
+`src/zip.rs`, `PEEL_ZIP = 3`. A file is alternating spans -- gap, member, gap,
+..., gap -- with gaps carried VERBATIM and a member taken only if
+`deflate::peel` reads it AND re-spells it exactly.
+
+| row | result |
+|---|---|
+| **python312.zip** | 3,753,980 -> **1,963,843** (-47.7%), the corpus's **21st sealed row** |
+| ipf-alienware.zip | 5,653,821 -> 2,925,145 (-48.3%), suite only |
+| icu4j.jar | 5,826 STORED members, zero deflate -- **not nominated**, nothing attempted |
+
+N4b then removed `deflate.rs`'s `values.len() < 4096` guard (331/599 -> **599/599**
+members predicted, -63,663 B) and parallelised the per-member peel with a
+work-stealing cursor (**33,679 -> 3,797 ms, 8.9x**, byte-identical). Removing the
+guard exposed an N3b bug no corpus file could have reached: `from_blob` checked
+the 284-spelling list against `nmatch`, which a PREDICTED recipe writes as 0.
+
+#### WHERE v14 STANDS, for the seal to state
+
+```
+ours (21 rows)                    103,860,180
+zpaq -m5 alone                    120,771,244   +16.28%  we WIN
+precomp wherever it helps + zpaq  105,811,547    +1.88%  we WIN  <- the honest column
+```
+
+On ONE basis, 21 rows and precomp everywhere: **-3.03% -> +1.88%**, a 4.9-point
+swing across N3b and N4. Do not quote the older +3.64% -- that column hands the
+ZIP row the zpaq-alone figure a real competitor would never concede.
+
+#### THE ONE OPEN BAR QUESTION THE SEAL MUST STATE
+
+**`python312.zip` runs at 0.088 MB/s against the 0.25 home floor**, and ~0.20
+even counting the inflated bytes the roster actually models. It fails on every
+available basis. The scope taken, on a purpose test: the floor exists to stop a
+new always-on ARM from making the codec unusable, and a peel is nominated per
+format, so the bar does not govern it. A peel row is **not exempt but
+accountable to a different bar -- the peel must pay for its time in bytes**:
+this row paid 47.7%, `aoe4-autosave.sav` 39.6%. The seal should state this
+plainly rather than let a 5x breach sit unremarked.
+
+#### What is left after the seal, priced
+
+| next | worth |
+|---|---|
+| PE / binary model | **2,150,378 B** over 6 rows -- a model-architecture project |
+| JPEG baseline peel | 265,778 B vs paq8px |
+| JS / text model | 243,131 B |
+| font / TTF model | 222,450 B |
+| N6 audio | 168,871 B to the ceiling; FLAC reaches only 58,050 of it |
+| N5 progressive JPEG | **unpriceable here** -- needs packJPG installed |
 
 #### Things a fresh context must not re-learn
 
