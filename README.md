@@ -649,6 +649,14 @@ used to be recorded before the sign was applied, so `-22339` drew the same blue
 card `22339` does.) A minus over a whole parenthesised group is left alone —
 there is no single leaf to put it on.
 
+### The sweep
+
+    1/8x  1/4x  1/2x  1x  2x  4x  8x
+
+Seven stops, 2⁻³ to 2³, so the multiplier stays **dyadic** like everything else
+here. Slider to sweep it, arrows to step it, and it clamps at both ends rather
+than running off.
+
 ### Randomise, reset, collapse
 
 **Randomise** rewrites the integer *literals* and leaves everything else

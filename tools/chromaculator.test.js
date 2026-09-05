@@ -596,4 +596,33 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                      1/3 is two exact operands with an inexact result");
 }
 
+/* ---- 20. the sweep: 1/8x to 8x in exact doublings ----
+ * Powers of two, so the multiplier stays dyadic like everything else here, and
+ * the ends clamp rather than running off.
+ */
+{
+  const WANT = [[-3, 0.125, "1/8"], [-2, 0.25, "1/4"], [-1, 0.5, "1/2"],
+                [0, 1, "1"], [1, 2, "2"], [2, 4, "4"], [3, 8, "8"]];
+  for(const [e, mult, lab] of WANT){
+    p.run(`setSweep(${e})`);
+    ok(p.run("SWEEP()") === mult, `sweep ${e} should be ${mult}x, got ${p.run("SWEEP()")}`);
+    ok(p.run("SWEEPLABEL()").startsWith(lab),
+       `sweep ${e} should read ${lab}x, got ${p.run("SWEEPLABEL()")}`);
+  }
+  p.run("setSweep(99)");
+  ok(p.run("SWEEPE") === 3, "the sweep must clamp at 8x");
+  p.run("setSweep(-99)");
+  ok(p.run("SWEEPE") === -3, "and at 1/8x");
+  /* the clock actually follows it */
+  p.run(`CARDS = [{src: "3"}]; recompute(); RUN = true;`);
+  const advance = e => p.run(`(() => { setSweep(${e}); T = 0;
+    const dt = 0.1; T += dt * 0.9 * SWEEP(); return T; })()`);
+  const slow = advance(-3), fast = advance(3);
+  ok(Math.abs(fast / slow - 64) < 1e-9,
+     `8x should advance 64 times as far as 1/8x, got ${fast / slow}`);
+  p.run("setSweep(0)");
+  console.log("  [20] the sweep      1/8x to 8x in seven exact doublings, clamped at");
+  console.log("                      both ends; 8x advances the clock 64 times 1/8x");
+}
+
 console.log("\n  certified.");

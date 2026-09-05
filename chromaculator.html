@@ -128,6 +128,11 @@ button.add{border-color:var(--brass); color:var(--brass); font-size:.85rem;
 label.chk{display:flex; gap:5px; align-items:center; font-size:.66rem;
   color:var(--ink2); font-family:"IBM Plex Sans",sans-serif; cursor:pointer}
 label.chk input{accent-color:var(--brass)}
+.sweep{display:flex; align-items:center; gap:5px}
+.sweep input[type=range]{width:82px; accent-color:var(--brass)}
+.sweep button{padding:2px 6px; font-size:.6rem; line-height:1.2}
+.sweep .sv{font-family:"IBM Plex Mono",monospace; font-size:.66rem;
+  color:var(--brass); font-weight:600; min-width:3.2em; text-align:right}
 /* ---- the field ---- */
 .field{min-height:0; background:var(--paper); display:grid;
   grid-template-rows:minmax(0,1fr) auto}
@@ -179,6 +184,12 @@ label.chk input{accent-color:var(--brass)}
       <span class="sp"></span>
       <label class="chk"><input type="checkbox" id="collapse"> collapse to {:}</label>
       <label class="chk"><input type="checkbox" id="run" checked> run</label>
+      <div class="sweep">
+        <button id="slower" title="halve the sweep">&#9666;</button>
+        <input type="range" id="sweep" min="-3" max="3" step="1" value="0">
+        <button id="faster" title="double the sweep">&#9656;</button>
+        <span class="sv" id="sweepv">1&times;</span>
+      </div>
       <button id="reset">reset view</button>
     </div>
     <div class="rows" id="rows"></div>
@@ -208,6 +219,12 @@ const WIDTH = 16;                    /* cells a card's items are cut to */
 /* a card is a black body; what you type in it is its rack */
 let CARDS = [{src: "a = 3"}, {src: "a, a*5"}, {src: "a+1, a+2, a+3"}];
 let SEL = 0, T = 0, RUN = true, COLLAPSE = false;
+/* the sweep: 2^-3 .. 2^3, so 1/8x to 8x in exact doublings. Powers of two keep
+   it dyadic, which is what everything else here is. */
+let SWEEPE = 0;
+const SWEEP = () => Math.pow(2, SWEEPE);
+const SWEEPLABEL = () => SWEEPE < 0 ? "1/" + (1 << -SWEEPE) + "\u00d7"
+                                    : (1 << SWEEPE) + "\u00d7";
 /* the path each body's tip has walked, newest last — what makes the other
    pages read as moving rather than as a still picture */
 let TRAIL = [];
@@ -1066,10 +1083,18 @@ const DEFAULT = () => [{src: "a = 3"}, {src: "a, a*5"}, {src: "a+1, a+2, a+3"}];
 $("#resetall").addEventListener("click", () => {
   CARDS = DEFAULT(); SEL = 0; COLLAPSE = false;
   const cb = $("#collapse"); if(cb) cb.checked = false;
-  SPIN = 0.6; TILT = 0.35; T = 0;
+  SPIN = 0.6; TILT = 0.35; T = 0; setSweep(0);
   recompute(); paint();
 });
 $("#reset").addEventListener("click", () => { SPIN = 0.6; TILT = 0.35; });
+function setSweep(e){
+  SWEEPE = Math.max(-3, Math.min(3, e));
+  const r = $("#sweep"); if(r) r.value = String(SWEEPE);
+  const v = $("#sweepv"); if(v) v.innerHTML = SWEEPLABEL();
+}
+$("#sweep").addEventListener("input", e => setSweep(+e.target.value));
+$("#slower").addEventListener("click", () => setSweep(SWEEPE - 1));
+$("#faster").addEventListener("click", () => setSweep(SWEEPE + 1));
 const sky = $("#sky");
 if(sky){
   sky.addEventListener("pointerdown", e => {
@@ -1090,7 +1115,7 @@ function frame(ts){
   if(LAST == null) LAST = ts;
   const dt = Math.min(0.05, (ts - LAST) / 1000); LAST = ts;
   if(RUN){
-    T += dt * 0.9;
+    T += dt * 0.9 * SWEEP();
     if(!DRAG) SPIN += dt * 0.09;
     BODIES.forEach((b, i) => {
       if(!b.good.length) return;
@@ -1107,6 +1132,7 @@ function frame(ts){
 }
 recompute();
 paint();
+setSweep(0);
 requestAnimationFrame(frame);
 </script>
 </body>
