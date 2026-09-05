@@ -581,7 +581,10 @@ function fPow(a, n){
 /* evalFrac(src, env) — env maps a name to a rational, so a card can say a = 3
    and every other card can use a. An unknown name is an error rather than a
    zero: a typo should say so, not quietly draw the wrong thing. */
-function evalFrac(src, env){
+/* `leaves`, if given, collects every atom the expression consumed — the
+   operands. 3 + 2 is two things, and drawing only their result loses them:
+   a card reading "3 + 2, 4 * 9" holds four operands expressed as two. */
+function evalFrac(src, env, leaves){
   const s = String(src).replace(/[\s_]/g, "");
   let i = 0;
   const peek = () => s[i];
@@ -600,15 +603,31 @@ function evalFrac(src, env){
       /* a list has no one value, so it cannot stand inside an expression. Say
          so, rather than letting BigInt throw about mixed types. */
       if(v && v.list) throw new Error(id[0] + " is a list — name it on its own");
+      if(leaves) leaves.push({num: v.num, den: v.den, src: id[0]});
       return v;
     }
     const m = /^[0-9]+/.exec(s.slice(i));
     if(!m) throw new Error("expected a number at " + (i + 1));
     i += m[0].length;
-    return {num: BigInt(m[0]), den: 1n};
+    const lit = {num: BigInt(m[0]), den: 1n};
+    if(leaves) leaves.push({num: lit.num, den: lit.den, src: m[0]});
+    return lit;
   }
   function unary(){
-    if(eat("-")) return fSub({num: 0n, den: 1n}, unary());
+    if(eat("-")){
+      const before = leaves ? leaves.length : 0;
+      const v = fSub({num: 0n, den: 1n}, unary());
+      /* a leading minus belongs to the NUMBER, not to the structure: -6 is one
+         operand worth -6, and recording the leaf before applying the sign made
+         it +6, so -22339 drew the same blue card 22339 does. A minus over a
+         whole parenthesised group is left alone — there is no single leaf to
+         put it on. */
+      if(leaves && leaves.length === before + 1){
+        const L = leaves[before];
+        L.num = -L.num; L.src = "-" + L.src;
+      }
+      return v;
+    }
     if(eat("+")) return unary();
     return atom();
   }

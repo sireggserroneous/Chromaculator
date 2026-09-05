@@ -631,6 +631,24 @@ it, and each spliced element takes its own phase like any other. In an
 **expression** a list is an error rather than a guess — `a*2` over three values
 has no one obviously right answer.
 
+### An expression is its operands
+
+`3 + 2, 4 * 9` holds **four** operands expressed as two, and drawing only the
+results lost `a1` and `a2` entirely. So there are three levels round `{:}`:
+
+    items      take the n-gon step   —  A at 0°, B at 180°
+    operands   take their own from there  —  a1 at 0°, a2 at 180°
+    spellings  share their operand's phase  —  plain and pushed together
+
+The item keeps its **result** for the total and the info line; what draws is the
+operands. `1/3` is two exact whole operands whose result is not dyadic, and the
+item is the thing that says so.
+
+A leading minus belongs to the **number**: `-6` is one operand worth −6. (It
+used to be recorded before the sign was applied, so `-22339` drew the same blue
+card `22339` does.) A minus over a whole parenthesised group is left alone —
+there is no single leaf to put it on.
+
 ### Randomise, reset, collapse
 
 **Randomise** rewrites the integer *literals* and leaves everything else

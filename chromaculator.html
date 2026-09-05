@@ -293,11 +293,18 @@ function readCard(src, spell){
        that is obviously right. */
     const bare = /^[A-Za-z][A-Za-z0-9]*$/.test(s) ? ENV[s] : null;
     if(bare && bare.list){
-      for(const f of bare.list) for(const it of mkItems(s, f, spell)) items.push(it);
+      for(const f of bare.list){
+        const ops1 = mkItems(s, f, spell);
+        ops1.forEach(o => { o.oi = 0; o.nops = 1; });
+        items.push({src: s, f, ops: ops1, ok: true,
+                    whole: f.den === 1n, exact: isDyadic(f),
+                    rem: {num: 0n, den: 1n}});
+      }
       continue;
     }
     try{
-      const f = evalFrac(s, ENV);
+      const leaves = [];
+      const f = evalFrac(s, ENV, leaves);
       /* A whole number goes through phasor() — the same path Wub +- uses, so an
          integer wubs here exactly as it does there. Cutting it to a fixed width
          instead pushed every lit bit into the top-left, left the FOLD empty,
@@ -312,19 +319,50 @@ function readCard(src, spell){
          Wubba Dub draws: dominoes, the boxed grid, and the facts */
       p.cells = p.shown; p.cols = p.n; p.rows = p.n; p.foldAt = p.n - 1;
       p.vec = p.shown; p.kind = "stalk"; p.mode = "num";
-      for(const it of mkItems(s, f, spell)) items.push(it);
+      /* An expression is its OPERANDS. "3 + 2" is two things, and drawing only
+         their result loses them — a card reading "3 + 2, 4 * 9" holds four
+         operands expressed as two. The item keeps its result for the total and
+         the info line; what draws is the operands. */
+      const ops = [];
+      const src2 = leaves.length ? leaves : [f];
+      src2.forEach((L, oi) => {
+        /* plain and pushed are the SAME operand spelled twice, so they share
+           its phase. Spreading them as if they were two operands put a pushed
+           ring exactly where the next operand's plain one already was. */
+        for(const o of mkItems(L.src || s, {num: L.num, den: L.den}, spell)){
+          o.oi = oi; o.nops = src2.length;
+          ops.push(o);
+        }
+      });
+      /* the OPERANDS are exact integers; whether their RESULT lands is a
+         separate question — 1/3 is made of two exact ones and is not dyadic */
+      const st = isDyadic(f) ? null : fracStalk(f, WIDTH);
+      items.push({src: s, f, ops, ok: true, whole: f.den === 1n,
+                  exact: !st || st.exact,
+                  rem: st && !st.exact ? st.rem : {num: 0n, den: 1n}});
     }catch(e){
       items.push({src: s, ok: false, why: e.message});
     }
   }
-  const good = items.filter(i => i.ok);
-  /* evenly round the body: two are 180 apart, three are 120, n are 360/n */
-  good.forEach((it, j) => {
-    it.p.phase = TAU * j / good.length;
-    it.hue = (j * 360 / Math.max(1, good.length) + 20) % 360;
-    it.col = "hsl(" + it.hue.toFixed(0) + " 62% 52%)";
+  /* Two levels round the body. The ITEMS take the n-gon step — two are 180
+     apart, three are 120 — and an item's OPERANDS take their own step from
+     there, so a1 and a2 straddle A. */
+  const live = items.filter(i => i.ok);
+  const good = [];
+  live.forEach((it, j) => {
+    const base = TAU * j / live.length;
+    it.phase = base;
+    (it.ops || []).forEach(o => {
+      const n = Math.max(1, o.nops || 1);
+      o.p.phase = base + TAU * (o.oi || 0) / n;
+      o.item = j;
+      o.hue = ((j * 360 / Math.max(1, live.length))
+        + ((o.oi || 0) * 60 / n) + 20) % 360;
+      o.col = "hsl(" + o.hue.toFixed(0) + " 62% 52%)";
+      good.push(o);
+    });
   });
-  return {items, good};
+  return {items, good, live};
 }
 /* ---- the shared midpoint {:} ----
  * A body is not parked on the lattice, it SWINGS about {:} — so a card is
@@ -337,7 +375,7 @@ function readCard(src, spell){
  */
 function bodyPhasor(b, i, n){
   let tot = {num: 0n, den: 1n};
-  for(const it of b.good) tot = fAdd(tot, it.f);
+  for(const it of (b.live || [])) tot = fAdd(tot, it.f);
   let p;
   try{
     p = tot.den === 1n && tot.num !== 0n ? phasor(String(tot.num), false)
@@ -418,9 +456,10 @@ function model(){
     /* A definition that failed must not draw. buildEnv runs first and every
        definition is in ENV by the time a body is read, so a forward reference
        reported "q is not defined" and then rendered q anyway. */
-    if(c.partial) return {items: [], good: [], isDef: true, name: c.def.name};
+    if(c.partial) return {items: [], good: [], live: [], isDef: true,
+                          name: c.def.name};
     if(c.err) return {items: [{src: c.def.body, ok: false, why: c.err}],
-                      good: [], isDef: true, name: c.def.name};
+                      good: [], live: [], isDef: true, name: c.def.name};
     const b = readCard(c.val
       ? (c.val.den === 1n ? String(c.val.num) : c.val.num + "/" + c.val.den)
       : c.def.body, spell);

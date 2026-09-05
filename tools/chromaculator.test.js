@@ -13,8 +13,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
 {
   const set = src => p.run(`CARDS = ${JSON.stringify(src.map(s => ({src: s})))};
     recompute(); JSON.stringify(BODIES.map(b => ({
-      n: b.good.length,
-      deg: b.good.map(i => Math.round(i.p.phase * 180 / Math.PI))})))`);
+      n: b.live.length,
+      deg: b.live.map(i => Math.round(i.phase * 180 / Math.PI))})))`);
   const one = JSON.parse(set(["3"]));
   const two = JSON.parse(set(["3, 5"]));
   const three = JSON.parse(set(["3, 5, 7"]));
@@ -49,15 +49,16 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
 
 /* ---- 3. a cut says what it dropped, and bad input is reported not crashed ---- */
 {
+  /* the ITEM says whether its result landed; its OPERANDS are exact integers */
   const r = JSON.parse(p.run(`CARDS = [{src: "(1/3)"}]; recompute();
-    JSON.stringify({exact: BODIES[0].good[0].exact,
-      rem: BODIES[0].good[0].rem.num + "/" + BODIES[0].good[0].rem.den,
-      cells: BODIES[0].good[0].raw ? BODIES[0].good[0].raw.join("") : ""})`));
+    JSON.stringify({exact: BODIES[0].live[0].exact,
+      rem: BODIES[0].live[0].rem.num + "/" + BODIES[0].live[0].rem.den,
+      ops: BODIES[0].live[0].ops.length})`));
   ok(!r.exact && r.rem !== "0/1", "1/3 must carry a remainder");
   const e = JSON.parse(p.run(`CARDS = [{src: "oops, 1/0, 3"}]; recompute();
     JSON.stringify(BODIES[0].items.map(it => it.ok ? "ok" : "bad"))`));
   ok(String(e) === "bad,bad,ok", `bad input should be reported per item: ${e}`);
-  ok(p.run("BODIES[0].good.length") === 1, "the good item should still draw");
+  ok(p.run("BODIES[0].live.length") === 1, "the good item should still draw");
   console.log(`  [3] honest         1/3 carries remainder ${r.rem}; a bad item is `
     + "reported and the good ones still draw");
 }
@@ -202,13 +203,13 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
      a = 3 and getting an empty field was the page refusing to show the one
      thing on it. */
   ok(p.run("BODIES.length") === 3, "every card draws, definitions included");
-  ok(p.run("BODIES[0].good.length") === 1, "a = 3 should draw its value");
+  ok(p.run("BODIES[0].live.length") === 1, "a = 3 should draw its value");
   const ph = p.run(`JSON.stringify(BODIES.map(b =>
     Math.round(b.bp.phase * 180 / Math.PI)))`);
   ok(ph === "[0,120,240]", `three bodies should be 120 apart, got ${ph}`);
   /* the slider drives everything downstream */
   const items = () => p.run(`JSON.stringify(BODIES.slice(1)
-    .map(b => b.good.map(i => String(i.f.num))))`);
+    .map(b => b.live.map(i => String(i.f.num))))`);
   const before = items();
   p.run("CARDS[0].tick = tickOf({num:7n,den:1n}, CARDS[0]); CARDS[0].val = valOf(CARDS[0]); recompute();");
   ok(p.run("String(ENV.a.num)") === "7", "the slider should own the value");
@@ -227,9 +228,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   /* one definition can build on an earlier one */
   set(["a = 3", "b = a*4", "b, b+1"]);
   ok(p.run("String(ENV.b.num)") === "12", "b should be a*4 = 12");
-  ok(p.run("BODIES[1].good.length") === 1 && p.run("String(BODIES[1].total.num)") === "12",
-     "b = a*4 should draw as 12");
-  ok(p.run(`JSON.stringify(BODIES[2].good.map(i => String(i.f.num)))`)
+  ok(p.run("String(BODIES[1].total.num)") === "12", "b = a*4 should be worth 12");
+  ok(p.run(`JSON.stringify(BODIES[2].live.map(i => String(i.f.num)))`)
      === '["12","13"]', "the third card should read 12, 13");
   console.log("  [9] variables      a = 3 is a knob not a body; sliding it to 7 moves");
   console.log("                     every card that uses it, and b = a*4 follows");
@@ -249,8 +249,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   const set = srcs => p.run(`CARDS = ${JSON.stringify(srcs.map(s => ({src: s})))};
     recompute();`);
   set(["3, 5, 7"]);
-  const phases = () => p.run(`JSON.stringify(BODIES[0].good
-    .map(i => Math.round(i.p.phase * 180 / Math.PI)))`);
+  const phases = () => p.run(`JSON.stringify(BODIES[0].live
+    .map(i => Math.round(i.phase * 180 / Math.PI)))`);
   const at = t2 => p.run(`JSON.stringify(BODIES[0].good
     .map(i => comp(i.p, ${t2}).map(v => +v.toFixed(9))))`);
   const ph0 = phases(), v0 = at(0.4);
@@ -258,7 +258,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   p.run("COLLAPSE = true;");
   ok(phases() === ph0, "collapsing must not move a phase");
   ok(at(0.4) === v0, "collapsing must not change what a point is worth at t");
-  ok(p.run("BODIES[0].good.length") === 3,
+  ok(p.run("BODIES[0].live.length") === 3,
      "collapsing must keep all three waves, not fold them into one");
   /* what it DOES change: every body is drawn from the same origin */
   set(["3", "5", "7"]);
@@ -385,8 +385,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
      "a forward reference must not render: " + JSON.stringify(fwd[0]));
   /* and every spliced element gets its own phase */
   p.run(`CARDS = [{src: "a = 3, 5, 7"}, {src: "a"}]; recompute();`);
-  ok(p.run(`JSON.stringify(BODIES[1].good.map(i =>
-    Math.round(i.p.phase * 180 / Math.PI)))`) === "[0,120,240]",
+  ok(p.run(`JSON.stringify(BODIES[1].live.map(i =>
+    Math.round(i.phase * 180 / Math.PI)))`) === "[0,120,240]",
      "spliced elements should space like any others");
   console.log("  [13] list variables  a = 3, 5, 7 splices where it is named; lists");
   console.log("                      compose; a list in an expression says so; and a");
@@ -423,7 +423,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   p.run(`CARDS = [{src: "b = "}]; CARDS[0].tick = null; recompute();`);
   ok(p.run("CARDS[0].partial") === true && p.run("CARDS[0].err") === null,
      "a half-typed definition should be partial, not an error");
-  ok(p.run("BODIES[0].good.length") === 0, "and draw nothing yet");
+  ok(p.run("BODIES[0].live.length") === 0, "and draw nothing yet");
   /* the caret survives a repaint, which is what let the "=" through */
   ok(p.run("paint.toString().includes('setSelectionRange')"),
      "paint must put the caret back where it was");
@@ -486,13 +486,15 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
       y = hexValue(BODIES[0].good[1].p.shown);
     return x.num * y.den === y.num * x.den; })()`),
      "a pushed ring must be worth what the plain one is");
-  /* and the count drives the phase step, as it does everywhere else */
+  /* plain and pushed are the SAME operand spelled twice, so they SHARE its
+     phase. Spreading them as if they were two operands put a pushed ring
+     exactly where the next operand's plain one already was. */
   ok(p.run(`JSON.stringify(BODIES[0].good.map(i =>
-    Math.round(i.p.phase * 180 / Math.PI)))`) === "[0,90,180,270]",
-     "four rings should be 90 apart");
-  console.log("  [16] plain / pushed  both can be on, giving two rings an item; push");
-  console.log("                      rewrites the cells and moves the fold while");
-  console.log("                      conserving the value, and 4 rings sit at 90°");
+    Math.round(i.p.phase * 180 / Math.PI)))`) === "[0,0,180,180]",
+     "a pushed ring sits on its own operand's phase, not beside it");
+  console.log("  [16] plain / pushed  both can be on, giving two rings an operand;");
+  console.log("                      push rewrites the cells and moves the fold while");
+  console.log("                      conserving the value, and shares the operand's phase");
 }
 
 /* ---- 17. the card refreshes with the number ----
@@ -550,13 +552,48 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   p.run(`CARDS = [{src: "3, 5"}, {src: "7"}]; recompute();
     CARDS[0].shut = true; paint();`);
   ok(p.run("CARDS[0].shut") === true, "the card should be shut");
-  ok(p.run("BODIES[0].good.length") === 2,
-     "a shut card is hidden, not removed — it still holds its phasors");
+  ok(p.run("BODIES[0].live.length") === 2,
+     "a shut card is hidden, not removed — it still holds its items");
   ok(p.run("(() => { try { draw(); gallery(); return true; } catch(e){ return e.message; } })()")
      === true, "a shut card must not break the draw");
   console.log("  [18] randomise      six passes keep every name, operator and");
   console.log("                      exponent, never pile up signs, and always parse;");
   console.log("                      reset restores; a shut card still holds its phasors");
+}
+
+/* ---- 19. an expression is its OPERANDS ----
+ * "3 + 2, 4 * 9" holds FOUR operands expressed as two. Drawing only the results
+ * lost a1 and a2 entirely. The items take the n-gon step — two are 180 apart —
+ * and an item's operands take their own step from there, so a1 and a2 straddle A.
+ */
+{
+  const rings = (src, pl, pu) => JSON.parse(p.run(
+    `CARDS = [{src: ${JSON.stringify(src)}, plain: ${pl}, push: ${pu}}]; recompute();
+     JSON.stringify(BODIES[0].good.map(o => o.src + (o.push ? "+" : "")
+       + "@" + Math.round(o.p.phase * 180 / Math.PI)))`));
+  ok(String(rings("3 + 2, 4 * 9", true, false)) === "3@0,2@180,4@180,9@360",
+     "3 + 2, 4 * 9 should draw four operands, not two results");
+  ok(String(rings("3, 5", true, false)) === "3@0,5@180",
+     "a bare int is one operand");
+  /* the items still carry their results, which is what the card totals */
+  p.run(`CARDS = [{src: "3 + 2, 4 * 9"}]; recompute();`);
+  ok(p.run(`JSON.stringify(BODIES[0].live.map(i => String(i.f.num)))`) === '["5","36"]',
+     "the items keep their results");
+  ok(p.run("String(BODIES[0].total.num)") === "41",
+     "the card totals the results, not the operands");
+  ok(p.run(`JSON.stringify(BODIES[0].live.map(i =>
+    Math.round(i.phase * 180 / Math.PI)))`) === "[0,180]",
+     "two items are 180 apart, whatever they are made of");
+  /* the operands are exact integers even when the result is not */
+  p.run(`CARDS = [{src: "1/3"}]; recompute();`);
+  ok(p.run("BODIES[0].good.length") === 2, "1/3 is made of two operands");
+  ok(p.run("BODIES[0].good.every(o => o.f.den === 1n)"),
+     "both operands are whole");
+  ok(p.run("BODIES[0].live[0].exact") === false,
+     "but their result is not dyadic, and the item says so");
+  console.log("  [19] operands       3 + 2, 4 * 9 draws four rings, not two: a1 and");
+  console.log("                      a2 straddle A while A and B stay 180 apart, and");
+  console.log("                      1/3 is two exact operands with an inexact result");
 }
 
 console.log("\n  certified.");
