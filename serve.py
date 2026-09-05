@@ -140,11 +140,38 @@ def _alpha(name):
 
 
 def _digits_for(alphabet, C, S, spell, reading_ipa):
-    """The digits a string has IN THIS ALPHABET."""
+    """The CODES a string has in this alphabet — what gets drawn."""
     if alphabet == "ipa":
         import chroma_ipa as I
         return I.digits(reading_ipa)
     return [c for c in C.letters(spell)]
+
+
+def _ranks_for(alphabet, C, S, spell, reading_ipa):
+    """The RANKS — what gets counted.
+
+    Rank and code are different numbers. The code is spread across the digit so
+    the frame has no dead cells and a character has somewhere to point; the rank
+    is the dense position in the order, and it is what a string COUNTS in. With
+    126 IPA symbols the counting base is 127 and "10" is 127, not 256 — reading
+    the value off the spread codes was giving the storage base instead.
+
+    A separator is rank 0, the zero. A trailing one vanishes, which is right for
+    a trailing space; a medial one is a positional zero, which is also right.
+    """
+    if alphabet == "ipa":
+        import chroma_ipa as I
+        return I.digits(reading_ipa)          # IPA codes ARE its ranks today
+    back = {C.CODE[ch]: C.RANK[ch] for ch in C.TABLE}
+    return [back.get(c, 0) for c in C.letters(spell)]
+
+
+def _base_for(alphabet, C):
+    """The counting base: the symbol count plus the zero. Both are prime."""
+    if alphabet == "ipa":
+        import chroma_ipa as I
+        return len(I.ROWS) + 1
+    return len(C.TABLE) + 1
 
 
 def _int_of(codes, B=1 << CODE_BITS):
@@ -200,7 +227,9 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
                 alts = ["".join(x[0] for x in v)
                         for v in S.readings(t, lang or None, push != "all")] if push else []
             codes = _digits_for(alphabet, C, S, spell, ipa(r))
-            n, den = _int_of(codes, B)
+            ranks = _ranks_for(alphabet, C, S, spell, ipa(r))
+            CB = _base_for(alphabet, C)
+            n, den = _int_of(ranks, CB)
             # each character is a phasor: its code is the angle, its position
             # is the weight, and its own square's fold balance is the height
             ph = []
@@ -220,6 +249,7 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
                            "outer": reg(lambda d, e: d > e),
                            "lit": sum(cells), "n": side})
             items.append({"text": t, "reading": spell, "ipa": ipa(r), "codes": codes,
+                          "ranks": ranks, "countBase": CB,
                           "phasors": ph,
                           # the value, in (0,1): 0.d1 d2 d3 ... base 4096
                           "num": str(n), "den": str(den),
@@ -227,6 +257,7 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
                           # and the integer, for Wub +- which takes integers
                           "int": str(n), "hex": format(n, "x"),
                           "bits": len(codes) * A["bits"],
+                          "digits": len(ranks),
                           "alts": sorted(set(alts))[:MAX_PUSH]})
         tot = sum(int(i["int"]) for i in items)
         cards.append({"items": items, "sum": str(tot),
@@ -394,12 +425,22 @@ def demo():
     h = cd["cards"][0]["items"][0]
     assert not h.get("numeric") and len(h["codes"]) == 4, h
     assert h["text"] == "hello" and h["bits"] == len(h["codes"]) * CODE_BITS
-    # the integer must be exactly the polynomial evaluated in base 2^12
-    B = 1 << CODE_BITS
-    assert int(h["int"]) == sum(c * B ** (len(h["codes"]) - 1 - i)
-                                for i, c in enumerate(h["codes"])), h
+    # the integer is the polynomial evaluated in the COUNTING base, on ranks —
+    # not in the storage base on the spread codes
+    CB = h["countBase"]
+    assert int(h["int"]) == sum(r * CB ** (len(h["ranks"]) - 1 - i)
+                                for i, r in enumerate(h["ranks"])), h
+    assert all(0 <= r < CB for r in h["ranks"]), h["ranks"]
     assert int(cd["cards"][0]["sum"]) == sum(
         int(i["int"]) for i in cd["cards"][0]["items"])
+    # the counting base is the symbol count plus the zero, and it is prime
+    ci = api_cards("shit", "en", "", "sound", "ipa")["cards"][0]["items"][0]
+    assert ci["countBase"] == 127, ci["countBase"]
+    cc = api_cards("hello", "en", "", "sound", "chroma")["cards"][0]["items"][0]
+    assert cc["countBase"] == 307, cc["countBase"]
+    # and a two-symbol string "10" counts as 127, not as the storage base
+    B127 = ci["countBase"]
+    assert 1 * B127 + 0 == 127
     # the VALUE is the fraction, and it is the one that agrees with the order
     from fractions import Fraction
     C0, P0, S0 = ordering()

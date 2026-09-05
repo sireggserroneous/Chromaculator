@@ -200,7 +200,37 @@ function seeded(q, lang, push, read, alphabet){
     + " — negation is the same curve run backwards");
 }
 
-/* ---- 8. the alphabet changes the digits, the base and the frame ---- */
+/* ---- 8. rank counts, code draws ----
+ * Two different numbers again. The code is spread across the digit so the frame
+ * has no dead cells; the rank is the dense position in the order and it is what
+ * a string COUNTS in. With 126 IPA symbols the counting base is 127, so "10" is
+ * 127 — reading the value off the spread codes gave the storage base instead.
+ */
+{
+  const i = api("api_cards", "shit", "en", "", "sound", "ipa").cards[0].items[0];
+  const c = api("api_cards", "hello", "en", "", "sound", "chroma").cards[0].items[0];
+  ok(i.countBase === 127 && c.countBase === 307,
+     `counting bases wrong: ipa ${i.countBase}, chroma ${c.countBase}`);
+  const isPrime = n => { for(let d = 2; d * d <= n; d++) if(n % d === 0) return false;
+    return n > 1; };
+  ok(isPrime(i.countBase) && isPrime(c.countBase),
+     "the counting base is the symbol count plus the zero, and should be prime");
+  ok(i.ranks.every(r => r >= 0 && r < i.countBase), "a rank escaped the counting base");
+  /* "10" is 127, not 256 */
+  ok(1 * i.countBase + 0 === 127, "10 must count as 127 in the IPA alphabet");
+  /* and the value really is the ranks in that base */
+  let v = 0n;
+  for(const r of c.ranks) v = v * BigInt(c.countBase) + BigInt(r);
+  ok(v === BigInt(c.int), `the value is not the ranks in base ${c.countBase}`);
+  ok(c.codes.some((x, k) => x !== c.ranks[k]),
+     "code and rank should be different numbers");
+  console.log(`  [8] rank vs count  ipa base ${i.countBase}, chroma base ${c.countBase}, `
+    + `both prime; "10" counts 127`);
+  console.log(`                     hello ranks [${c.ranks}] but draws codes `
+    + `[${c.codes.slice(0, 2)}...]`);
+}
+
+/* ---- 9. the alphabet changes the digits, the base and the frame ---- */
 {
   const c = api("api_cards", "shit", "en", "", "sound", "chroma");
   const i = api("api_cards", "shit", "en", "", "sound", "ipa");
@@ -216,11 +246,11 @@ function seeded(q, lang, push, read, alphabet){
      "IPA draws 3x3 and Chroma 4x4");
   ok(ci.phasors.every(p => p.inner + p.fold + p.outer === p.lit),
      "the regions must account for every lit cell");
-  console.log(`  [8] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
+  console.log(`  [9] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
     + `in 4x4; ipa ${ii.codes.length}/${ii.bits} in 3x3`);
 }
 
-/* ---- 9. the whole stack over a live socket ---- */
+/* ---- 10. the whole stack over a live socket ---- */
 {
   const PORT = 18338;
   const srv = spawn("python3", ["-u", "serve.py", "--port", String(PORT)],
@@ -243,7 +273,7 @@ function seeded(q, lang, push, read, alphabet){
        "live cards wrong");
     ok((await get("/api/nope")).status === 404, "unknown endpoint should 404");
     ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413, "should 413");
-    console.log("  [9] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
+    console.log("  [10] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
   } finally { srv.kill("SIGTERM"); }
 }
 

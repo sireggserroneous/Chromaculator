@@ -679,7 +679,8 @@ function cardEl(card, idx){
       strip.appendChild(code <= 2 ? el("div", "sq sep", "&middot;") : squareEl(code));
     row.appendChild(strip);
     row.appendChild(el("div", "num", "0." + esc((it.approx || "").slice(2, 18))
-      + " &middot; " + it.bits + " bits"));
+      + (it.countBase ? " &middot; base " + it.countBase : "")
+      + " &middot; " + it.bits + " bits drawn"));
     row.addEventListener("click", () => select(it));
     body.appendChild(row);
   }
