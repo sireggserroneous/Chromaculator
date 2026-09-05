@@ -21,21 +21,24 @@ const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 const BASE = __dirname + "/../data/chroma-base.tsv";
 ok(fs.existsSync(BASE), "data/chroma-base.tsv missing — run tools/fetch-ucd.sh "
   + "then python3 tools/chroma_utf.py");
-const FACET = new Map();
+const FACET = new Map(), CODE = new Map(), TYPE = new Map();
 const ordered = fs.readFileSync(BASE, "utf8").split("\n")
   .filter(l => l && !l.startsWith("#"))
-  .map(l => { const [ch, base, cse, accent] = l.split("\t");
+  .map(l => { const [ch, base, cse, accent, rank, code, type] = l.split("\t");
               FACET.set(ch, {base: +base, upper: +cse === 2 ? 0 : 1,
                              accent: accent.split(".").map(Number),
                              marks: ch.normalize("NFD").slice(1)});
+              CODE.set(ch, +code); TYPE.set(ch, type);
               return ch; });
 const facet = ch => FACET.get(ch);
 
-/* the ring: smallest that holds the table, so width is automatic */
+/* Rank orders, code draws. The code is read from the same file as the order,
+   not rebuilt here — building it a second time is how this certificate ended up
+   certifying a scheme the Python no longer used. */
 const RING = Math.ceil(Math.log2(ordered.length));
+const WIDTH = 12;                        /* declared: three whole nibbles */
 const FLOOR = 2 ** RING;
-const CODE = new Map(ordered.map((ch, i) => [ch, FLOOR + i]));
-const digitsOfCode = k => k.toString(2).split("").map(c => +c);
+const digitsOfCode = k => k.toString(2).padStart(WIDTH, "0").split("").map(c => +c);
 const value = ch => hexValue(digitsOfCode(CODE.get(ch)));
 /* exact comparison. never floats. */
 const cmp = (a, b) => {
@@ -44,19 +47,61 @@ const cmp = (a, b) => {
   return l < r ? -1 : l > r ? 1 : 0;
 };
 
+const codes = ordered.map(c => CODE.get(c));
 console.log(`  table: ${ordered.length} characters, ring ${RING}, `
-  + `codes ${FLOOR}..${FLOOR + ordered.length - 1}, `
-  + `${(2 ** RING) - ordered.length} spare slots`);
+  + `${WIDTH}-bit digits, codes ${Math.min(...codes)}..${Math.max(...codes)}`);
 
-/* ---- 1. fixed width: one ring, so every code is the same length ---- */
+/* ---- 1. fixed width, and the code rises with the rank ----
+ * The second half is the one that matters. Comparing tuples of codes is the
+ * same as comparing tuples of ranks ONLY while the code rises with the rank —
+ * that is what let the codes be respaced without touching a single ordering.
+ */
 {
-  const widths = new Set(ordered.map(c => CODE.get(c).toString(2).length));
-  ok(widths.size === 1, `codes have ${widths.size} different bit lengths`);
-  const w = [...widths][0];
-  ok(w === RING + 1, `width ${w} does not match ring ${RING}`);
-  ok(ordered.every(c => CODE.get(c) >= FLOOR && CODE.get(c) < 2 * FLOOR),
-     "a code escaped the ring");
-  console.log(`  [1] fixed width      every code ${w} bits, all inside ring ${RING}`);
+  const widths = new Set(codes.map(c => digitsOfCode(c).length));
+  ok(widths.size === 1 && [...widths][0] === WIDTH,
+     `codes have ${widths.size} bit lengths, wanted one of ${WIDTH}`);
+  ok(codes.every(c => c > 0 && c < 2 ** WIDTH), "a code escaped the digit");
+  let bad = 0;
+  for(let i = 1; i < codes.length; i++) if(!(codes[i] > codes[i - 1])) bad++;
+  ok(bad === 0, `${bad} places where the code does not rise with the rank`);
+  console.log(`  [1] rank orders      every code ${WIDTH} bits, `
+    + `strictly rising across all ${codes.length - 1} steps`);
+}
+
+/* ---- 1b. blocks: the leading nibble is the type ----
+ * Blocks alone are barely better than packed, because inside a block every
+ * member shares its leading bits. The stride within the block is what kills
+ * them, and the nibble alignment is what makes the top row of a body readable.
+ */
+{
+  const nib = ch => digitsOfCode(CODE.get(ch)).slice(0, 4).join("");
+  const byType = new Map();
+  for(const ch of ordered){
+    const t = TYPE.get(ch);
+    if(!byType.has(t)) byType.set(t, new Set());
+    byType.get(t).add(nib(ch));
+  }
+  /* a type must be a contiguous run of the order, or a block cannot hold it */
+  const runs = [];
+  for(const ch of ordered){
+    const t = TYPE.get(ch);
+    if(!runs.length || runs[runs.length - 1] !== t) runs.push(t);
+  }
+  ok(runs.length === new Set(runs).size,
+     `a type is split across the order: ${runs.join(" ")}`);
+  const spread = [...byType].map(([t, s]) => `${t} ${[...s].join("/")}`);
+  console.log(`  [1b] blocks          type runs ${runs.join(", ")}, `
+    + `leading nibble: ${spread.join("; ")}`);
+  /* and the payoff: dark cells and the arc the alphabet occupies */
+  let always = null;
+  for(const c of codes){
+    const cells = digitsOfCode(c).concat([0, 0, 0, 0]);
+    if(!always) always = cells.map(() => true);
+    cells.forEach((v, i) => { if(v) always[i] = false; });
+  }
+  const arc = 360 * (Math.max(...codes) - Math.min(...codes)) / 2 ** WIDTH;
+  console.log(`                       ${always.filter(Boolean).length} of 16 cells `
+    + `dark in every body, alphabet spans ${arc.toFixed(0)} degrees of 360`);
 }
 
 /* ---- 2. total: no two characters share a code or a value ---- */

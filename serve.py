@@ -190,7 +190,22 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
                         for v in S.readings(t, lang or None, push != "all")] if push else []
             codes = _digits_for(alphabet, C, S, spell, ipa(r))
             n, den = _int_of(codes, B)
+            # each character is a phasor: its code is the angle, its position
+            # is the weight, and its own square's fold balance is the height
+            ph = []
+            for k, c in enumerate(codes):
+                bits = format(c, "0%db" % A["bits"])
+                side = 4 if A["bits"] == 12 else 3   # not n: n holds the integer
+                cells = [int(b) for b in bits] + [0] * (side*side - len(bits))
+                reg = lambda f: sum(v for j, v in enumerate(cells)
+                                    if f(j//side + j%side, side - 1))
+                ph.append({"code": c, "turn": c / B, "w": 2.0 ** -(k+1),
+                           "inner": reg(lambda d, e: d < e),
+                           "fold":  reg(lambda d, e: d == e),
+                           "outer": reg(lambda d, e: d > e),
+                           "lit": sum(cells), "n": side})
             items.append({"text": t, "reading": spell, "ipa": ipa(r), "codes": codes,
+                          "phasors": ph,
                           # the value, in (0,1): 0.d1 d2 d3 ... base 4096
                           "num": str(n), "den": str(den),
                           "approx": f"{n / den:.18f}" if den else "0",
@@ -246,9 +261,18 @@ def api_ipa(q="", lang=""):
 
 
 def api_base():
+    """Rank orders, code draws.
+
+    Each type gets a share of the ring and is strided to fill it, so the digits
+    span 327 degrees instead of the 27 they occupied when the codes were packed
+    consecutively. That is what gives a word's phasors somewhere to point.
+    """
     C, P, S = ordering()
-    return {"ring": C.RING, "floor": 1 << C.RING, "count": len(C.TABLE),
-            "table": [{"ch": ch, "code": C.UTF[ch]} for ch in C.TABLE]}
+    return {"ring": C.RING, "width": C.WIDTH, "count": len(C.TABLE),
+            "blocks": [{"type": n, "lo": lo, "hi": hi, "stride": st, "n": k}
+                       for n, (lo, hi, st, k) in C.PLAN.items()],
+            "table": [{"ch": ch, "rank": C.RANK[ch], "code": C.UTF[ch],
+                       "type": C.typeof(ch)} for ch in C.TABLE]}
 
 ROOT = pathlib.Path(__file__).parent.resolve()
 WRITABLE = {"spec.md"}
@@ -396,7 +420,14 @@ def demo():
     # the whole point of the third alphabet: fewer digits AND narrower ones
     assert it["bits"] < it["chromaBits"], it
     b = api_base()
-    assert b["count"] == 306 and b["ring"] == 9 and b["table"][0]["code"] == 512
+    assert b["count"] == 306 and b["ring"] == 9 and b["width"] == 12
+    cs = [r["code"] for r in b["table"]]
+    # the invariant that let the codes be respaced without touching an ordering
+    assert all(cs[i] > cs[i-1] for i in range(1, len(cs))), "code must rise with rank"
+    assert all(0 < c < (1 << b["width"]) for c in cs), "a code escaped the digit"
+    assert len(set(cs)) == len(cs), "duplicate code"
+    span = 360 * (max(cs) - min(cs)) / (1 << b["width"])
+    assert span > 300, f"the alphabet only spans {span:.0f} degrees"
     print("serve.py self-check ok")
 
 

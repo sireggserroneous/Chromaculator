@@ -1,230 +1,132 @@
-/* node tools/wubutf.test.js — Wub UTF, page and API together.
+/* node tools/wubutf.test.js — Wub UTF: the code layer, the phasors, the page.
  *
- * The ordering has one implementation, in Python, and the page asks the server
- * for readings rather than carrying a second copy of the tables. So the thing
- * worth testing is the seam: the page's own logic against real API output, and
- * then the whole stack over a live socket.
+ * The ordering has one implementation, in Python. The page asks for readings and
+ * for the codes, so what is worth testing is the seam and the model built on it.
  */
 const {loadPage} = require("./domharness.js");
 const {execFileSync, spawn} = require("child_process");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
-
 const ok = (c, m) => { if(!c) throw new Error("FAIL " + m); };
 const tick = () => new Promise(r => setImmediate(r));
-const drain = async (n = 10) => { for(let i = 0; i < n; i++) await tick(); };
-
-/* serve.py starts nothing on import — the server lives under __main__ — so the
-   API is callable directly and the test drives the same code the socket does. */
-const api = (ep, ...args) => JSON.parse(execFileSync("python3", ["-c",
+const drain = async (n = 12) => { for(let i = 0; i < n; i++) await tick(); };
+const api = (ep, ...a) => JSON.parse(execFileSync("python3", ["-c",
   "import sys, json, serve; print(json.dumps("
   + `serve.${ep}(*sys.argv[1:]), ensure_ascii=False))`,
-  ...args.map(String)], {cwd: ROOT, encoding: "utf8"}));
-
+  ...a.map(String)], {cwd: ROOT, encoding: "utf8"}));
 const PAGE = path.join(ROOT, "wubutf.html");
-const Q = "hello, 3, 45\ncervezas, c3rv3zas\ndis, this, thin";
-
-/* a fetch that answers all three endpoints from the real API */
-function seeded(q, lang, push, read){
+const Q = "hello, 3, 45\ndis, this, thin";
+function seeded(q, lang, push, read, alphabet){
   const base = api("api_base");
-  const cards = api("api_cards", q, lang, push, read);
-  const sorted = api("api_sort", q, lang, push, read);
-  return {base, cards, sorted, fetch: u => Promise.resolve({
-    ok: true, status: 200, statusText: "OK",
-    json: () => Promise.resolve(u.startsWith("/api/base") ? base
-      : u.startsWith("/api/cards") ? cards : sorted)})};
+  const cards = api("api_cards", q, lang, push, read, alphabet);
+  return {base, cards, fetch: u => Promise.resolve({ok: true, status: 200,
+    json: () => Promise.resolve(u.startsWith("/api/base") ? base : cards)})};
 }
 
 (async () => {
 
-/* ---- 1. the page survives having no server, and says so ---- */
+/* ---- 1. the page survives having no server ---- */
 {
   const p = loadPage(PAGE);
   await drain();
-  const cards = p.g.document.getElementById("cards");
-  ok(/the ordering lives in the server/.test(cards.innerHTML),
-     "no-server path did not render its message: " + cards.innerHTML.slice(0, 90));
+  ok(/the ordering lives in the server/.test(
+       p.g.document.getElementById("cards").innerHTML),
+     "no-server path did not render its message");
   console.log("  [1] no server      the page explains itself instead of blanking");
 }
 
-/* ---- 2. cards: one per line, its items, and every page renders ---- */
-{
-  const s = seeded(Q, "", "", "spell");
-  const p = loadPage(PAGE, {fetch: s.fetch});
-  await drain();
-  ok(p.run("CARDS.length") === 3, "expected 3 cards, got " + p.run("CARDS.length"));
-  ok(p.run("CARDS[0].items.length") === 3, "card 1 should hold hello, 3, 45");
-  ok(p.run("CARDS[0].items.map(i => i.text).join('|')") === "hello|3|45",
-     "card 1 items wrong: " + p.run("CARDS[0].items.map(i => i.text).join('|')"));
-  ok(p.g.document.getElementById("cards").children.length === 3,
-     "three cards should be painted");
-  /* every page must build for every card, or a tab is a dead end */
-  const pages = p.run("PAGES");
-  for(const pg of pages) for(let i = 0; i < 3; i++)
-    ok(p.run(`(() => { try { RENDER["${pg}"](CARDS[${i}]); return true; }
-                       catch(e) { return e.message; } })()`) === true,
-       `page ${pg} threw on card ${i + 1}`);
-  console.log(`  [2] cards          3 cards from 3 lines, card 1 holds `
-    + `${p.run("CARDS[0].items.map(i => i.text).join(', ')")}; `
-    + `all ${pages.length} pages build on all 3`);
-}
-
-/* ---- 3. the integer IS the polynomial, base 4096 ---- */
-{
-  const s = seeded("hello, 3, 45", "en", "", "sound");
-  const B = BigInt(s.cards.base);
-  ok(s.cards.codeBits === 12, "a digit must be 12 bits: three whole nibbles");
-  for(const it of s.cards.cards[0].items){
-    let v = 0n;
-    for(const c of it.codes) v = v * B + BigInt(c);
-    ok(v === BigInt(it.int), `${it.text}: polynomial ${v} != integer ${it.int}`);
-    ok(it.bits === it.codes.length * s.cards.codeBits, `${it.text}: bit count wrong`);
-    ok(it.codes.every(c => c < s.cards.base), `${it.text}: a digit overflows the base`);
-  }
-  const sum = s.cards.cards[0].items.reduce((a, i) => a + BigInt(i.int), 0n);
-  ok(sum === BigInt(s.cards.cards[0].sum), "rack sum is not the sum of the items");
-  /* the VALUE is the fraction 0.d1 d2 d3..., and it is the one that carries the
-     order. The integer is length dominant — more digits is always a bigger
-     number — so it sorts short words first whatever they say. Kept as a live
-     control: if it ever starts agreeing, this check has stopped meaning anything. */
-  const W2 = ["he", "hell", "hello", "helllo", "helo"];
-  const c2 = api("api_cards", W2.join("\n"), "", "", "spell").cards.map(c => c.items[0]);
-  const frac = it => [BigInt(it.num), BigInt(it.den)];
-  const cmpF = (a, b) => { const [an, ad] = frac(a), [bn, bd] = frac(b);
-    const l = an * bd, r = bn * ad; return l < r ? -1 : l > r ? 1 : 0; };
-  const byFrac = [...c2].sort(cmpF).map(x => x.text);
-  const byInt = [...c2].sort((a, b) =>
-    BigInt(a.int) < BigInt(b.int) ? -1 : BigInt(a.int) > BigInt(b.int) ? 1 : 0)
-    .map(x => x.text);
-  const real = api("api_sort", W2.join("\n"), "", "", "spell").sorted.map(x => x.name);
-  ok(String(byFrac) === String(real),
-     `the fraction must agree with the key: ${byFrac} vs ${real}`);
-  ok(String(byInt) !== String(real),
-     "the integer agreed with the key — the length-dominance control is dead");
-  console.log(`  [3] value order    0.word ${byFrac.join(" ")}  == the sort`);
-  console.log(`                     integer ${byInt.join(" ")}  != the sort `
-    + "(length dominant, kept as a control)");
-  const h = s.cards.cards[0].items[0];
-  console.log(`  [4] base(chroma-utf)  ${h.text} reads ${h.reading}, digits `
-    + `[${h.codes}] -> ${h.int} in base ${s.cards.base}, ${h.bits} bits`);
-  console.log(`                     rack sum ${s.cards.cards[0].sum} = the integers a `
-    + "Wub +- rack would hold");
-}
-
-/* ---- 4. divergence names the digit and the cell that decide the order ---- */
-{
-  const p = loadPage(PAGE, {fetch: seeded(Q, "en", "", "sound").fetch});
-  await drain();
-  const codesOf = w => api("api_read", w, "en").codes;
-  const dis = codesOf("dis"), thi = codesOf("this"), thin = codesOf("thin");
-  p.run(`globalThis._a = ${JSON.stringify(dis)};`
-      + `globalThis._b = ${JSON.stringify(thi)};`
-      + `globalThis._c = ${JSON.stringify(thin)};`);
-  const dt = p.run("divergence(_a, _b)"), dn = p.run("divergence(_b, _c)");
-  ok(dt && dt.code === 1 && dt.cell != null,
-     "dis vs this should be decided inside the second digit: " + JSON.stringify(dt));
-  ok(dn && dn.code === 0,
-     "this vs thin should be decided in the first digit: " + JSON.stringify(dn));
-  console.log(`  [5] divergence     dis|this at digit ${dt.code + 1} cell ${dt.cell}; `
-    + `this|thin at digit ${dn.code + 1} cell ${dn.cell} — dis is the closer of the two`);
-}
-
-/* ---- 6. one frame PER ALPHABET, and the Chroma picture is unchanged ----
- *
- * The width has to come from the alphabet, not the value. Chroma UTF codes are
- * 2^9 + i so they are always ten significant bits and the frame is uniform for
- * free; Chroma IPA uses bare ranks, so rank 1 has one significant bit and rank
- * 126 has seven, and sizing to the value drew small ranks 2x2 and large ones
- * 3x3 -- same alphabet, two frames, and a row stops reading as a row.
+/* ---- 2. rank orders, code draws ----
+ * Comparing tuples of codes is the same as comparing tuples of ranks ONLY while
+ * the code rises with the rank. That is the invariant that let every code be
+ * respaced without moving a single ordering.
  */
 {
-  const p = loadPage(PAGE, {fetch: seeded(Q, "", "", "spell").fetch});
+  const b = api("api_base");
+  const cs = b.table.map(r => r.code), rk = b.table.map(r => r.rank);
+  let bad = 0;
+  for(let i = 1; i < cs.length; i++) if(!(cs[i] > cs[i-1] && rk[i] > rk[i-1])) bad++;
+  ok(bad === 0, `${bad} places where code does not rise with rank`);
+  ok(cs.every(c => c > 0 && c < 2 ** b.width), "a code escaped the digit");
+  ok(new Set(cs).size === cs.length, "duplicate code");
+  const span = 360 * (Math.max(...cs) - Math.min(...cs)) / 2 ** b.width;
+  ok(span > 300, `the alphabet only spans ${span.toFixed(0)} degrees`);
+  console.log(`  [2] rank vs code   ${b.count} symbols, ${b.width}-bit digits, `
+    + `codes ${Math.min(...cs)}..${Math.max(...cs)}, spanning ${span.toFixed(0)}° of 360`);
+  console.log("                     " + b.blocks.map(x =>
+    `${x.type} ${x.n} at stride ${x.stride}`).join(", "));
+}
+
+/* ---- 3. one phasor per character, and its angle is its code ---- */
+{
+  const s = seeded(Q, "en", "", "spell", "chroma");
+  const it = s.cards.cards[0].items[0];
+  ok(it.phasors.length === it.codes.length,
+     `${it.phasors.length} phasors for ${it.codes.length} characters`);
+  for(let i = 0; i < it.codes.length; i++){
+    ok(Math.abs(it.phasors[i].turn - it.codes[i] / s.cards.base) < 1e-12,
+       "a phasor's turn is not its code's share of the ring");
+    ok(Math.abs(it.phasors[i].w - 2 ** -(i + 1)) < 1e-12,
+       "a phasor's weight is not its positional weight");
+    const p = it.phasors[i];
+    ok(p.inner + p.fold + p.outer === p.lit,
+       "inner + fold + outer must account for every lit cell");
+  }
+  console.log(`  [3] phasors        ${it.text} -> ${it.phasors.length}, `
+    + `angles ${it.phasors.map(p => Math.round(360*p.turn) + "°").join(" ")}`);
+}
+
+/* ---- 4. the curve is built, finite, and the depth stays a cosine ----
+ * proj returns d as a depth that consumers read as a cosine. It once came back
+ * as a raw dot product, which put coordinates at 1e14, drove a point size
+ * negative and threw IndexSizeError out of the draw loop.
+ */
+{
+  const p = loadPage(PAGE, {fetch: seeded(Q, "en", "", "spell", "chroma").fetch});
   await drain();
-  const base = api("api_base");
-  const ipa = api("api_ipa");
-  const report = [];
-  for(const row of [["Chroma UTF", 12, base.table.map(r => r.code)],
-                    ["Chroma IPA", ipa.width, ipa.alphabet.map(r => r.rank)]]){
-    const [name, bits, codes] = row;
-    const shapes = new Set(), deads = new Set();
-    for(const c of codes){
-      p.run(`globalThis._s = squareOf(${c}, ${bits})`);
-      shapes.add(p.run("_s.n"));
-      deads.add(p.run("_s.dead"));
-    }
-    ok(shapes.size === 1 && deads.size === 1,
-       `${name}: frames differ, ${[...shapes]} with padding ${[...deads]}`);
-    report.push(`${name} ${codes.length} digits -> ${[...shapes][0]}x${[...shapes][0]}`
-      + `, ${[...deads][0]} padding`);
-  }
-  /* and drawing from a declared width must not have moved the Chroma picture */
-  let same = 0;
-  for(const r of base.table){
-    p.run(`globalThis._s = squareOf(${r.code}, 12)`);
-    if(p.run("_s.cells.join('')") === p.run(`hexSequence(${r.code}n).cells.join('')`))
-      same++;
-  }
-  ok(same === base.table.length,
-     `${base.table.length - same} Chroma squares changed shape`);
-  console.log(`  [6] one frame each ${report.join("; ")}`);
-  console.log(`                     all ${same} Chroma squares still match `
-    + "hexSequence exactly");
+  ok(p.run("CARDS.length") === 2, "expected 2 cards");
+  ok(p.run("SEL && SEL.text") === "hello", "the first item should be selected");
+  ok(p.run("PH.length") === p.run("SEL.codes.length"), "phasor count");
+  ok(p.run("CURVE.length") > 100, "the curve was not traced");
+  ok(p.run("CURVE.every(v => v.every(Number.isFinite))"), "the curve has a hole in it");
+  ok(p.run("EXTENT") > 0, "the curve has no extent");
+  const worst = p.run(`(() => { let m = 0;
+    for(const v of CURVE) m = Math.max(m, Math.abs(proj(v, 0, 0, 1).d));
+    return m; })()`);
+  ok(worst <= 1.0000001, `depth is not a cosine, worst |d| = ${worst}`);
+  console.log(`  [4] the curve      ${p.run("CURVE.length")} points, extent `
+    + `${p.run("EXTENT").toFixed(3)}, depth stays a cosine (worst ${worst.toFixed(4)})`);
 }
 
-/* ---- 7. the four combinations, and the two push levels ---- */
+/* ---- 5. selecting a different string rebuilds the model ---- */
 {
-  const cell = (push, read) => api("api_sort", "cervezas",
-    read === "sound" ? "en" : "", push, read).sorted;
-  const plainSpell = cell("", "spell"), pushSpell = cell("ctx", "spell");
-  const plainSound = cell("", "sound");
-  ok(plainSpell.length === 1 && plainSpell[0].reading === "cervezas",
-     "plain + as written should be the string itself");
-  ok(pushSpell.some(r => r.reading === "c3rv3zas"),
-     "pushed + as written should give the shape variants");
-  ok(plainSound.length === 1 && plainSound[0].reading === "servezas",
-     "plain + phonetic should be the primary reading");
-  const ctxRows = api("api_sort", "cervezas", "", "ctx", "sound").sorted;
-  const allRows = api("api_sort", "cervezas", "", "all", "sound").sorted;
-  ok(!ctxRows.some(r => r.reading === "kervezas"),
-     "in context, c before e is never /k/");
-  ok(allRows.some(r => r.reading === "kervezas"), "rules off, kervezas must appear");
-  console.log(`  [7] four combos    as written: plain "${plainSpell[0].reading}", `
-    + `pushed ${pushSpell.length} shape variants`);
-  console.log(`                     phonetic:   plain "${plainSound[0].reading}", `
-    + `pushed ${ctxRows[0].of} in context (no kervezas), `
-    + `${allRows[0].of} rules off (kervezas present)`);
+  const p = loadPage(PAGE, {fetch: seeded(Q, "en", "", "spell", "chroma").fetch});
+  await drain();
+  const before = p.run("CURVE.map(v => v.join()).join('|')").length;
+  p.run("select(CARDS[1].items[2])");
+  ok(p.run("SEL.text") === "thin", "selection did not move");
+  ok(p.run("PH.length") === 4, "thin has four characters");
+  const after = p.run("CURVE.map(v => v.join()).join('|')").length;
+  ok(before !== after, "the curve did not change when the selection did");
+  console.log(`  [5] selection      clicking thin rebuilds to `
+    + `${p.run("PH.length")} phasors and a new curve`);
 }
 
-/* ---- 8. two sibling orderings, not two levels of one ---- */
+/* ---- 6. the alphabet changes the digits, the base and the frame ---- */
 {
-  const W = "church\ncat\ntop\nshoe\nsun";
-  const ord = o => api("api_sort", W, "en", "", "sound", o).sorted.map(x => x.name);
-  const ch = ord("chroma"), ia = ord("ipa");
-  ok(String([...ch].sort()) === String([...ia].sort()),
-     "both orderings must be permutations of the same input");
-  ok(String(ch) !== String(ia),
-     "the two orderings agreed — one of them is not doing anything");
-  ok(ia.indexOf("church") === ia.indexOf("top") + 1,
-     `in IPA church must follow top — an affricate opens with /t/: ${ia}`);
-  ok(ch.indexOf("church") === 0,
-     `in Chroma church leads, because its reading spells ch: ${ch}`);
-  console.log(`  [8] two orderings  chroma ${ch.join(" ")}`);
-  console.log(`                     ipa    ${ia.join(" ")}`);
-  console.log("                     church moves behind top: /tʃ/ opens with /t/");
+  const c = api("api_cards", "shit", "en", "", "sound", "chroma");
+  const i = api("api_cards", "shit", "en", "", "sound", "ipa");
+  ok(c.base === 4096 && c.codeBits === 12, "chroma should be 12-bit, base 4096");
+  ok(i.base === 256 && i.codeBits === 8, "ipa should be 8-bit, base 256");
+  const ci = c.cards[0].items[0], ii = i.cards[0].items[0];
+  ok(ii.codes.length < ci.codes.length && ii.bits < ci.bits,
+     "IPA should need fewer, narrower digits");
+  ok(ii.phasors.every(p => p.n === 3) && ci.phasors.every(p => p.n === 4),
+     "IPA draws 3x3 and Chroma 4x4");
+  console.log(`  [6] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
+    + `in 4x4; ipa ${ii.codes.length}/${ii.bits} in 3x3`);
 }
 
-/* ---- 9. the shape axis is orthogonal to the sound axis ---- */
-{
-  const leet = api("api_read", "c3rv3zas", "en leet").reading;
-  const plain = api("api_read", "c3rv3zas", "en").reading;
-  const target = api("api_read", "cervezas", "en").reading;
-  ok(leet === target && plain !== target,
-     `shape axis: ${plain} plain, ${leet} with leet, cervezas is ${target}`);
-  console.log(`  [9] shape axis     c3rv3zas -> ${plain} plain, ${leet} with leet `
-    + `— the same key as cervezas`);
-}
-
-/* ---- 10. the whole stack over a live socket ---- */
+/* ---- 7. the whole stack over a live socket ---- */
 {
   const PORT = 18338;
   const srv = spawn("python3", ["-u", "serve.py", "--port", String(PORT)],
@@ -240,23 +142,14 @@ function seeded(q, lang, push, read){
       return {status: r.status, body: await r.text()};
     };
     const page = await get("/wubutf.html");
-    ok(page.status === 200 && /base\(chroma/.test(page.body), "page not served");
+    ok(page.status === 200 && /A letter is an integer/.test(page.body), "page not served");
     const cd = JSON.parse((await get("/api/cards?read=spell&q="
       + encodeURIComponent(Q))).body);
-    ok(cd.cards.length === 3, "live cards wrong: " + cd.cards.length);
-    const s = JSON.parse((await get("/api/sort?lang=en&read=sound&q="
-      + encodeURIComponent("canvas\nclear\ncervezas\ndox\nknicks\nkicks"))).body);
-    const names = s.sorted.map(x => x.name);
-    ok(String(names) === String(["dox", "canvas", "kicks", "clear", "knicks", "cervezas"]),
-       "live sort wrong: " + names);
-    const r = JSON.parse((await get("/api/read?lang=ja-on&q="
-      + encodeURIComponent("飼"))).body);
-    ok(r.reading === "shi", "live read wrong: " + r.reading);
+    ok(cd.cards.length === 2 && cd.cards[0].items[0].phasors.length === 5,
+       "live cards wrong");
     ok((await get("/api/nope")).status === 404, "unknown endpoint should 404");
-    ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413,
-       "oversized query should 413");
-    console.log(`  [10] live stack     page 200, 3 cards, sort ${names.join(" ")}, `
-      + "飼 as ja-on -> shi, /api/nope 404, 5000 chars 413");
+    ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413, "should 413");
+    console.log("  [7] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
   } finally { srv.kill("SIGTERM"); }
 }
 

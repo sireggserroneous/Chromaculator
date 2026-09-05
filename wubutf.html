@@ -4,145 +4,129 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wub UTF &middot; chronochromatic.org</title>
-<meta name="description" content="base(chroma-utf): a string is a number written with Chroma UTF digits. One card per line, each holding its bodies, its polynomial and its integer.">
+<meta name="description" content="A letter is an integer. Each character is a phasor on the ring, a word is a rack, and the sum tip to tail is a curve on the sphere.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/base.css">
 <style>
-.wrap{max-width:1180px; margin:0 auto; padding:16px 18px 72px;
-  display:flex; flex-direction:column; gap:14px}
-.mast{display:flex; flex-direction:column; gap:6px; padding-bottom:10px;
-  border-bottom:2px solid var(--ink)}
-h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.55rem;
+html,body{height:100%}
+body{overflow:hidden}
+.stage{position:fixed; top:52px; left:0; right:0; bottom:0;
+  display:grid; grid-template-columns:3fr 5fr; gap:14px; padding:12px 16px 16px}
+.left{min-height:0; min-width:0; overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-gutter:stable; padding-right:6px;
+  display:flex; flex-direction:column; gap:11px}
+.left > *{flex:none}
+.left .controls{position:sticky; top:0; z-index:3;
+  background:var(--panel); box-shadow:0 7px 16px -10px #000A}
+.right{min-height:0; min-width:0; display:grid;
+  grid-template-rows:minmax(0,3fr) minmax(0,2fr); gap:10px}
+@media (max-width:960px){
+  body{overflow:auto} html,body{height:auto}
+  .stage{position:static; grid-template-columns:1fr; height:auto}
+  .right{grid-template-rows:420px auto}
+}
+.mast{display:flex; flex-direction:column; gap:5px; padding-bottom:9px;
+  border-bottom:2px solid var(--ink); flex:none}
+h1{font-family:"Zilla Slab",Georgia,serif; font-weight:700; font-size:1.42rem;
   margin:0; letter-spacing:-.02em; line-height:1.05}
-.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.16em;
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.16em;
   text-transform:uppercase; color:var(--brass); font-weight:600}
-.sub{color:var(--ink2); margin:0; font-size:.75rem; line-height:1.5; max-width:70ch}
+.sub{color:var(--ink2); margin:0; font-size:.72rem; line-height:1.5}
 .panel{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
-  box-shadow:var(--shadow); padding:14px}
-label{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+  box-shadow:var(--shadow); padding:12px}
+label{font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.13em;
   text-transform:uppercase; color:var(--ink3); font-weight:600}
-textarea,select{font-family:"IBM Plex Mono",monospace; font-size:.8rem;
+textarea,select{font-family:"IBM Plex Mono",monospace; font-size:.76rem;
   background:var(--sunk); color:var(--ink); border:1px solid var(--rule2);
-  border-radius:2px; padding:8px 9px; width:100%}
-textarea{min-height:96px; resize:vertical; line-height:1.6}
+  border-radius:2px; padding:7px 8px; width:100%}
+textarea{min-height:70px; resize:vertical; line-height:1.55}
 select:disabled{opacity:.45}
-.ctl{display:grid; grid-template-columns:1fr minmax(190px,250px); gap:16px; align-items:start}
-@media (max-width:800px){ .ctl{grid-template-columns:1fr} }
-.field{display:flex; flex-direction:column; gap:5px; min-width:0}
-button{font-family:"IBM Plex Mono",monospace; font-size:.72rem; padding:6px 11px;
+.field{display:flex; flex-direction:column; gap:4px; min-width:0}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+button{font-family:"IBM Plex Mono",monospace; font-size:.68rem; padding:5px 9px;
   cursor:pointer; background:transparent; color:var(--ink2);
   border:1px solid var(--rule2); border-radius:2px}
 button:hover{border-color:var(--brass); color:var(--brass)}
 button.add{border-color:var(--brass); color:var(--brass)}
-.btnrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.btnrow{display:flex; gap:7px; flex-wrap:wrap; align-items:center}
 .seg{display:flex}
-.seg button{border-radius:0; margin-left:-1px; flex:1}
+.seg button{border-radius:0; margin-left:-1px; flex:1; font-size:.63rem; padding:5px 4px}
 .seg button:first-child{border-radius:2px 0 0 2px; margin-left:0}
 .seg button:last-child{border-radius:0 2px 2px 0}
 .seg button.on{background:var(--brass); border-color:var(--brass); color:var(--panel);
   font-weight:600}
-.check{display:flex; gap:7px; align-items:center; margin-top:8px;
-  font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:.7rem;
+.check{display:flex; gap:6px; align-items:center; margin-top:6px;
+  font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:.68rem;
   text-transform:none; letter-spacing:0; color:var(--ink2)}
 .check input{width:auto; accent-color:var(--brass)}
 .check[hidden]{display:none}
 
 /* ---- cards ---- */
-.cards{display:flex; flex-direction:column; gap:12px}
 .card{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
   box-shadow:var(--shadow)}
-.card > .head{display:flex; align-items:center; gap:11px; padding:10px 13px;
+.card > .head{display:flex; align-items:center; gap:9px; padding:8px 11px;
   border-bottom:1px solid var(--rule); flex-wrap:wrap}
 .card.shut > .head{border-bottom:none}
-.card.shut > .pages, .card.shut > .cbody{display:none}
-.no{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.13em;
+.card.shut > .cbody{display:none}
+.no{font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.13em;
   text-transform:uppercase; color:var(--brass); font-weight:600}
-.title{font-family:"IBM Plex Mono",monospace; font-size:.86rem; font-weight:600;
-  overflow-wrap:anywhere; flex:1; min-width:0}
-.chev{border:none; background:transparent; color:var(--ink3); font-size:.8rem;
-  padding:2px 5px; line-height:1}
+.chev{border:none; background:transparent; color:var(--ink3); font-size:.75rem;
+  padding:1px 4px; line-height:1; margin-left:auto}
 .chev:hover{color:var(--brass)}
-.pages{display:flex; padding:8px 13px 0; flex-wrap:wrap}
-.pages button{border-radius:2px 2px 0 0; border-bottom-color:transparent;
-  margin-right:-1px; font-size:.66rem}
-.pages button.on{color:var(--brass); border-color:var(--rule2);
-  border-bottom-color:var(--panel); font-weight:600}
-.card > .cbody{padding:13px}
-
-.meta{min-width:0; display:flex; flex-direction:column; gap:3px}
-.name{font-family:"IBM Plex Mono",monospace; font-size:.82rem; font-weight:600;
+.cbody{padding:9px 11px 11px}
+.item{padding:8px 0; border-top:1px dashed var(--rule); cursor:pointer;
+  border-radius:2px}
+.item:first-child{border-top:none}
+.item:hover .name{color:var(--brass)}
+.item.sel{background:var(--sunk); box-shadow:inset 3px 0 0 var(--brass);
+  padding-left:8px; margin-left:-8px}
+.name{font-family:"IBM Plex Mono",monospace; font-size:.8rem; font-weight:600;
   overflow-wrap:anywhere}
-.reads{font-family:"IBM Plex Mono",monospace; font-size:.7rem; color:var(--ink2)}
+.reads{font-family:"IBM Plex Mono",monospace; font-size:.66rem; color:var(--ink2);
+  margin-top:2px}
 .reads b{color:var(--brass); font-weight:600}
-.reads .of{color:var(--ink3); font-weight:400}
-.ipa{font-size:.7rem; color:var(--ink3)}
-.num{font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink3);
-  overflow-wrap:anywhere; margin:4px 0 0}
-.num b{color:var(--ink2); font-weight:500}
+.num{font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3);
+  overflow-wrap:anywhere; margin-top:2px}
 
-/* the bodies: one square per Chroma UTF digit, every square the same frame */
-.strip{display:flex; gap:5px; align-items:flex-start; flex-wrap:wrap}
-.sq{display:grid; grid-template-columns:repeat(4,10px); grid-template-rows:repeat(4,10px);
-  gap:1px; padding:2px; border:1px solid var(--rule2); border-radius:2px;
-  background:var(--sunk)}
-.sq.big{grid-template-columns:repeat(4,15px); grid-template-rows:repeat(4,15px); gap:2px}
-.sq.sep{grid-template-columns:4px; grid-template-rows:repeat(4,10px);
-  background:transparent; border:none; padding:2px 0; opacity:.55}
-.sq.sep i{background:var(--rule2); grid-column:1; border-radius:1px}
+.strip{display:flex; gap:4px; align-items:flex-start; flex-wrap:wrap; margin-top:6px}
+.sq{display:grid; gap:1px; padding:2px; border:1px solid var(--rule2);
+  border-radius:2px; background:var(--sunk)}
 .c{background:var(--rule); border-radius:1px}
 .c.on{background:var(--blue)}
 .c.fold{outline:1px solid var(--brass-soft); outline-offset:-1px}
 .c.on.fold{background:var(--brass)}
 .c.dead{background:transparent}
-.c.split{box-shadow:0 0 0 2px var(--red)}
-.sq.split{border-color:var(--red)}
-.bodies{display:flex; flex-direction:column; gap:13px}
-.body-row{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap}
-.body-lab{font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink2);
-  min-width:104px; padding-top:4px; line-height:1.5}
-.body-lab span{color:var(--brass)}
+.sq.sep{border:none; background:transparent; opacity:.5}
 
-/* the polynomial */
-.item{padding:11px 0; border-top:1px dashed var(--rule)}
-.item:first-child{border-top:none; padding-top:0}
-.poly{font-family:"IBM Plex Mono",monospace; font-size:.76rem; line-height:2.1;
-  overflow-wrap:anywhere; margin-top:4px}
-.poly .t{display:inline-block; padding:1px 5px; margin:0 1px 3px 0;
-  border:1px solid var(--rule2); border-radius:2px; background:var(--sunk)}
-.poly .t b{color:var(--brass); font-weight:600}
-.poly .t i{color:var(--ink3); font-style:normal; font-size:.9em}
-.poly .op{color:var(--ink3); padding:0 2px}
-table{border-collapse:collapse; width:100%; font-family:"IBM Plex Mono",monospace;
-  font-size:.7rem}
-th,td{text-align:left; padding:5px 10px 5px 0; border-bottom:1px solid var(--rule);
-  vertical-align:top; overflow-wrap:anywhere}
-th{color:var(--ink3); font-weight:600; font-size:.62rem; letter-spacing:.1em;
-  text-transform:uppercase}
-td.n{font-variant-numeric:tabular-nums}
-.wide{overflow-x:auto}
-.alts{font-family:"IBM Plex Mono",monospace; font-size:.66rem; color:var(--ink3);
-  line-height:1.9; overflow-wrap:anywhere; margin-top:4px}
-.alts b{color:var(--ink2); font-weight:500}
-
-.diverge{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-  padding:3px 0 3px 2px; font-family:"IBM Plex Mono",monospace; font-size:.6rem;
-  color:var(--ink3); letter-spacing:.06em; border-top:1px dashed var(--rule)}
-.diverge b{color:var(--red); font-weight:600}
-.diverge.close b{color:var(--green)}
-.rows{display:flex; flex-direction:column}
-.row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px;
-  align-items:center; padding:10px 0}
-.row.same .name{color:var(--ink3); font-weight:400}
-.legend{display:flex; gap:16px; flex-wrap:wrap; font-family:"IBM Plex Mono",monospace;
-  font-size:.62rem; color:var(--ink3); align-items:center}
-.legend i{display:inline-block; width:10px; height:10px; border-radius:1px;
-  vertical-align:-1px; margin-right:5px}
-.err{color:var(--red); font-family:"IBM Plex Mono",monospace; font-size:.72rem}
-.note{color:var(--ink3); font-size:.72rem; max-width:70ch; margin:10px 0 0}
-h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
-  letter-spacing:-.01em}
+/* ---- the sphere and the charts ---- */
+.stagebox{position:relative; background:var(--panel); border:1px solid var(--rule);
+  border-radius:3px; box-shadow:var(--shadow); min-height:0; overflow:hidden}
+#sph{position:absolute; inset:0; width:100%; height:100%; display:block;
+  cursor:grab; touch-action:none}
+#sph:active{cursor:grabbing}
+.badge{position:absolute; left:11px; top:9px; font-family:"IBM Plex Mono",monospace;
+  font-size:.66rem; color:var(--ink2); pointer-events:none; line-height:1.6}
+.badge b{color:var(--brass)}
+.badge i{color:var(--ink3); font-style:normal}
+.gz{position:absolute; right:10px; top:10px; width:74px; height:74px; cursor:pointer}
+.charts{display:grid; grid-template-rows:auto 1fr; gap:8px; min-height:0}
+.tabs{display:flex; gap:0}
+.tabs button{border-radius:2px 2px 0 0; margin-right:-1px; font-size:.63rem}
+.tabs button.on{color:var(--brass); border-color:var(--rule2); font-weight:600}
+.plots{display:grid; gap:8px; min-height:0}
+.plots.d1{grid-template-columns:1fr 1fr 1fr}
+.plots.d2{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:960px){ .plots{grid-template-columns:1fr 1fr} }
+figure{margin:0; background:var(--panel); border:1px solid var(--rule);
+  border-radius:3px; box-shadow:var(--shadow); padding:7px 8px 5px;
+  display:flex; flex-direction:column; min-height:0; min-width:0}
+figure canvas{width:100%; flex:1; min-height:0; display:block}
+figcaption{font-family:"IBM Plex Mono",monospace; font-size:.58rem; color:var(--ink3);
+  letter-spacing:.06em; padding-top:3px}
+figcaption b{color:var(--ink2)}
+.err{color:var(--red); font-family:"IBM Plex Mono",monospace; font-size:.7rem}
 </style>
 </head>
 <body>
@@ -161,51 +145,40 @@ h2{font-family:"Zilla Slab",Georgia,serif; font-size:1rem; margin:0 0 8px;
   </nav>
 </div>
 
-<div class="wrap">
-  <div class="mast">
-    <div class="eyebrow">Wub UTF</div>
-    <h1>base(chroma&#8209;utf)</h1>
-    <p class="sub">A string is a number written with Chroma UTF digits. Each
-    character is one digit in base 4096 &mdash; ten bits of code padded to twelve,
-    which is three whole nibbles, so a character never straddles a nibble and four
-    cells wide it is exactly three rows. The integer and the picture are the same
-    object: the number <i>is</i> the polynomial the bodies draw. One card per line,
-    commas between the items on a card, the way Wub&nbsp;&plusmn; holds a rack.</p>
-  </div>
+<div class="stage">
+  <div class="left">
+    <div class="mast">
+      <div class="eyebrow">Wub UTF</div>
+      <h1>A letter is an integer</h1>
+      <p class="sub">Each character is a phasor: its code is the angle, its place
+      in the word is the weight, and its own square gives it a height &mdash; Fold
+      the equator, Inner north, Outer south. A word is a rack, summed tip to tail.
+      Click a string to send it to the sphere.</p>
+    </div>
 
-  <div class="panel">
-    <div class="ctl">
+    <div class="panel controls">
       <div class="field">
         <label for="q">One card per line, commas between items</label>
         <textarea id="q" spellcheck="false">hello, 3, 45
 cervezas, c3rv3zas
 dis, this, thin</textarea>
-        <div class="btnrow" style="margin-top:9px">
-          <button class="add" id="go">Read</button>
-          <button id="expand">Open all</button>
-          <button id="collapse">Shut all</button>
+      </div>
+      <div class="two" style="margin-top:9px">
+        <div class="field">
+          <label>Alphabet</label>
+          <div class="seg" id="alp">
+            <button data-v="chroma" class="on">Chroma UTF</button><button data-v="ipa">IPA</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Reading</label>
+          <div class="seg" id="pho">
+            <button data-v="0" class="on">Written</button><button data-v="1">Phonetic</button>
+          </div>
         </div>
       </div>
-      <div class="field">
-        <label>Representation</label>
-        <div class="seg" id="rep">
-          <button data-v="plain" class="on">Plain</button><button data-v="pushed">Pushed</button>
-        </div>
-        <label style="margin-top:8px">Reading</label>
-        <div class="seg" id="pho">
-          <button data-v="0" class="on">As written</button><button data-v="1">Phonetic</button>
-        </div>
-        <label id="ordWrap" hidden style="margin-top:8px">Alphabet</label>
-        <div class="seg" id="ord" hidden>
-          <button data-v="chroma" class="on">Chroma UTF</button><button data-v="ipa">Chroma IPA</button>
-        </div>
-        <label class="check" id="rulesWrap" hidden>
-          <input type="checkbox" id="rules"> rules off &mdash; every branch, no position
-        </label>
-        <label class="check" id="leetWrap" hidden>
-          <input type="checkbox" id="leet"> shape axis &mdash; read 3 as e, 0 as o, 5 as s
-        </label>
-        <label for="lang" style="margin-top:8px">Language filter</label>
+      <div class="field" style="margin-top:8px">
+        <label for="lang">Language filter</label>
         <select id="lang" disabled>
           <option value="">none declared</option>
           <option value="en" selected>en &mdash; English</option>
@@ -215,59 +188,52 @@ dis, this, thin</textarea>
           <option value="fr">fr &mdash; French</option>
           <option value="de">de &mdash; German</option>
           <option value="cmn">cmn &mdash; Mandarin</option>
-          <option value="yue">yue &mdash; Cantonese</option>
           <option value="ja-on">ja-on &mdash; Japanese, on&rsquo;yomi</option>
-          <option value="ja-kun">ja-kun &mdash; Japanese, kun&rsquo;yomi</option>
           <option value="ko">ko &mdash; Korean</option>
         </select>
       </div>
+      <div class="btnrow" style="margin-top:9px">
+        <button class="add" id="go">Read</button>
+        <button id="spin">Pause</button>
+        <button id="reset">Reset view</button>
+      </div>
     </div>
+
+    <div id="cards"></div>
   </div>
 
-  <div class="panel">
-    <div class="legend">
-      <span><i style="background:var(--blue)"></i>bit set</span>
-      <span><i style="background:var(--rule)"></i>bit clear</span>
-      <span><i style="background:var(--brass)"></i>on the fold</span>
-      <span><i style="background:transparent;border:1px solid var(--rule2)"></i>above the digit width</span>
-      <span><i style="background:var(--red)"></i>the deciding cell</span>
+  <div class="right">
+    <div class="stagebox">
+      <canvas id="sph"></canvas>
+      <div class="badge" id="badge"></div>
+      <canvas class="gz" id="gz" width="148" height="148" title="drag to turn, click an axis"></canvas>
     </div>
-  </div>
-
-  <div class="cards" id="cards"></div>
-
-  <div class="panel">
-    <h2 id="mode">Ordered</h2>
-    <div class="rows" id="rows"></div>
-    <p class="note" id="foot"></p>
+    <div class="charts">
+      <div class="tabs" id="tabs">
+        <button data-v="1d" class="on">1D &middot; X Y Z</button><button data-v="2d">2D &middot; XY XZ YZ</button>
+      </div>
+      <div class="plots d1" id="plots"></div>
+    </div>
   </div>
 </div>
 
 <script src="/stalk.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const SEP = String.fromCharCode(1);   /* separators sort below every letter */
-const PAGES = ["Bodies", "Polynomial", "Facts", "Rack"];
-let RING = 9, BASE = 4096, CODE_BITS = 12;
-let CARDS = [], PAGE = [], SHUT = [];
+const TAU = Math.PI * 2;
+const SEP = String.fromCharCode(1);
+let WIDTH = 12, BASE = 4096, SIDE = 4;
+let CARDS = [], SHUT = [], SEL = null, PLOT = "1d";
+let ALPHA = "chroma", PHONETIC = false;
 
-/* One digit as the hex arrangement: pad to the ALPHABET'S declared width, then
-   to whole nibbles, then lay MSB first row major into the smallest square.
-
-   The width has to come from the alphabet, not from the value. Chroma UTF codes
-   are 2^9 + i so the leading 1 is always there and every one is ten significant
-   bits — the frame comes out the same for free. Chroma IPA uses bare ranks, so
-   rank 1 has one significant bit and rank 126 has seven, and sizing to the value
-   drew small ranks 2x2 and large ones 3x3. Same alphabet, two frames, and a row
-   stops reading as a row. */
+/* ---- a character's square: pad to the alphabet's declared width, then to
+   whole nibbles, then lay MSB first into the smallest square. The width comes
+   from the alphabet, never from the value. ---- */
 const CACHE = new Map();
 function squareOf(code, bits){
-  bits = bits || CODE_BITS;
+  bits = bits || WIDTH;
   const ck = code + ":" + bits;
   if(CACHE.has(ck)) return CACHE.get(ck);
-  /* exactly what hexSequence does, with the width declared instead of measured:
-     pad the value to whole nibbles at the FRONT, then fill the square at the
-     END. The trailing cells are the low-weight ones, so they change nothing. */
   const raw = code.toString(2).padStart(Math.ceil(bits / 4) * 4, "0")
     .split("").map(c => +c);
   const n = Math.max(1, Math.ceil(Math.sqrt(raw.length)));
@@ -279,7 +245,6 @@ function squareOf(code, bits){
   CACHE.set(ck, s);
   return s;
 }
-
 const esc = s => String(s).replace(/[&<>"]/g, c =>
   ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
 const el = (tag, cls, html) => {
@@ -290,312 +255,388 @@ const el = (tag, cls, html) => {
 };
 const shown = r => esc(String(r).split(SEP).join("/"));
 
-function squareEl(code, splitCell, big){
+function squareEl(code){
   const s = squareOf(code);
-  const e = el("div", "sq" + (big ? " big" : "") + (splitCell != null ? " split" : ""));
-  const px = big ? 15 : 10, gap = big ? 2 : 1;
-  e.style.gridTemplateColumns = "repeat(" + s.n + "," + px + "px)";
-  e.style.gridTemplateRows = "repeat(" + s.n + "," + px + "px)";
-  e.style.gap = gap + "px";
-  e.title = "digit " + code + "  " + code.toString(2);
+  const e = el("div", "sq");
+  e.style.gridTemplateColumns = "repeat(" + s.n + ",8px)";
+  e.style.gridTemplateRows = "repeat(" + s.n + ",8px)";
+  e.title = "code " + code + "  " + code.toString(2).padStart(WIDTH, "0");
   for(let i = 0; i < s.cells.length; i++)
-    e.appendChild(el("div", "c"
-      + (i >= s.live ? " dead" : "")
-      + (s.cells[i] ? " on" : "")
-      + (s.fold.has(i) ? " fold" : "")
-      + (splitCell === i ? " split" : "")));
+    e.appendChild(el("div", "c" + (i >= s.live ? " dead" : "")
+      + (s.cells[i] ? " on" : "") + (s.fold.has(i) ? " fold" : "")));
   return e;
 }
-function sepEl(){
-  const e = el("div", "sq sep");
-  for(let i = 0; i < 4; i++) e.appendChild(el("i"));
-  return e;
-}
-function stripEl(codes, splitAt, big){
-  const strip = el("div", "strip");
-  codes.forEach((code, i) => strip.appendChild(code <= 2 ? sepEl()
-    : squareEl(code, splitAt && splitAt.code === i ? splitAt.cell : null, big)));
-  return strip;
-}
 
-/* Where do two digit sequences first differ? The answer is a digit and a cell,
-   because that is literally what decides the order. */
-function divergence(a, b){
-  const n = Math.max(a.length, b.length);
-  for(let i = 0; i < n; i++){
-    if(a[i] === b[i]) continue;
-    if(a[i] === undefined || b[i] === undefined) return {code: i, cell: null, prefix: true};
-    const A = squareOf(a[i]).cells, B = squareOf(b[i]).cells;
-    for(let c = 0; c < A.length; c++) if(A[c] !== B[c]) return {code: i, cell: c};
-    return {code: i, cell: null};
+/* ---- the model: one phasor per character ----
+ * The house convention, unchanged: A is longitude, B latitude, so a phasor
+ * rides an ellipsoid whose halves have different heights. Fold is the equator,
+ * Inner reaches north, Outer south. What a character supplies is its ANGLE,
+ * from its code — which is why the codes had to be spread. Packed, every
+ * character in the alphabet pointed into the same 27 degree wedge and a word
+ * was a smear rather than a shape.
+ */
+function phasorsOf(item){
+  if(!item || !item.phasors) return [];
+  return item.phasors.map((p, k) => ({
+    phase: TAU * p.turn,
+    rateA: k + 1,                 /* position is the harmonic */
+    rateB: 2 * (k + 1),           /* the spectrometer's fixed L/R = 2 */
+    w: p.w,                       /* the positional weight, 2^-(k+1) */
+    fold: Math.max(p.fold, 0.35), /* a phasor with no lit fold still needs a radius */
+    inner: p.inner, outer: p.outer
+  }));
+}
+const comp = (p, t) => {
+  const A = p.phase + p.rateA * t, B = p.phase + p.rateB * t;
+  const sB = Math.sin(B), rr = p.fold * Math.cos(B);
+  const m = (p.inner + p.outer) / 2, d = (p.inner - p.outer) / 2;
+  return [p.w * rr * Math.cos(A), p.w * rr * Math.sin(A),
+          p.w * (m * sB + d * Math.abs(sB))];
+};
+const SAMPLES = 480;
+let CURVE = [], JOINTS = [], EXTENT = 1, PH = [];
+function recompute(){
+  PH = phasorsOf(SEL);
+  CURVE = []; JOINTS = PH.map(() => []);
+  let mx = 1e-9;
+  for(let i = 0; i <= SAMPLES; i++){
+    const t = TAU * i / SAMPLES;
+    let x = 0, y = 0, z = 0;
+    PH.forEach((p, k) => {
+      const c = comp(p, t);
+      x += c[0]; y += c[1]; z += c[2];
+      JOINTS[k].push([x, y, z]);
+    });
+    CURVE.push([x, y, z]);
+    mx = Math.max(mx, Math.abs(x), Math.abs(y), Math.abs(z));
   }
-  return null;
+  EXTENT = mx;
 }
 
-/* ---- the card pages ---- */
-/* sup() comes from stalk.js — it already writes superscript exponents for sci() */
-
-function pageBodies(card){
-  const box = el("div", "bodies");
-  for(const it of card.items){
-    const row = el("div", "body-row");
-    row.appendChild(el("div", "body-lab", esc(it.text)
-      + (it.reading !== it.text ? "<br><span>" + shown(it.reading) + "</span>" : "")));
-    row.appendChild(stripEl(it.codes, null, true));
-    box.appendChild(row);
+/* ---- the camera ---- */
+let SPIN = 0.55, TILT = 0.42, AUTOSPIN = true, DRAG = null, T = 0;
+function proj(v, cx, cy, R){
+  const [x0, y0, z0] = v;
+  const cs = Math.cos(SPIN), sn = Math.sin(SPIN);
+  const x = x0 * cs - y0 * sn, h = x0 * sn + y0 * cs;
+  const ct = Math.cos(TILT), st = Math.sin(TILT);
+  const mag = Math.hypot(x, h, z0) || 1;
+  return {px: cx + x * R, py: cy - (z0 * ct - h * st) * R,
+          d: (z0 * st + h * ct) / mag};
+}
+function fit(cv){
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = Math.max(2, Math.round(r.width)), h = Math.max(2, Math.round(r.height));
+  if(cv.width !== w * dpr || cv.height !== h * dpr){
+    cv.width = w * dpr; cv.height = h * dpr;
   }
-  return box;
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {g, w, h};
 }
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-function pagePoly(card){
-  const box = el("div");
-  for(const it of card.items){
-    const wrap = el("div", "item");
-    const n = it.codes.length;
-    wrap.appendChild(el("div", "reads", "<b>" + esc(it.text) + "</b>"
-      + (it.reading !== it.text ? " reads " + shown(it.reading) : "")));
-    /* The value is the FRACTION: 0.d1 d2 d3 ... in base 4096, which is
-       SUM code_i * x^(i+1) with x = 1/4096, and it lands in (0,1) like every
-       other stalk on the site. Leading with the integer was wrong — more digits
-       always makes a bigger integer, so it sorted short words first whatever
-       they said, and it disagreed with the actual key. */
-    const term = e => e === 1 ? "x" : "x" + sup(e);
-    wrap.appendChild(el("div", "poly", it.codes.map((c, i) =>
-      '<span class="t"><b>' + c + "</b> <i>" + term(i + 1) + "</i></span>")
-      .join('<span class="op">+</span>')));
-    wrap.appendChild(el("div", "num", "<b>x = 1/" + BASE
-      + "</b>, so the digits are the coefficients and the value is the fraction "
-      + "<b>0." + it.codes.join(" ") + "</b> written in base " + BASE
-      + " &mdash; that is <b>" + esc(it.approx) + "</b>, in (0,1) like every other "
-      + "stalk here. A missing digit reads as zero and zero is below every code, "
-      + "so a prefix is smaller with no rule needed: <i>hell</i> before <i>hello</i>."));
-    wrap.appendChild(el("div", "num", "as an integer for a Wub&nbsp;&plusmn; rack, "
-      + esc(it.int) + " &mdash; but that one is length dominant and does "
-      + "<i>not</i> carry the order."));
-    if(it.alts && it.alts.length > 1)
-      wrap.appendChild(el("div", "alts", "<b>pushed &mdash; " + it.alts.length
-        + " representations:</b> " + it.alts.map(shown).join(", ")));
-    box.appendChild(wrap);
+function drawSphere(){
+  const cv = $("#sph"); if(!cv) return;
+  const {g, w, h} = fit(cv);
+  g.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.40 / (EXTENT || 1);
+  const rule = css("--rule"), ink3 = css("--ink3"), brass = css("--brass"),
+        blue = css("--blue"), red = css("--red"), green = css("--green");
+  /* the shell */
+  g.strokeStyle = rule; g.lineWidth = 1;
+  for(let k = -2; k <= 2; k++){
+    g.beginPath();
+    for(let i = 0; i <= 96; i++){
+      const a = TAU * i / 96, lat = k * 0.32 * EXTENT;
+      const p = proj([EXTENT * 0.92 * Math.cos(a) * Math.cos(k * 0.4),
+                      EXTENT * 0.92 * Math.sin(a) * Math.cos(k * 0.4), lat], cx, cy, R);
+      i ? g.lineTo(p.px, p.py) : g.moveTo(p.px, p.py);
+    }
+    g.globalAlpha = k === 0 ? 0.75 : 0.3; g.stroke(); g.globalAlpha = 1;
   }
-  return box;
-}
-
-function pageFacts(card){
-  const box = el("div", "wide");
-  const t = el("table");
-  t.innerHTML = "<tr><th>item</th><th>reads</th><th>sounds</th><th>digits</th>"
-    + "<th>bits</th><th>value in (0,1)</th><th>integer, for a rack</th></tr>";
-  for(const it of card.items){
-    const r = el("tr");
-    r.innerHTML = "<td>" + esc(it.text) + "</td>"
-      + "<td>" + shown(it.reading) + "</td>"
-      + "<td>" + (it.ipa ? "/" + esc(it.ipa) + "/" : "&mdash;") + "</td>"
-      + '<td class="n">' + it.codes.length + "</td>"
-      + '<td class="n">' + it.bits + "</td>"
-      + '<td class="n">' + esc(it.approx) + "</td>"
-      + '<td class="n">' + esc(it.int) + "</td>";
-    t.appendChild(r);
+  if(!PH.length){
+    g.fillStyle = ink3; g.font = "12px 'IBM Plex Mono', monospace";
+    g.textAlign = "center";
+    g.fillText("click a string on the left", cx, cy);
+    return;
   }
-  box.appendChild(t);
-  box.appendChild(el("div", "num", "base " + BASE + ", " + CODE_BITS
-    + " bits a digit, ring " + RING + " codes. Every digit is three whole nibbles, "
-    + "so no character straddles a nibble."));
-  return box;
-}
-
-function pageRack(card){
-  const box = el("div");
-  const wide = el("div", "wide");
-  const t = el("table");
-  t.innerHTML = "<tr><th>item</th><th>reads</th><th>integer</th><th>running sum</th></tr>";
-  let run = 0n;
-  for(const it of card.items){
-    run += BigInt(it.int);
-    const r = el("tr");
-    r.innerHTML = "<td>" + esc(it.text) + "</td>"
-      + "<td>" + shown(it.reading) + "</td>"
-      + '<td class="n">' + esc(it.int) + "</td>"
-      + '<td class="n">' + run.toString() + "</td>";
-    t.appendChild(r);
+  /* the traced curve */
+  g.lineWidth = 1.6;
+  for(let i = 1; i < CURVE.length; i++){
+    const a = proj(CURVE[i - 1], cx, cy, R), b = proj(CURVE[i], cx, cy, R);
+    g.strokeStyle = b.d > 0 ? brass : rule;
+    g.globalAlpha = b.d > 0 ? 0.95 : 0.35;
+    g.beginPath(); g.moveTo(a.px, a.py); g.lineTo(b.px, b.py); g.stroke();
   }
-  wide.appendChild(t);
-  box.appendChild(wide);
-  box.appendChild(el("div", "num", "<b>rack sum</b> " + esc(card.sum)
-    + " &nbsp;&middot;&nbsp; hex " + esc(card.sumHex)
-    + " &mdash; the same integers a Wub&nbsp;&plusmn; rack would hold, so the items "
-    + "on a card are its rack."));
-  return box;
+  g.globalAlpha = 1;
+  /* the chain, tip to tail, at the current instant */
+  let x = 0, y = 0, z = 0;
+  let prev = proj([0, 0, 0], cx, cy, R);
+  PH.forEach((p, k) => {
+    const c = comp(p, T);
+    x += c[0]; y += c[1]; z += c[2];
+    const q = proj([x, y, z], cx, cy, R);
+    g.strokeStyle = k % 2 ? blue : red; g.lineWidth = 1.4; g.globalAlpha = 0.85;
+    g.beginPath(); g.moveTo(prev.px, prev.py); g.lineTo(q.px, q.py); g.stroke();
+    g.globalAlpha = 1;
+    g.fillStyle = k % 2 ? blue : red;
+    g.beginPath(); g.arc(q.px, q.py, 2.6 + 2.2 * Math.max(0, q.d), 0, TAU); g.fill();
+    prev = q;
+  });
+  g.fillStyle = green;
+  g.beginPath(); g.arc(prev.px, prev.py, 4.2, 0, TAU); g.fill();
 }
 
-const RENDER = {Bodies: pageBodies, Polynomial: pagePoly, Facts: pageFacts, Rack: pageRack};
+function drawGizmo(){
+  const cv = $("#gz"); if(!cv) return;
+  const g = cv.getContext("2d");
+  const w = cv.width, h = cv.height, cx = w / 2, cy = h / 2, R = w * 0.34;
+  g.clearRect(0, 0, w, h);
+  const rule = css("--rule2");
+  g.strokeStyle = rule; g.lineWidth = 1;
+  g.beginPath(); g.arc(cx, cy, R * 1.32, 0, TAU); g.stroke();
+  const AX = [["X", [1, 0, 0], css("--red")], ["Y", [0, 1, 0], css("--green")],
+              ["Z", [0, 0, 1], css("--blue")]];
+  const pts = AX.map(([n, v, c]) => {
+    const p = proj(v, cx, cy, R);
+    return {n, c, p};
+  }).sort((a, b) => a.p.d - b.p.d);
+  for(const {n, c, p} of pts){
+    g.strokeStyle = c; g.globalAlpha = 0.5 + 0.5 * Math.max(0, p.d); g.lineWidth = 2;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(p.px, p.py); g.stroke();
+    g.fillStyle = c; g.beginPath(); g.arc(p.px, p.py, 8, 0, TAU); g.fill();
+    g.globalAlpha = 1;
+    g.fillStyle = css("--panel");
+    g.font = "600 9px 'IBM Plex Mono', monospace";
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(n, p.px, p.py);
+  }
+}
 
+/* ---- the 1D and 2D charts ---- */
+function plotBoxes(){
+  const host = $("#plots");
+  host.textContent = "";
+  host.className = "plots " + PLOT;
+  const SET = PLOT === "1d"
+    ? [["x", "1D &middot; X", "<i>i</i> — round the equator"],
+       ["y", "1D &middot; Y", "<i>j</i> — quadrature"],
+       ["z", "1D &middot; Z", "<i>fold</i> — north and south"]]
+    : [["xy", "2D &middot; XY", "seen down the pole"],
+       ["xz", "2D &middot; XZ", "seen from the equator"],
+       ["yz", "2D &middot; YZ", "seen along X"]];
+  for(const [id, cap, note] of SET){
+    const f = el("figure");
+    const c = el("canvas"); c.id = "p_" + id;
+    f.appendChild(c);
+    f.appendChild(el("figcaption", null, "<b>" + cap + "</b> " + note));
+    host.appendChild(f);
+  }
+}
+function drawPlots(){
+  if(!CURVE.length) return;
+  const AX = {x: 0, y: 1, z: 2};
+  if(PLOT === "1d"){
+    for(const k of ["x", "y", "z"]){
+      const cv = $("#p_" + k); if(!cv) continue;
+      const {g, w, h} = fit(cv);
+      g.clearRect(0, 0, w, h);
+      g.strokeStyle = css("--rule"); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
+      g.strokeStyle = css("--brass"); g.lineWidth = 1.5;
+      g.beginPath();
+      for(let i = 0; i < CURVE.length; i++){
+        const px = w * i / (CURVE.length - 1);
+        const py = h / 2 - CURVE[i][AX[k]] / (EXTENT || 1) * h * 0.42;
+        i ? g.lineTo(px, py) : g.moveTo(px, py);
+      }
+      g.stroke();
+      /* where the chain stands right now */
+      const i = Math.round((T % TAU) / TAU * SAMPLES) % (CURVE.length);
+      const px = w * i / (CURVE.length - 1);
+      g.strokeStyle = css("--ink3"); g.globalAlpha = 0.6; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(px, 0); g.lineTo(px, h); g.stroke(); g.globalAlpha = 1;
+    }
+    return;
+  }
+  for(const [id, a, b] of [["xy", 0, 1], ["xz", 0, 2], ["yz", 1, 2]]){
+    const cv = $("#p_" + id); if(!cv) continue;
+    const {g, w, h} = fit(cv);
+    g.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.42 / (EXTENT || 1);
+    g.strokeStyle = css("--rule"); g.lineWidth = 1;
+    g.beginPath(); g.moveTo(0, cy); g.lineTo(w, cy); g.moveTo(cx, 0); g.lineTo(cx, h);
+    g.stroke();
+    g.strokeStyle = css("--brass"); g.lineWidth = 1.5;
+    g.beginPath();
+    for(let i = 0; i < CURVE.length; i++){
+      const px = cx + CURVE[i][a] * R, py = cy - CURVE[i][b] * R;
+      i ? g.lineTo(px, py) : g.moveTo(px, py);
+    }
+    g.stroke();
+    const i = Math.round((T % TAU) / TAU * SAMPLES) % CURVE.length;
+    g.fillStyle = css("--green");
+    g.beginPath();
+    g.arc(cx + CURVE[i][a] * R, cy - CURVE[i][b] * R, 3.4, 0, TAU); g.fill();
+  }
+}
+
+function badge(){
+  const b = $("#badge");
+  if(!SEL){ b.innerHTML = ""; return; }
+  const codes = SEL.codes || [];
+  b.innerHTML = "<b>" + esc(SEL.text) + "</b>"
+    + (SEL.reading !== SEL.text ? " &rarr; " + shown(SEL.reading) : "")
+    + "<br><i>" + codes.length + " phasors &middot; base " + BASE
+    + " &middot; 0." + esc((SEL.approx || "").slice(2, 14)) + "</i>"
+    + "<br><i>" + codes.map(c => Math.round(360 * c / BASE) + "&deg;").join(" ") + "</i>";
+}
+
+/* ---- cards ---- */
 function cardEl(card, idx){
   const c = el("div", "card" + (SHUT[idx] ? " shut" : ""));
   const head = el("div", "head");
   head.appendChild(el("div", "no", "card " + (idx + 1)));
-  head.appendChild(el("div", "title", card.items.map(i => esc(i.text)).join(", ")));
+  head.appendChild(el("div", "name", card.items.map(i => esc(i.text)).join(", ")));
   const chev = el("button", "chev", SHUT[idx] ? "&#9656;" : "&#9662;");
-  chev.title = SHUT[idx] ? "open" : "tuck away";
-  chev.addEventListener("click", () => { SHUT[idx] = !SHUT[idx]; paint(); });
+  chev.addEventListener("click", e => {
+    e.stopPropagation(); SHUT[idx] = !SHUT[idx]; paint();
+  });
   head.appendChild(chev);
   c.appendChild(head);
-
-  const nav = el("div", "pages");
-  for(const p of PAGES){
-    const b = el("button", PAGE[idx] === p ? "on" : "", p);
-    b.addEventListener("click", () => { PAGE[idx] = p; paint(); });
-    nav.appendChild(b);
-  }
-  c.appendChild(nav);
-
   const body = el("div", "cbody");
-  try{ body.appendChild(RENDER[PAGE[idx] || PAGES[0]](card)); }
-  catch(e){ body.appendChild(el("p", "err", esc(e.message))); }
+  for(const it of card.items){
+    const row = el("div", "item" + (SEL && SEL.key === it.key ? " sel" : ""));
+    row.appendChild(el("div", "name", esc(it.text)));
+    row.appendChild(el("div", "reads", "reads <b>" + shown(it.reading) + "</b>"
+      + (it.ipa ? " &middot; /" + esc(it.ipa) + "/" : "")));
+    const strip = el("div", "strip");
+    for(const code of it.codes)
+      strip.appendChild(code <= 2 ? el("div", "sq sep", "&middot;") : squareEl(code));
+    row.appendChild(strip);
+    row.appendChild(el("div", "num", "0." + esc((it.approx || "").slice(2, 18))
+      + " &middot; " + it.bits + " bits"));
+    row.addEventListener("click", () => select(it));
+    body.appendChild(row);
+  }
   c.appendChild(body);
   return c;
 }
-
 function paint(){
   const host = $("#cards");
   host.textContent = "";
   CARDS.forEach((c, i) => host.appendChild(cardEl(c, i)));
 }
-
-/* ---- the ordered list, over every item on every card ---- */
-function renderOrder(rows){
-  const host = $("#rows");
-  host.textContent = "";
-  const st = state();
-  $("#mode").textContent = (st.phonetic
-      ? (st.alphabet === "ipa" ? "Ordered by sound \u00b7 Chroma IPA, base 256"
-                               : "Ordered by sound \u00b7 Chroma UTF, base 4096")
-      : "Ordered by spelling")
-    + (!st.push ? ""
-       : st.phonetic
-         ? (st.push === "all" ? " · pushed, rules off — every branch"
-                              : " · pushed — every reading the rules allow")
-         : " · pushed — every shape variant");
-  rows.forEach((r, i) => {
-    const same = i > 0 && rows[i - 1].name === r.name;
-    const row = el("div", "row" + (same ? " same" : ""));
-    const meta = el("div", "meta");
-    meta.innerHTML = '<div class="name">' + esc(r.name) + "</div>"
-      + '<div class="reads">reads <b>' + shown(r.reading) + "</b>"
-      + (r.of > 1 ? '<span class="of"> &mdash; one of ' + r.of
-          + (r.truncated ? ", first 64 shown" : "") + "</span>" : "") + "</div>"
-      + (r.ipa ? '<div class="ipa">/' + esc(r.ipa) + "/</div>" : "");
-    row.appendChild(meta);
-    row.appendChild(stripEl(r.codes,
-      i > 0 ? divergence(rows[i - 1].codes, r.codes) : null, false));
-    host.appendChild(row);
-    if(i === rows.length - 1) return;
-    const d = divergence(r.codes, rows[i + 1].codes);
-    const m = el("div", "diverge" + (d && d.code === 0 ? " close" : ""));
-    m.innerHTML = !d ? "<span>identical keys</span>"
-      : d.prefix
-        ? "<span>one reading is a prefix of the other &mdash; <b>every shared digit is equal</b></span>"
-        : d.cell === null
-          ? "<span>decided at digit <b>" + (d.code + 1) + "</b></span>"
-          : "<span>decided at digit <b>" + (d.code + 1) + "</b>, cell <b>" + d.cell
-            + "</b></span><span>" + (d.code === 0
-                ? "same first digit &mdash; they sit together"
-                : "first " + d.code + " digit" + (d.code > 1 ? "s" : "") + " identical")
-            + "</span>";
-    host.appendChild(m);
-  });
-  $("#foot").textContent = rows.length
-    ? rows.length + " rows, base " + BASE + ", every digit " + CODE_BITS
-      + " bits in a four by four frame."
-    : "";
+function select(it){
+  SEL = it; recompute(); badge(); paint();
 }
 
-/* Plain|Pushed and As written|Phonetic are INDEPENDENT axes, so all four
-   combinations exist. The page holds them itself rather than reading them back
-   out of a button's class. */
-let REP = "plain", PHONETIC = false, ALPHABET = "chroma";
-function state(){
-  const push = REP === "pushed"
-    ? (PHONETIC && $("#rules").checked ? "all" : "ctx") : "";
-  /* An alphabet is ONE choice: it fixes the digits, the base, the frame they
-     draw in and the order. Sorting by one while drawing the other would put the
-     divergence marker on a digit that decides nothing. IPA needs a reading, so
-     it is only offered on the phonetic axis. */
-  return {rep: REP, phonetic: PHONETIC, push,
-          alphabet: PHONETIC ? ALPHABET : "chroma"};
-}
+/* ---- controls ---- */
 function chrome(){
-  const st = state();
-  $("#rulesWrap").hidden = !(st.rep === "pushed" && st.phonetic);
-  $("#leetWrap").hidden = !st.phonetic;
-  $("#ordWrap").hidden = !st.phonetic;
-  $("#ord").hidden = !st.phonetic;
-  $("#lang").disabled = !st.phonetic;
-  for(const pair of [["rep", REP], ["pho", PHONETIC ? "1" : "0"],
-                     ["ord", ALPHABET]]){
+  $("#lang").disabled = !PHONETIC;
+  for(const pair of [["alp", ALPHA], ["pho", PHONETIC ? "1" : "0"]]){
     const host = $("#" + pair[0]);
     if(!host || !host.querySelectorAll) continue;
     for(const x of host.querySelectorAll("button"))
       x.className = x.dataset.v === pair[1] ? "on" : "";
   }
 }
-function pick(id, v){
-  if(id === "rep") REP = v;
-  else if(id === "ord") ALPHABET = v;
-  else PHONETIC = v === "1";
-  chrome(); go();
-}
-for(const id of ["rep", "pho", "ord"]){
+for(const id of ["alp", "pho"]){
   const host = $("#" + id);
   if(host) host.addEventListener("click", e => {
     const b = e.target && e.target.closest && e.target.closest("button");
-    if(b && b.dataset) pick(id, b.dataset.v);
+    if(!b || !b.dataset) return;
+    if(id === "alp") ALPHA = b.dataset.v; else PHONETIC = b.dataset.v === "1";
+    if(ALPHA === "ipa") PHONETIC = true;
+    chrome(); go();
   });
 }
-
-function query(){
-  const st = state();
-  const lang = st.phonetic ? $("#lang").value + ($("#leet").checked ? " leet" : "") : "";
-  return "lang=" + encodeURIComponent(lang.trim())
-    + "&read=" + (st.phonetic ? "sound" : "spell")
-    + "&alphabet=" + st.alphabet
-    + "&push=" + st.push + "&q=" + encodeURIComponent($("#q").value);
-}
+const tabs = $("#tabs");
+if(tabs) tabs.addEventListener("click", e => {
+  const b = e.target && e.target.closest && e.target.closest("button");
+  if(!b || !b.dataset) return;
+  PLOT = b.dataset.v;
+  for(const x of tabs.querySelectorAll("button"))
+    x.className = x.dataset.v === PLOT ? "on" : "";
+  plotBoxes(); drawPlots();
+});
 
 async function go(){
-  const qs = query();
+  const lang = PHONETIC ? $("#lang").value : "";
+  const qs = "lang=" + encodeURIComponent(lang)
+    + "&read=" + (PHONETIC ? "sound" : "spell")
+    + "&alphabet=" + ALPHA
+    + "&q=" + encodeURIComponent($("#q").value);
   try{
-    const res = await Promise.all([fetch("/api/base"), fetch("/api/cards?" + qs),
-                                   fetch("/api/sort?" + qs)]);
-    const [b, cd, so] = res;
+    const [b, cd] = await Promise.all([fetch("/api/base"), fetch("/api/cards?" + qs)]);
     if(!cd.ok) throw new Error(cd.status + " " + cd.statusText);
-    if(b.ok){ const j = await b.json(); RING = j.ring; }
+    if(b.ok){ const j = await b.json(); WIDTH = j.width; }
     const j = await cd.json();
-    BASE = j.base; CODE_BITS = j.codeBits;
+    BASE = j.base; WIDTH = j.codeBits;
+    SIDE = WIDTH === 12 ? 4 : 3;
+    CACHE.clear();
     CARDS = j.cards;
-    for(let i = 0; i < CARDS.length; i++){
-      if(!PAGE[i]) PAGE[i] = PAGES[0];
-      if(SHUT[i] === undefined) SHUT[i] = false;
-    }
-    paint();
-    if(so.ok) renderOrder((await so.json()).sorted);
+    let n = 0;
+    for(const c of CARDS) for(const it of c.items) it.key = ++n;
+    for(let i = 0; i < CARDS.length; i++) if(SHUT[i] === undefined) SHUT[i] = false;
+    const first = CARDS[0] && CARDS[0].items[0];
+    const keep = SEL && CARDS.flatMap(c => c.items).find(i => i.text === SEL.text);
+    SEL = keep || first || null;
+    recompute(); paint(); badge();
   }catch(e){
     $("#cards").innerHTML = '<p class="err">the ordering lives in the server &mdash; '
       + "start it with <b>python3 serve.py</b> and reload. (" + esc(e.message) + ")</p>";
-    $("#rows").textContent = "";
   }
 }
 
+/* ---- drag to turn ---- */
+const sph = $("#sph");
+if(sph){
+  sph.addEventListener("pointerdown", e => {
+    DRAG = {x: e.clientX, y: e.clientY, s: SPIN, t: TILT};
+    sph.setPointerCapture(e.pointerId);
+  });
+  sph.addEventListener("pointermove", e => {
+    if(!DRAG) return;
+    SPIN = DRAG.s + (e.clientX - DRAG.x) * 0.008;
+    TILT = Math.max(-1.5, Math.min(1.5, DRAG.t + (e.clientY - DRAG.y) * 0.006));
+  });
+  sph.addEventListener("pointerup", () => { DRAG = null; });
+  sph.addEventListener("pointercancel", () => { DRAG = null; });
+}
+const gz = $("#gz");
+if(gz) gz.addEventListener("click", e => {
+  const r = gz.getBoundingClientRect();
+  const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+  if(fx > 0.6) { SPIN = 0; TILT = 0; }
+  else if(fy < 0.4) { SPIN = 0; TILT = 1.4; }
+  else { SPIN = Math.PI / 2; TILT = 0; }
+});
 $("#go").addEventListener("click", () => go());
 $("#lang").addEventListener("change", () => go());
-$("#rules").addEventListener("change", () => go());
-$("#leet").addEventListener("change", () => go());
-$("#expand").addEventListener("click", () => { SHUT = SHUT.map(() => false); paint(); });
-$("#collapse").addEventListener("click", () => { SHUT = SHUT.map(() => true); paint(); });
+$("#spin").addEventListener("click", () => {
+  AUTOSPIN = !AUTOSPIN;
+  $("#spin").textContent = AUTOSPIN ? "Pause" : "Run";
+});
+$("#reset").addEventListener("click", () => { SPIN = 0.55; TILT = 0.42; });
 $("#q").addEventListener("keydown", e => {
   if((e.metaKey || e.ctrlKey) && e.key === "Enter") go();
 });
+
+let LAST = null;
+function frame(ts){
+  if(LAST == null) LAST = ts;
+  const dt = Math.min(0.05, (ts - LAST) / 1000); LAST = ts;
+  if(AUTOSPIN){ T += dt * 0.8; if(!DRAG) SPIN += dt * 0.12; }
+  drawSphere(); drawGizmo(); drawPlots();
+  requestAnimationFrame(frame);
+}
 chrome();
+plotBoxes();
 go();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>

@@ -69,7 +69,52 @@ def build_table():
 
 TABLE = build_table()
 RING  = max(1, (len(TABLE) - 1).bit_length())
-UTF   = {ch: (1 << RING) + i for i, ch in enumerate(TABLE)}
+RANK  = {ch: i + 1 for i, ch in enumerate(TABLE)}     # the ORDER, and the arithmetic
+
+# ---------- the code layer: rank orders, code draws ----------
+#
+# Rank and code stop being the same number. Rank is the position in the order.
+# Code is where a symbol sits in the digit space, and it decides two things rank
+# cannot: how much of every square is dead, and where the character points when
+# it is drawn as a phasor on the ring.
+#
+# Packed, all 306 codes sat in 512..817 -- a 27 degree wedge out of 360. Every
+# character in the alphabet pointed the same way, so a word's phasors landed on
+# top of each other and a rack was a smear rather than a shape.
+#
+# So each TYPE gets a share of the ring and is strided to fill its share:
+#
+#   the type comes from Unicode    Nd is a digit, everything else a letter
+#   the block bounds are DECLARED  the same split as "DUCET orders, we tailor"
+#
+# Blocks land on nibble boundaries, so the leading nibble is the type -- and the
+# leading nibble is the top row of the square. A body's top row says what kind
+# of character it is. Blocks ALONE are barely better than packed, because inside
+# a block every member shares its leading bits; the stride within the block is
+# what kills them.
+WIDTH  = 12                                           # declared, three nibbles
+BLOCKS = [("address", 0x000, 0x0FF),                  # separators and markers
+          ("digit",   0x100, 0x2FF),
+          ("letter",  0x400, 0xFFF)]
+
+
+def typeof(ch):
+    return "digit" if u.category(ch) == "Nd" else "letter"
+
+
+def build_codes(table):
+    out, plan = {}, {}
+    for name, lo, hi in BLOCKS:
+        members = [ch for ch in table if typeof(ch) == name]
+        if not members: continue
+        step = max(1, (hi - lo) // len(members))
+        plan[name] = (lo, hi, step, len(members))
+        for i, ch in enumerate(members): out[ch] = lo + step * i
+    return out, plan
+
+
+CODE, PLAN = build_codes(TABLE)
+UTF = CODE                                            # what letters() writes
 SPACE, HYPHEN, TERM = 1, 2, 0                            # below the table, above the terminator
 
 # ---------- LAYER 2: the bridge ----------
@@ -180,7 +225,12 @@ if __name__ == "__main__":
     keys  = [k for k, _ in rows]
     print(f"CHROMA CERTIFIED ORDERING — Unicode {u.unidata_version}\n")
     print(f"  base alphabet      {len(TABLE)} characters, ring {RING}, "
-          f"codes {1<<RING}..{(1<<RING)+len(TABLE)-1}")
+          f"{WIDTH}-bit digits")
+    for nm, (lo, hi, st, k) in PLAN.items():
+        arc = 360 * (CODE[[c for c in TABLE if typeof(c) == nm][-1]]
+                     - CODE[[c for c in TABLE if typeof(c) == nm][0]]) / (1 << WIDTH)
+        print(f"     {nm:<8} {k:>3} symbols  {lo:#05x}..{hi:#05x}  stride {st}"
+              f"  {arc:5.1f} degrees")
     print(f"  ordered            {len(order):,} assigned codepoints "
           f"({time.time()-t0:.1f}s)")
     print(f"  longest reading    {max(lens)} characters -> "
@@ -241,8 +291,9 @@ if __name__ == "__main__":
                     if ord(m) in W})
     rank = {w: i + 1 for i, w in enumerate(ranks)}
     with open(os.path.join(DATA, "chroma-base.tsv"), "w", encoding="utf8") as f:
-        f.write("# char\tbase\tcase\taccent   — Chroma UTF base table, "
-                f"DUCET {u.unidata_version} with case above accent\n")
+        f.write("# char\tbase\tcase\taccent\trank\tcode\ttype   — Chroma UTF base "
+                f"table, DUCET {u.unidata_version} with case above accent. "
+                f"rank orders, code draws.\n")
         for ch in TABLE:
             d = u.normalize("NFD", ch)
             b = W.get(ord(d[0]), (0xFFFF, 0, 0))
@@ -250,7 +301,8 @@ if __name__ == "__main__":
             # The accent level is a SEQUENCE, compared left to right like a reading;
             # flattening it to one number reorders the double accents.
             a = [rank[W[ord(m)][1]] for m in d[1:] if ord(m) in W]
-            f.write(f"{ch}\t{b[0]}\t{b[2]}\t{'.'.join(map(str, a)) or '0'}\n")
+            f.write(f"{ch}\t{b[0]}\t{b[2]}\t{'.'.join(map(str, a)) or '0'}"
+                    f"\t{RANK[ch]}\t{CODE[ch]}\t{typeof(ch)}\n")
     with open(os.path.join(DATA, "chroma-order.tsv"), "w", encoding="utf8") as f:
         for pos, cp in enumerate(order):
             r, tone, st, L, _ = reading(chr(cp))

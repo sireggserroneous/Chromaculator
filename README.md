@@ -517,3 +517,49 @@ alphabet, two frames, and a row stops reading as a row.
 `church` moves behind `top` because an affricate is **two** IPA symbols and
 /tʃ/ opens with /t/. Over 20,000 words that relocates 99.7% of positions — which
 is exactly why it is a separate sort rather than the default.
+
+## Rank orders, code draws
+
+    python3 tools/chroma_utf.py
+
+Rank and code stopped being the same number. **Rank** is the position in the
+order and what mod-arithmetic runs on. **Code** is where a symbol sits in the
+digit space, and it decides two things rank cannot: how much of every square is
+dead, and where a character points when it is drawn as a phasor.
+
+Packed, all 306 codes sat in 512..817 — **a 27° wedge out of 360**. Every
+character in the alphabet pointed the same way, so a word's phasors landed on
+top of each other and a rack was a smear rather than a shape. So each type gets
+a share of the ring and is strided to fill it:
+
+    digit    10 symbols  0x100..0x2ff  stride 51
+    letter  296 symbols  0x400..0xfff  stride 10
+
+    codes 256..3974, spanning 327° of 360     (was 27°)
+    4 of 16 cells dark in every body          (was 6)
+
+The type comes from Unicode (`Nd` is a digit); the block bounds are **declared** —
+the same split as "DUCET orders, we tailor". Blocks land on nibble boundaries, so
+the leading nibble — the top row of a body — identifies the type by range.
+
+**Blocks alone are barely better than packed**, because inside a block every
+member shares its leading bits. The stride *within* the block is what kills them.
+
+### The invariant that made it safe
+
+**The code rises with the rank.** Comparing tuples of codes is identical to
+comparing tuples of ranks while that holds, so every code could be respaced
+without moving a single ordering — the 100k run, the collision cascade and the
+homophone groups all stand unchanged. Only the values moved.
+
+## Wub UTF
+
+    python3 serve.py            # then http://localhost:1338/wubutf.html
+
+Cards on the left, sphere on the right. **Each character is a phasor**: its code
+is the angle, its place in the word is the weight (`2^-(i+1)`), and its own
+square gives it a height — Fold the equator, Inner north, Outer south, the same
+convention Wub ± and Wub ÷ use. A word is a rack, summed tip to tail.
+
+Click a string and it goes to the sphere, with its **1D X/Y/Z** and **2D
+XY/XZ/YZ** projections below. Drag to turn, or click an axis on the gizmo.
