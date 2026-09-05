@@ -611,17 +611,14 @@ the wrong thing.
 
 ### Collapse to `{:}`
 
-Not a rendering tweak. Collapsing **adds every int on every card together**:
-`alignByWeight` walks them all once by weight, each on its own ring, and
-reconciles what they come to into one grid. Same walk `+` and `−` already use,
-and the same move as summing a product's anti-diagonals — a 2D spread of parts
-becomes one 1D stalk.
+Every point, **at time t**, measured from `{:}` instead of from its own body.
+The bodies stop swinging apart and their point groups sit on the one common
+origin — each card keeps its own phase step, so `3, 5, 7` is still three waves
+120° apart, they are just drawn against the shared midpoint.
 
-    3, 5, 7   collapses to   15   cells [1111] on ring 4
-
-The whole scene becomes a single black body at `{:}`, and it comes to the same
-total however the ints are split across cards. A definition contributes nothing,
-and a non-dyadic contributes its **cut** rather than pretending to land.
+It is **not** a sum. `alignByWeight` will add `3, 5, 7` into a single 15, cells
+`[1111]` on ring 4 — that is true, and it is a different question. Collapsing
+keeps all three waves and only moves where they are measured from.
 
 Where a body starts is still the **Fibonacci lattice** — evenly spread with no
 relaxation to run and no two landing on each other, checked at 1, 2, 3, 8 and 30.

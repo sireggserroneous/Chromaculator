@@ -254,40 +254,16 @@ function model(){
   });
   return bodies;
 }
-/* ---- collapsed: everything IS {:} ----
- * Not a rendering tweak. Collapsing adds every int on every card together —
- * alignByWeight walks them all once by weight, each on its own ring, and
- * reconciles what they come to into ONE grid. That is the same walk + and -
- * already use, and the same move as summing the anti-diagonals of a product:
- * a 2D spread of parts becomes one 1D stalk.
+/* ---- collapsed ----
+ * Every point, at time t, measured from {:} instead of from its own body.
+ * The bodies stop swinging apart and their point groups sit on the one common
+ * origin — each card keeps its own phase step, so three items are still 120
+ * apart, they are just drawn against the shared midpoint.
  *
- * So collapsed is a single black body whose value is the whole scene.
+ * It is NOT a sum. I built it as one first: alignByWeight adds 3, 5, 7 into a
+ * single 15, which is true and is a different question. Collapsing keeps all
+ * three waves and only moves where they are measured from.
  */
-let ALL = null;
-function collapse(){
-  const src = [];
-  for(const b of BODIES){
-    if(b.isDef) continue;
-    for(const it of b.good){
-      const st = fracStalk(it.f, WIDTH);
-      src.push({d: st.d, E: st.E, sign: 1});
-    }
-  }
-  if(!src.length){ ALL = null; return; }
-  const r = alignByWeight(src);
-  const n = Math.max(1, Math.ceil(Math.sqrt(r.stalk.d.length)));
-  const full = r.stalk.d.slice();
-  while(full.length < n * n) full.push(0);
-  const p = phasorOf(full, n, {E: r.stalk.E});
-  p.phase = 0;
-  let m = 1e-9;
-  for(let i = 0; i <= 120; i++){
-    const v = comp(p, TAU * i / 120);
-    m = Math.max(m, Math.hypot(v[0], v[1], v[2]));
-  }
-  ALL = {num: r.num, den: r.den, stalk: r.stalk, p, max: m, parts: src.length};
-}
-
 /* where body i is at time t: the tip of its own phasor, from {:} */
 function bodyAt(b, t){
   const v = comp(b.bp, t);
@@ -331,7 +307,6 @@ function recompute(){
     b.bpMax = m;
   }
   SPAN = Math.max(1e-9, ...CURVES.map(c => c.max || 0));
-  collapse();
   traces();
 }
 function traces(){
@@ -385,31 +360,24 @@ function draw(){
   const R = Math.min(w, h) * (many ? 0.12 : 0.30) / SPAN;
   const rule = css("--rule"), brass = css("--brass"), ink3 = css("--ink3"),
         blue = css("--blue"), red = css("--red"), green = css("--green");
-  if(COLLAPSE){
-    drawOne(g, w, h, cx, cy);
-    drawWaves();
-    const n = ALL ? ALL.parts : 0;
-    $("#hud").innerHTML = "<b>collapsed</b> &middot; " + n
-      + " int" + (n === 1 ? "" : "s") + " added into one grid at <b>{:}</b>"
-      + (ALL ? "<br>" + ALL.num + (ALL.den === 1n ? "" : "/" + ALL.den)
-          + " &middot; cells [" + ALL.stalk.d.join("") + "] on ring " + ALL.stalk.E
-        : "");
-    return;
-  }
   /* the shell the bodies swing on */
   g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.4;
   g.beginPath(); g.arc(cx, cy, SEP, 0, TAU); g.stroke(); g.globalAlpha = 1;
   /* back to front, so near bodies cover far ones */
+  /* collapsed, every body sits ON {:}; open, each swings to its own tip */
   const order = BODIES.map((b, i) => ({b, i}))
     .filter(o => !o.b.isDef)
-    .map(o => Object.assign(o, {at: proj(bodyAt(o.b, T), cx, cy, SEP)}))
+    .map(o => Object.assign(o, {at: COLLAPSE ? proj([0, 0, 0], cx, cy, SEP)
+                                             : proj(bodyAt(o.b, T), cx, cy, SEP)}))
     .sort((p, q) => p.at.d - q.at.d);
-  /* the spokes back to {:}, under everything */
-  for(const o of order){
-    g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.45;
-    g.beginPath(); g.moveTo(cx, cy); g.lineTo(o.at.px, o.at.py); g.stroke();
+  if(!COLLAPSE){
+    /* the spokes back to {:}, under everything */
+    for(const o of order){
+      g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.45;
+      g.beginPath(); g.moveTo(cx, cy); g.lineTo(o.at.px, o.at.py); g.stroke();
+    }
+    g.globalAlpha = 1;
   }
-  g.globalAlpha = 1;
   for(const {b, i, at} of order){
     const near = 0.55 + 0.45 * Math.max(0, at.d);
     const bx = at.px, by = at.py;
@@ -482,51 +450,13 @@ function draw(){
   const tot = drawn.reduce((a, b) => a + b.good.length, 0);
   $("#hud").innerHTML = `<b>${drawn.length}</b> black bod${drawn.length === 1
     ? "y" : "ies"} &middot; <b>${tot}</b> phasor${tot === 1 ? "" : "s"}`
-    + ` &middot; swinging about <b>{:}</b> at `
-    + `${Math.round(360 / Math.max(1, drawn.length))}&deg;`
-    + (COLLAPSE ? " &middot; collapsed to point groups" : "")
+    + (COLLAPSE
+        ? " &middot; <b>collapsed</b> &mdash; every point measured from {:}"
+        : ` &middot; swinging about <b>{:}</b> at `
+          + `${Math.round(360 / Math.max(1, drawn.length))}&deg;`)
     + "<br>" + BODIES.map((b, i) => b.isDef ? "" : (i + 1) + ": " + b.good.length
         + (b.good.length ? " at " + Math.round(360 / b.good.length) + "&deg;" : ""))
       .filter(Boolean).join("  ");
-}
-
-/* one body, at {:}, holding the whole scene */
-function drawOne(g, w, h, cx, cy){
-  const brass = css("--brass"), rule = css("--rule"), green = css("--green");
-  if(!ALL){
-    g.fillStyle = css("--ink3"); g.font = "11px 'IBM Plex Mono', monospace";
-    g.textAlign = "center"; g.fillText("nothing to collapse", cx, cy);
-    return;
-  }
-  const R = Math.min(w, h) * 0.34 / ALL.max;
-  const C = [];
-  for(let i = 0; i <= SAMPLES; i++) C.push(comp(ALL.p, TAU * i / SAMPLES));
-  g.lineWidth = 2;
-  for(let i = 1; i < C.length; i++){
-    const a = proj(C[i - 1], cx, cy, R), b = proj(C[i], cx, cy, R);
-    g.strokeStyle = b.d > 0 ? brass : rule;
-    g.globalAlpha = b.d > 0 ? 0.95 : 0.35;
-    g.beginPath(); g.moveTo(a.px, a.py); g.lineTo(b.px, b.py); g.stroke();
-  }
-  g.globalAlpha = 1;
-  const rad = Math.max(10, Math.min(w, h) * 0.075);
-  const gr = g.createRadialGradient(cx - rad * .3, cy - rad * .4, rad * .1,
-                                    cx, cy, rad);
-  gr.addColorStop(0, css("--ink2")); gr.addColorStop(1, css("--ink"));
-  g.fillStyle = gr;
-  g.beginPath(); g.arc(cx, cy, rad, 0, TAU); g.fill();
-  g.strokeStyle = brass; g.lineWidth = 2;
-  g.beginPath(); g.arc(cx, cy, rad, 0, TAU); g.stroke();
-  const v = comp(ALL.p, T), q = proj(v, cx, cy, R);
-  g.strokeStyle = brass; g.lineWidth = 1.6; g.globalAlpha = 0.8;
-  g.beginPath(); g.moveTo(cx, cy); g.lineTo(q.px, q.py); g.stroke();
-  g.globalAlpha = 1;
-  g.fillStyle = green;
-  g.beginPath(); g.arc(q.px, q.py, 5, 0, TAU); g.fill();
-  g.fillStyle = brass; g.font = "600 10px 'IBM Plex Mono', monospace";
-  g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillText("{:}", cx, cy);
-  g.textBaseline = "alphabetic";
 }
 
 /* ---- the waves ----
@@ -537,9 +467,7 @@ function drawOne(g, w, h, cx, cy){
  */
 function drawWaves(){
   const AX = ["#wx", "#wy", "#wz"];
-  const b = COLLAPSE
-    ? (ALL ? {good: [{col: css("--brass"), p: ALL.p}]} : {good: []})
-    : BODIES[SEL];
+  const b = BODIES[SEL];
   for(let k = 0; k < 3; k++){
     const cv = $(AX[k]); if(!cv) continue;
     const {g, w, h} = fit(cv);
@@ -549,14 +477,7 @@ function drawWaves(){
     g.setLineDash([3, 3]);
     g.beginPath(); g.moveTo(pad, cy); g.lineTo(w - pad, cy); g.stroke();
     g.setLineDash([]);
-      let T2 = TR[k], S2 = SUM[k];
-    if(COLLAPSE && ALL){
-      T2 = [[]]; S2 = [];
-      for(let i = 0; i <= SAMPLES; i++){
-        const v = comp(ALL.p, TAU * i / SAMPLES);
-        T2[0].push(v[k]); S2.push(v[k]);
-      }
-    }
+      const T2 = TR[k], S2 = SUM[k];
     if(!b || !b.good.length || !S2.length){
       g.fillStyle = css("--ink3");
       g.font = "10px 'IBM Plex Mono', monospace"; g.textAlign = "center";

@@ -231,53 +231,55 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                     an unknown name errors, and so does a forward reference");
 }
 
-/* ---- 10. collapsing is the squash ----
- * Not a rendering tweak. Collapsing adds every int on every card together —
- * alignByWeight walks them all once by weight, each on its own ring, and
- * reconciles what they come to into ONE grid. Same walk + and - use, and the
- * same move as summing a product's anti-diagonals: a 2D spread becomes one
- * 1D stalk, and the scene becomes a single black body at {:}.
+/* ---- 10. collapsing moves where points are measured from, nothing else ----
+ * Every point, at time t, measured from {:} instead of from its own body. The
+ * bodies stop swinging apart and their point groups sit on the one origin —
+ * each card keeps its own phase step, so three items are still 120 apart.
+ *
+ * I built this as a SUM first: alignByWeight adds 3, 5, 7 into a single 15.
+ * That is true and it is a different question. Collapsing keeps all three
+ * waves.
  */
 {
   const set = srcs => p.run(`CARDS = ${JSON.stringify(srcs.map(s => ({src: s})))};
     recompute();`);
-  set(["3", "5", "7"]);
-  ok(p.run("ALL.num + '/' + ALL.den") === "15/1", "3 + 5 + 7 should collapse to 15");
-  ok(p.run("ALL.parts") === 3, "three ints went in");
-  ok(p.run("ALL.stalk.d.join('')") === "1111" && p.run("ALL.stalk.E") === 4,
-     "15 is [1111] on ring 4");
-  /* it does not matter how the ints are spread across cards */
-  const one = p.run("ALL.num + '/' + ALL.den");
   set(["3, 5, 7"]);
-  ok(p.run("ALL.num + '/' + ALL.den") === one,
-     "the same ints on one card must collapse to the same total");
-  set(["3, 5", "7"]);
-  ok(p.run("ALL.num + '/' + ALL.den") === one, "and split any other way");
-  /* every dyadic part sums exactly */
-  for(const srcs of [["3", "5", "7"], ["1/2, 1/4", "1/8"], ["47*127", "-3"],
-                     ["(13*3*127/2^4)", "2^10"]]){
-    set(srcs);
-    const want = p.run(`(() => { let s = {num: 0n, den: 1n};
-      for(const b of BODIES) for(const it of b.good) s = fAdd(s, it.f);
-      return s.num + "/" + s.den; })()`);
-    ok(p.run("ALL.num + '/' + ALL.den") === want,
-       `${srcs} should collapse to ${want}, got ${p.run("ALL.num + '/' + ALL.den")}`);
+  const phases = () => p.run(`JSON.stringify(BODIES[0].good
+    .map(i => Math.round(i.p.phase * 180 / Math.PI)))`);
+  const at = t2 => p.run(`JSON.stringify(BODIES[0].good
+    .map(i => comp(i.p, ${t2}).map(v => +v.toFixed(9))))`);
+  const ph0 = phases(), v0 = at(0.4);
+  ok(ph0 === "[0,120,240]", "three items are 120 apart: " + ph0);
+  p.run("COLLAPSE = true;");
+  ok(phases() === ph0, "collapsing must not move a phase");
+  ok(at(0.4) === v0, "collapsing must not change what a point is worth at t");
+  ok(p.run("BODIES[0].good.length") === 3,
+     "collapsing must keep all three waves, not fold them into one");
+  /* what it DOES change: every body is drawn from the same origin */
+  set(["3", "5", "7"]);
+  p.run("COLLAPSE = true;");
+  const same = p.run(`(() => {
+    const o = BODIES.filter(b => !b.isDef)
+      .map(() => proj([0, 0, 0], 100, 100, 50));
+    return o.every(q => q.px === o[0].px && q.py === o[0].py); })()`);
+  ok(same, "collapsed, every body should share the origin");
+  /* open, they are apart */
+  p.run("COLLAPSE = false;");
+  const apart = p.run(`(() => {
+    const o = BODIES.filter(b => !b.isDef).map(b => bodyAt(b, 0.4));
+    let m = 0;
+    for(let i = 0; i < o.length; i++) for(let j = i + 1; j < o.length; j++)
+      m = Math.max(m, Math.hypot(o[i][0]-o[j][0], o[i][1]-o[j][1], o[i][2]-o[j][2]));
+    return m; })()`);
+  ok(apart > 1e-6, "open, the bodies should be somewhere else than each other");
+  for(const c of [false, true]){
+    const r = p.run(`(() => { COLLAPSE = ${c};
+      try { draw(); return true; } catch(e){ return e.message; } })()`);
+    ok(r === true, `draw() threw with COLLAPSE=${c}: ${r}`);
   }
-  /* a definition is a knob, so it contributes nothing to the collapse */
-  set(["a = 3", "5", "7"]);
-  ok(p.run("ALL.parts") === 2 && p.run("ALL.num + '/' + ALL.den") === "12/1",
-     "a definition should not be added in: " + p.run("ALL.num + '/' + ALL.den"));
-  /* and a non-dyadic contributes its CUT, not a pretend exact value */
-  set(["3", "1/3"]);
-  const got = p.run("ALL.num + '/' + ALL.den");
-  ok(got !== "10/3", "1/3 cannot land exactly, so the total must not claim it does");
-  ok(got === "1004885/327680" || /\/\d+$/.test(got),
-     "the total should be the cut sum, exactly: " + got);
-  set([]);
-  ok(p.run("ALL") === null, "nothing to collapse should be nothing, not a crash");
-  console.log("  [10] collapse       3 + 5 + 7 = 15, cells [1111] on ring 4, and the");
-  console.log("                      same however the ints are split across cards");
-  console.log("                      a definition adds nothing; a cut contributes its cut");
+  console.log("  [10] collapse       every point measured from {:}, and nothing else");
+  console.log("                      changes: 3, 5, 7 stay three waves at 120°, worth");
+  console.log("                      the same at every t. It is not a sum.");
 }
 
 console.log("\n  certified.");
