@@ -1,5 +1,5 @@
 {
-  "_note": "v14-N3 the challengers card. `ours` is the INNER (sealed armored total minus the 4,812 B shield); no rival carries a shield, so this is the ratio ring and armored-vs-naked stays an exhibit. null = not yet measured.",
+  "_note": "v14-N3 the challengers card. `ours` is the INNER (the row's armored total minus the 4,812 B shield); no rival carries a shield, so this is the ratio ring and armored-vs-naked stays an exhibit. `sealed_v13` is each row's BASELINE -- v13's seal where one exists, and the v14 seal for rows the corpus gained later (python312.zip). null = not yet measured.",
   "sealed_v13": {
     "alarm01.wav": 240008,
     "aoe4-autosave.sav": 8759079,
@@ -20,7 +20,8 @@
     "wallpaper.jpg": 1126497,
     "wubbadub.html": 27621,
     "zstd.exe": 488915,
-    "rustc_driver.dll": 37436978
+    "rustc_driver.dll": 37436978,
+    "python312.zip": 2027506
   },
   "armor_price": 4812,
   "zpaq_m5": {
@@ -43,7 +44,8 @@
     "rustc_driver.dll": 35857883,
     "cbs.log": 67426,
     "mermaid-bundle.js": 3972117,
-    "iconcache48.db": 581006
+    "iconcache48.db": 581006,
+    "python312.zip": 3742241
   },
   "paq8px_9LAET": {
     "wubbadub.html": 16579,
@@ -61,14 +63,17 @@
     "cbs.log": 12255
   },
   "precomp_best": {
-    "aoe4-autosave.sav": 5197337
+    "aoe4-autosave.sav": 5197337,
+    "python312.zip": 1847299
   },
   "notes": {
     "aoe4-autosave.sav": "precomp -cn + zpaq -m5; zpaq alone (no peel) is 18,262,092",
-    "real-test.bmp": "zpaq -m5 has no image model; paq8px does and still loses 8x"
+    "real-test.bmp": "zpaq -m5 has no image model; paq8px does and still loses 8x",
+    "python312.zip": "precomp -cn + zpaq -m5; joined the sealed corpus at v14-N4, the 599-member ZIP archetype"
   },
   "_ours_now_note": "rows this build has MOVED since the v13 seal. card.js prefers these over sealed_v13 when scoring, because the card must compare a rival to what we ship today, not to what we shipped in September.",
   "ours_now": {
-    "aoe4-autosave.sav": 5294444
+    "aoe4-autosave.sav": 5294444,
+    "python312.zip": 2027506
   }
 }

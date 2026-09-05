@@ -158,7 +158,7 @@ became a **2.02% WIN**. Against zpaq -m5 alone we are **14.85% ahead**.
 
 | next | worth | state |
 |---|---|---|
-| **N4 ZIP peel** | **~50% of any ZIP row** (python312.zip 3,753,980 -> forecast <2,000,000) | **DO THIS.** Cost is known |
+| ~~N4 ZIP peel~~ | **SHIPPED** -- python312.zip -46.0%, ipf -48.3%, all restore EXACT | now the corpus's 21st sealed row |
 | PE / binary model | 1,991,562 B over 6 rows | a model-architecture project, not a fix |
 | JPEG baseline peel | 265,778 B | vs paq8px on wallpaper.jpg |
 | font / TTF model | 222,450 B | both TTF rows ~26% under paq8px |
@@ -233,7 +233,7 @@ one line each:
   (`EGG_EXE=<copy>`); `cargo` writing `eggv14.exe` while a lane runs it fails
   confusingly.
 - **`tools/ledger14.js` opens 8 lanes on the 8 largest rows.** Run it in GROUPS
-  (12 small in one pass, big rows in pairs, the save and the monster alone). The
+  (13 small in one pass, big rows in pairs, the save and the monster alone). The
   hang signature is **"no exit", not "no progress"** — kill it and read what it
   already wrote.
 - **`packJPG` waits on `< press ENTER >`.** Close stdin and give every call a

@@ -29,6 +29,12 @@ const V13 = {
   'segoeui.ttf': 409683, 'vim-version9.txt': 273743, 'wallpaper.jpg': 1126497,
   'wubbadub.html': 27621, 'zstd.exe': 488915, 'rustc_driver.dll': 37436978,
 };
+// rows this corpus gained AT v14, which therefore have no v11 or v13 baseline.
+// They are judged against this table instead, so "ROWS MOVED" still covers them
+// and the v11 totals are not polluted by a row v11 never saw.
+const V14_NEW = {
+  'python312.zip': 2027506,
+};
 // the M0 column, filed in PREDICTIONS.md BEFORE M1 code: every row is judged to the byte
 const PRED = process.env.EGG_PRED ? JSON.parse(fs.readFileSync(process.env.EGG_PRED, 'utf8')) : null;
 const SKIP = new Set((process.env.EGG_SKIP || '').split(',').filter(Boolean)); // EGG_SKIP=a,b to leave rows to the lanes
@@ -99,20 +105,24 @@ async function pool(items, n, fn){
   let worse = 0, fail = 0, savedTotal = 0, misses = 0, moved = 0;
   for(const r of rows.sort((a, b) => a.f.localeCompare(b.f))){
     if(r.err){ fail++; console.log(`FAIL ${r.f}: ${r.err}`); continue; }
+    // a row added after v11 has no v11 baseline; it is NEW, not a regression,
+    // and it must not enter the v11 totals as a NaN
     const v11 = V11[r.f];
-    const d = r.n12 - v11;
-    savedTotal -= d;
-    const dpct = (100 * d / r.orig).toFixed(3);
+    const fresh = v11 === undefined;
+    const d = fresh ? 0 : r.n12 - v11;
+    if(!fresh) savedTotal -= d;
+    const dpct = fresh ? '  new ' : (100 * d / r.orig).toFixed(3);
     const inj = r.verd.join('/');
     const ok = r.verd.every(v => v === 'E');
     if(!ok) fail++;
-    if(d > 0) worse++;
+    if(!fresh && d > 0) worse++;
     const mbs = (r.orig / 1e6 / Math.max(0.001, r.ms / 1000)).toFixed(2);
-    const b13 = V13[r.f];
+    const b13 = V13[r.f] !== undefined ? V13[r.f] : V14_NEW[r.f];
     let col13 = '';
     if(b13 !== undefined){
       const d13 = r.n12 - b13;
-      col13 = ` v13=${String(b13).padStart(9)} ${d13 === 0 ? 'SAME' : (d13 > 0 ? '+' : '') + d13}`;
+      const tag = V13[r.f] !== undefined ? 'v13' : 'v14';
+      col13 = ` ${tag}=${String(b13).padStart(9)} ${d13 === 0 ? 'SAME' : (d13 > 0 ? '+' : '') + d13}`;
       if(d13 !== 0) moved++;
     }
     let predcol = '';
@@ -122,7 +132,7 @@ async function pool(items, n, fn){
       if(miss !== 0) misses++;
     }
     const geo = r.info ? ` inner=${r.info.len} model=${r.info.model} blk=${r.info.block} t=${r.info.t} ${r.info.mode} price=${r.info.price} (${Number(r.info.floor_x).toFixed(2)}x floor)` : '';
-    console.log(`${r.f.padEnd(22)} v11=${String(v11).padStart(9)} v12=${String(r.n12).padStart(9)} delta=${String(d).padStart(8)} (${dpct} pt)${col13}${predcol} inj=${inj} ${mbs} MB/s${geo}${ok ? '' : '  INJURY FAIL'}`);
+    console.log(`${r.f.padEnd(22)} v11=${String(fresh ? 'NEW' : v11).padStart(9)} v12=${String(r.n12).padStart(9)} delta=${String(d).padStart(8)} (${dpct} pt)${col13}${predcol} inj=${inj} ${mbs} MB/s${geo}${ok ? '' : '  INJURY FAIL'}`);
   }
   console.log(`net bytes saved vs v11: ${savedTotal}; rows heavier than v11: ${worse}; ROWS MOVED vs SEALED v13: ${moved}; prediction misses: ${misses}; failures: ${fail}`);
   process.exit(fail ? 1 : 0);

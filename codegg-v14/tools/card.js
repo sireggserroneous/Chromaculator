@@ -41,6 +41,7 @@ if (unmeasured.length) console.log(`NOT YET CONTESTED: ${unmeasured.map(r => `${
 // 0.3-5.0% each is one shortfall, not six.
 const GROUPS = {
   'deflate recipe':   ['aoe4-autosave.sav'],
+  'ZIP peel':         ['python312.zip'],
   'PE / binary model':['rustc_driver.dll','ntoskrnl.exe','kernel32.dll','msgraph.dll','zstd.exe','notepad.exe'],
   'JPEG peel':        ['wallpaper.jpg'],
   'font / TTF model': ['arial.ttf','segoeui.ttf'],
