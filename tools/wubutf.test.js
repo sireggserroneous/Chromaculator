@@ -184,20 +184,39 @@ function seeded(q, lang, push, read, alphabet){
   p.run("select(CARDS[0].items[1])");
   ok(p.run("PH[0].dir") === -dirA && Math.abs(p.run("PH[0].fold") + foldA) < 1e-12,
      "negation must flip the handedness and the fold");
-  /* and it is an exact reflection: the same curve run backwards */
-  const worst = p.run(`(() => {
-    const a = phasor("6", false), b = phasor("-6", false);
+  /* A leading sign negates ANY item, not only a numeric one: a character is
+     just another int, so "-a" is a negated. The hyphen used to be read as a
+     separator character instead. */
+  const na = api("api_cards", "a, -a", "en", "", "sound", "chroma").cards[0].items;
+  ok(String(na[0].codes) === String(na[1].codes) && !na[0].neg && na[1].neg,
+     "-a should be a with the sign set, same codes");
+  ok(!api("api_cards", "a-b", "en", "", "sound", "chroma").cards[0].items[0].neg,
+     "a medial hyphen is a separator, not a sign");
+
+  /* How exact is the reflection? Wub +-'s comment says negation "keeps negation
+     an exact reflection". It does not, in general. z is m*sin(B) + d*|sin(B)|
+     with d = (inner - outer)/2; negating sends m to -m, d to -d and sin(B) to
+     -sin(B), but |sin(B)| is EVEN, so the d term survives and the two curves
+     differ by exactly 2*d*|sin B|. Exact only when Inner and Outer balance —
+     and 6 happens to be such a case, which is why it looked like a law. */
+  const refl = k => p.run(`(() => {
+    const a = phasor(${JSON.stringify(String(k))}, false),
+          b = phasor("-" + ${JSON.stringify(String(k))}, false);
     a.phase = 0; b.phase = 0;
     let w = 0;
     for(let i = 0; i <= 240; i++){ const t = Math.PI*2*i/240;
       const A = comp(a, t), B = comp(b, -t);
-      for(let k = 0; k < 3; k++) w = Math.max(w, Math.abs(A[k] - B[k])); }
-    return w; })()`);
-  ok(worst < 1e-12, `negation should be an exact reflection, worst ${worst}`);
+      for(let j = 0; j < 3; j++) w = Math.max(w, Math.abs(A[j] - B[j])); }
+    return [w, (a.inner - a.outer) / 2]; })()`);
+  const [w6, d6] = refl(6), [wa, da] = refl(na[0].codes[0]);
+  ok(Math.abs(d6) < 1e-15 && w6 < 1e-12,
+     "6 balances Inner against Outer, so it should reflect exactly");
+  ok(Math.abs(da) > 1e-9 && Math.abs(wa - 2 * Math.abs(da)) < 1e-9,
+     `the gap should be exactly 2|d|: got ${wa} against ${2 * Math.abs(da)}`);
   console.log(`  [7] integers       6 -> 0,1,1,0 and -6 -> 0,-1,-1,0; 45 is one `
-    + `ring, hello is five`);
-  console.log(`                     comp(-6, -t) == comp(6, t) to ${worst.toExponential(0)}`
-    + " — negation is the same curve run backwards");
+    + `ring, hello is five; -a flips a`);
+  console.log(`                     reflection is exact only when Inner and Outer `
+    + `balance: 6 to ${w6.toExponential(0)}, a off by 2|d| = ${wa.toFixed(3)}`);
 }
 
 /* ---- 8. rank counts, code draws ----

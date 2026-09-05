@@ -311,17 +311,19 @@ const shown = r => esc(String(r).split(SEP).join("/"));
    alphabet, padded to whole nibbles, laid into the smallest square. Pushed is
    the same value written differently, so it draws its own grid beside the
    plain one rather than replacing it. */
-function gridFor(code, bits, push){
+function gridFor(code, bits, push, neg){
   const raw = code.toString(2).padStart(Math.ceil(bits / 4) * 4, "0")
-    .split("").map(c => +c);
+    .split("").map(c => (+c) * (neg ? -1 : 1));
   const n = Math.max(1, Math.ceil(Math.sqrt(raw.length)));
+  /* negate first, then push — the order phasor() uses, so the picture and the
+     ring agree about what a negative is */
   const shown = push ? pushLeft(raw.slice()) : raw;
   const cells = shown.slice();
   while(cells.length < n * n) cells.push(0);
   return {html: boxes(cells, n, n, n - 1), n, cells};
 }
-function cellBlock(label, code, bits, push){
-  const g = gridFor(code, bits, push);
+function cellBlock(label, code, bits, push, neg){
+  const g = gridFor(code, bits, push, neg);
   const e = el("div", "cellblk");
   e.appendChild(el("div", null, g.html));
   e.appendChild(el("div", "cellcap",
@@ -396,10 +398,15 @@ function phasorsOf(item){
      handedness. */
   const codes = item.codes.filter(c => c > 2);
   const letters = (item.reading || "").replace(/\u0001/g, " ");
+  /* phasor() parses the sign off the string, so a negated character is just its
+     code written negative — hexSequence turns the 1s into -1s and the fold
+     flips, exactly as it does for -6 */
+  const sgn = item.neg ? "-" : "";
   const P = [];
   codes.forEach((c, j) => {
-    if(PLAIN) P.push(Object.assign(phasor(c, false), {ch: letters[j] || "", pu: false}));
-    if(PUSH)  P.push(Object.assign(phasor(c, true),  {ch: letters[j] || "", pu: true}));
+    const k = sgn + c;
+    if(PLAIN) P.push(Object.assign(phasor(k, false), {ch: letters[j] || "", pu: false}));
+    if(PUSH)  P.push(Object.assign(phasor(k, true),  {ch: letters[j] || "", pu: true}));
   });
   const N = P.length || 1;
   P.forEach((p, j) => { p.phase = TAU * j / N; });
@@ -729,9 +736,10 @@ function cardEl(card, idx){
       const letters = (it.reading || "").replace(/\u0001/g, " ");
       it.codes.forEach((code, j) => {
         if(code <= 2){ strip.appendChild(el("div", "cellcap", "&middot;")); return; }
-        if(PLAIN) strip.appendChild(cellBlock(letters[j] || "", code, WIDTH, false));
-        if(PUSH)  strip.appendChild(cellBlock(PLAIN ? "" : (letters[j] || ""),
-                                              code, WIDTH, true));
+        const lab = (it.neg ? "-" : "") + (letters[j] || "");
+        if(PLAIN) strip.appendChild(cellBlock(lab, code, WIDTH, false, it.neg));
+        if(PUSH)  strip.appendChild(cellBlock(PLAIN ? "" : lab, code, WIDTH,
+                                              true, it.neg));
       });
     }
     row.appendChild(strip);

@@ -237,6 +237,13 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
         texts = [t for t in texts if t][:MAX_ITEMS]
         items = []
         for t in texts:
+            # A LEADING sign is negation on any item, not only a numeric one.
+            # A character is just another int, so "-a" is a negated, and the
+            # hyphen was being read as a separator character instead.
+            neg = False
+            if len(t) > 1 and t[0] in "+-" and not NUMERIC.match(t):
+                neg = t[0] == "-"
+                t = t[1:]
             # An item that parses as an integer IS an integer: one ring, sign and
             # all, exactly as Wub +- draws it. Running "-6" through the character
             # path made it a hyphen and a six, so the negative never reached
@@ -277,7 +284,8 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
                            "fold":  reg(lambda d, e: d == e),
                            "outer": reg(lambda d, e: d > e),
                            "lit": sum(cells), "n": side})
-            items.append({"text": t, "reading": spell, "ipa": ipa(r), "codes": codes,
+            items.append({"text": ("-" if neg else "") + t, "neg": neg,
+                          "reading": spell, "ipa": ipa(r), "codes": codes,
                           "ranks": ranks, "countBase": CB,
                           "phasors": ph,
                           # the value, in (0,1): 0.d1 d2 d3 ... base 4096
@@ -462,6 +470,13 @@ def demo():
     assert all(0 <= r < CB for r in h["ranks"]), h["ranks"]
     assert int(cd["cards"][0]["sum"]) == sum(
         int(i["int"]) for i in cd["cards"][0]["items"])
+    # a leading sign negates any item, not just a numeric one
+    na = api_cards("a, -a", "en", "", "sound", "chroma")["cards"][0]["items"]
+    assert na[0]["codes"] == na[1]["codes"], (na[0]["codes"], na[1]["codes"])
+    assert not na[0]["neg"] and na[1]["neg"], na
+    assert na[1]["text"] == "-a", na[1]["text"]
+    # and a medial hyphen is still a separator, not a sign
+    assert not api_cards("a-b", "en", "", "sound", "chroma")["cards"][0]["items"][0]["neg"]
     # the counting base is the symbol count plus the zero, and it is prime
     ci = api_cards("shit", "en", "", "sound", "ipa")["cards"][0]["items"][0]
     assert ci["countBase"] == 127, ci["countBase"]
