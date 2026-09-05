@@ -10,3 +10,4 @@ corpus-deflate/
 *.egg13
 *.egg14
 *.out
+corpus-zip/
