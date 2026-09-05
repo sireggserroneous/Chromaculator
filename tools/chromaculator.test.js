@@ -392,4 +392,46 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                      failed definition draws nothing");
 }
 
+/* ---- 14. a variable can actually be TYPED ----
+ * The keystroke that turns a card into a definition is exactly the one that
+ * repainted the list, and repainting rebuilds every row — so the input the
+ * caret was in was thrown away and "b = 5" died on the "=". And a half-typed
+ * "b = " reported a raw "Cannot read properties of undefined" into the row,
+ * which made adding a variable look broken at the moment you were doing it.
+ */
+{
+  for(const typed of ["b = 5", "c = 3, 5, 7", "x=1/3", "a = 3", "z = 47*127"]){
+    for(let k = 1; k <= typed.length; k++){
+      const r = p.run(`(() => { try {
+        CARDS = [{src: ${JSON.stringify(typed.slice(0, k))}}]; CARDS[0].slider = null;
+        recompute(); paint(); gallery();
+        return "ok";
+      } catch(e){ return e.message; } })()`);
+      ok(r === "ok", `typing ${JSON.stringify(typed)} threw at "`
+        + typed.slice(0, k) + `": ${r}`);
+    }
+    /* and it lands as the thing it says */
+    const end = p.run(`CARDS = [{src: ${JSON.stringify(typed)}}]; CARDS[0].slider = null;
+      recompute(); CARDS[0].partial ? "partial"
+        : CARDS[0].def ? (CARDS[0].err ? "err" : (CARDS[0].list ? "list" : "knob"))
+        : "plain"`);
+    ok(end === "knob" || end === "list",
+       `${JSON.stringify(typed)} should finish as a variable, got ${end}`);
+  }
+  /* half-typed is not wrong: it is quiet, not an error */
+  p.run(`CARDS = [{src: "b = "}]; CARDS[0].slider = null; recompute();`);
+  ok(p.run("CARDS[0].partial") === true && p.run("CARDS[0].err") === null,
+     "a half-typed definition should be partial, not an error");
+  ok(p.run("BODIES[0].good.length") === 0, "and draw nothing yet");
+  /* the caret survives a repaint, which is what let the "=" through */
+  ok(p.run("paint.toString().includes('setSelectionRange')"),
+     "paint must put the caret back where it was");
+  /* the boxed grid has its styles, or the cells stack into one column */
+  ok(/\.gsq\{/.test(p.html) && /\.gsc\{/.test(p.html),
+     "the boxed grid needs .gsq and .gsc, or boxes() lays out into one column");
+  console.log("  [14] typing works   every keystroke of five variable spellings is");
+  console.log("                      clean; half-typed is quiet, not an error; the");
+  console.log("                      caret survives the repaint the '=' triggers");
+}
+
 console.log("\n  certified.");

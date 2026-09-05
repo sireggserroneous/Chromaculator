@@ -44,6 +44,7 @@ body{overflow:hidden}
   overflow-wrap:anywhere}
 .rowinfo b{color:var(--ink2); font-weight:500}
 .rowinfo .bad{color:var(--red)}
+.rowinfo .dim{color:var(--rule2)}
 .rowinfo .cut{color:var(--brass)}
 /* a definition gets a knob instead of a body */
 .sld{grid-column:2 / span 2; display:flex; align-items:center; gap:9px;
@@ -59,6 +60,16 @@ body{overflow:hidden}
   padding:7px 0; border-top:1px dashed var(--rule)}
 .p1:first-child{border-top:none}
 @media (max-width:1100px){ .p1{grid-template-columns:1fr} }
+.gsq{display:grid; gap:2px; width:max-content}
+.gsc{width:var(--sc,14px); height:var(--sc,14px); display:flex; align-items:center;
+  justify-content:center; border-radius:2px; border:1px solid transparent;
+  font-family:"IBM Plex Mono",monospace; font-size:calc(var(--sc,14px) * .62);
+  font-weight:600; line-height:1}
+.gsc.b{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
+.gsc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
+.gsc.g{background:var(--green-w); color:var(--green); border-color:var(--green);
+  opacity:.6}
+.gsc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
 .gcol{display:flex; flex-direction:column; gap:3px; align-items:flex-start}
 .gcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; color:var(--ink3)}
 .tcol{min-width:0}
@@ -297,6 +308,15 @@ function buildEnv(){
         if(bare && bare.list) vals.push(...bare.list);
         else vals.push(evalFrac(x, ENV));
       }
+      /* half-typed is not wrong. "b = " has a name and no body yet, and
+         reporting a raw "Cannot read properties of undefined" made adding a
+         variable look broken at the moment you were doing it. */
+      if(!vals.length){
+        c.list = null; c.val = null; c.slider = null; c.err = null;
+        c.partial = true;
+        continue;
+      }
+      c.partial = false;
       if(vals.length > 1){
         /* a list variable: no single knob to turn, so no slider */
         c.list = vals;
@@ -329,6 +349,7 @@ function model(){
     /* A definition that failed must not draw. buildEnv runs first and every
        definition is in ENV by the time a body is read, so a forward reference
        reported "q is not defined" and then rendered q anyway. */
+    if(c.partial) return {items: [], good: [], isDef: true, name: c.def.name};
     if(c.err) return {items: [{src: c.def.body, ok: false, why: c.err}],
                       good: [], isDef: true, name: c.def.name};
     const b = readCard(c.slider != null ? String(c.slider) : c.def.body);
@@ -633,8 +654,15 @@ function drawWaves(){
 }
 
 /* ---- the list ---- */
+/* Repainting rebuilds every row, which throws away the input the caret is in —
+   and the keystroke that turns a card into a definition is exactly the one that
+   repaints. Typing "b = 5" died on the "=" and the variable could never be
+   finished. So remember where the caret was and put it back. */
 function paint(){
   const host = $("#rows");
+  const act = document.activeElement;
+  const keep = act && act.classList && act.classList.contains("inp")
+    ? {i: +act.dataset.i, a: act.selectionStart, b: act.selectionEnd} : null;
   host.textContent = "";
   CARDS.forEach((c, i) => {
     const row = document.createElement("div");
@@ -644,6 +672,7 @@ function paint(){
     gut.addEventListener("click", () => { SEL = i; traces(); paint(); });
     const inp = document.createElement("input");
     inp.className = "inp"; inp.value = c.src; inp.spellcheck = false;
+    inp.dataset.i = String(i);
     inp.placeholder = "3, 5, 7  or  (13*3*127/2^4)";
     inp.addEventListener("input", () => {
       /* editing the text hands control back to it; the slider takes over again
@@ -665,7 +694,7 @@ function paint(){
     const nfo = document.createElement("div");
     nfo.className = "rowinfo"; nfo.id = "nfo" + i;
     row.appendChild(gut); row.appendChild(inp); row.appendChild(del);
-    if(c.def && !c.list){
+    if(c.def && !c.list && !c.partial){
       row.className += " def";
       const sld = document.createElement("div");
       sld.className = "sld";
@@ -706,6 +735,13 @@ function paint(){
   });
   info();
   gallery();
+  if(keep){
+    const back = host.querySelectorAll(".inp")[keep.i];
+    if(back){
+      back.focus();
+      try{ back.setSelectionRange(keep.a, keep.b); }catch(e){}
+    }
+  }
 }
 const PAGES = ["the number", "1D X Y Z", "2D XY XZ YZ"];
 /* page 0 is the number itself, drawn by the same page1HTML Wubba Dub uses.
@@ -792,7 +828,9 @@ function info(){
     if(!el) return;
     const c = CARDS[i];
     if(c && c.def){
-      el.innerHTML = c.err ? `<span class="bad">${c.err}</span>`
+      el.innerHTML = c.partial
+        ? `<span class="dim">${c.def.name} = &hellip;</span>`
+        : c.err ? `<span class="bad">${c.err}</span>`
         : c.list
           ? `<b>${c.def.name}</b> = ${c.list.map(f => f.den === 1n ? f.num
               : f.num + "/" + f.den).join(", ")} &mdash; ${c.list.length} elements`
