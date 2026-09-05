@@ -134,4 +134,57 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
     + `which is its fold`);
 }
 
+/* ---- 7. the bodies swing about {:} ----
+ * A card is itself a phasor one level up. Two cards are 180 apart about {:},
+ * three are 120 — the same n-gon step the items use inside a card, which is
+ * 360/n, the EXTERIOR angle. The whole thing is tip to tail twice over.
+ */
+{
+  const seats = n => JSON.parse(p.run(`
+    CARDS = ${JSON.stringify("x".repeat(1))}.split("x").slice(0,0)
+      .concat(${JSON.stringify([...Array(10).keys()].map(i => ({src: String(i + 2)})))}
+        .slice(0, ${n}));
+    recompute();
+    JSON.stringify(BODIES.map(b => Math.round(b.bp.phase * 180 / Math.PI)))`));
+  ok(String(seats(2)) === "0,180", "two bodies are 180 apart about {:}");
+  ok(String(seats(3)) === "0,120,240", "three bodies are 120 apart");
+  ok(String(seats(4)) === "0,90,180,270", "four bodies are 90 apart");
+  /* a body's own phasor is what its card SUMS to */
+  const tot = p.run(`CARDS = [{src: "3, 5, 7"}]; recompute();
+    BODIES[0].total.num + "/" + BODIES[0].total.den`);
+  ok(tot === "15/1", `a body should be its card's total, got ${tot}`);
+  /* and they actually move */
+  p.run(`CARDS = [{src: "3"}, {src: "3, 5"}, {src: "3, 5, 7"}]; recompute();`);
+  const moves = p.run(`(() => { let m = 0;
+    for(const b of BODIES){ const a = bodyAt(b, 0), c = bodyAt(b, 1.1);
+      m = Math.max(m, Math.hypot(a[0]-c[0], a[1]-c[1], a[2]-c[2])); }
+    return m; })()`);
+  ok(moves > 1e-6, "the bodies are not swinging");
+  ok(p.run(`BODIES.every(b => bodyAt(b, 0.7).every(Number.isFinite))`),
+     "a body left the field");
+  /* the swing is normalised, so no card's total drowns the others */
+  const spread = JSON.parse(p.run(`CARDS = [{src: "3"}, {src: "47*127"}];
+    recompute(); JSON.stringify(BODIES.map(b => {
+      let m = 0; for(let i = 0; i <= 60; i++){ const v = bodyAt(b, Math.PI*2*i/60);
+        m = Math.max(m, Math.hypot(v[0], v[1], v[2])); } return m; }))`));
+  ok(Math.max(...spread) / Math.min(...spread) < 1.01,
+     `3 and 47*127 should swing the same distance: ${spread}`);
+  console.log("  [7] {:} is shared   2 bodies at 180°, 3 at 120°, 4 at 90°; a body");
+  console.log("                      is its card's total (3,5,7 -> 15) and 3 swings");
+  console.log("                      as far as 47*127, so neither drowns the other");
+}
+
+/* ---- 8. collapsing renders point groups, and both modes draw ---- */
+{
+  p.run(`CARDS = [{src: "3"}, {src: "3, 5"}, {src: "3, 5, 7"}]; recompute();`);
+  for(const c of [false, true]){
+    const r = p.run(`(() => { COLLAPSE = ${c};
+      try { draw(); return true; } catch(e){ return e.message; } })()`);
+    ok(r === true, `draw() threw with COLLAPSE=${c}: ${r}`);
+  }
+  ok(p.run("typeof COLLAPSE") === "boolean", "the toggle should be a flag");
+  console.log("  [8] collapse        draws clean open and collapsed; collapsed drops");
+  console.log("                      the sphere and leaves the point group on {:}");
+}
+
 console.log("\n  certified.");

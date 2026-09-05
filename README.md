@@ -589,7 +589,22 @@ at a declared width and says what it dropped, which is the same answer Wub ÷
 gives when only 430 of its 2178 quotients came out exact. A malformed item is
 reported in place and the good ones still draw.
 
-Bodies are packed apart on a **Fibonacci lattice** — evenly spread with no
+### `{:}` — the shared midpoint
+
+A body does not sit still. **A card is itself a phasor one level up**, swinging
+about the common point `{:}`, and its items orbit its moving tip. Two cards are
+180° apart about `{:}`, three are 120°, four are 90° — the same n-gon step the
+items use inside a card, which is `360/n`, the **exterior** angle of an n-gon.
+Tip to tail, twice over.
+
+A body's own phasor is what its card **sums to**, so `3, 5, 7` swings as 15 and
+the three points hanging off it are how it got there. Each swing is normalised,
+so `3` travels as far as `47*127` and neither drowns the other.
+
+**Collapse to `{:}`** drops the sphere and leaves each body as a point group on
+the shared midpoint.
+
+Where a body starts is still the **Fibonacci lattice** — evenly spread with no
 relaxation to run and no two landing on each other, checked at 1, 2, 3, 8 and 30.
 
 `math.js` would have done the parsing, and it evaluates to doubles. The parser

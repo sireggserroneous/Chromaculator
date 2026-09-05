@@ -100,7 +100,7 @@ label.chk input{accent-color:var(--brass)}
     <div class="bar">
       <button class="add" id="add" title="add a card">+</button>
       <span class="sp"></span>
-      <label class="chk"><input type="checkbox" id="trails" checked> trails</label>
+      <label class="chk"><input type="checkbox" id="collapse"> collapse to {:}</label>
       <label class="chk"><input type="checkbox" id="run" checked> run</label>
       <button id="reset">reset view</button>
     </div>
@@ -130,7 +130,7 @@ const WIDTH = 16;                    /* cells a card's items are cut to */
 
 /* a card is a black body; what you type in it is its rack */
 let CARDS = [{src: "3"}, {src: "3, 5"}, {src: "3, 5, 7"}];
-let SEL = 0, T = 0, RUN = true, TRAILS = true;
+let SEL = 0, T = 0, RUN = true, COLLAPSE = false;
 let SPIN = 0.6, TILT = 0.35, DRAG = null;
 
 /* ---- sphere packing: the Fibonacci lattice ----
@@ -184,11 +184,41 @@ function readCard(src){
   });
   return {items, good};
 }
+/* ---- the shared midpoint {:} ----
+ * A body is not parked on the lattice, it SWINGS about {:} — so a card is
+ * itself a phasor one level up, and its items orbit its moving tip. Two cards
+ * are 180 apart about {:}, three are 120, which is the same n-gon step the
+ * items use inside a card. The whole thing is tip to tail twice over.
+ *
+ * A body's own phasor comes from what its card SUMS to, so the body is the
+ * card's total and the points hanging off it are how it got there.
+ */
+function bodyPhasor(b, i, n){
+  let tot = {num: 0n, den: 1n};
+  for(const it of b.good) tot = fAdd(tot, it.f);
+  let p;
+  try{
+    p = tot.den === 1n && tot.num !== 0n ? phasor(String(tot.num), false)
+                                         : fracPhasor(tot, WIDTH);
+  }catch(e){ p = fracPhasor({num: 1n, den: 1n}, WIDTH); }
+  p.phase = TAU * i / Math.max(1, n);
+  b.total = tot;
+  return p;
+}
 function model(){
   const bodies = CARDS.map(c => readCard(c.src));
   const pos = sites(bodies.length);
-  bodies.forEach((b, i) => { b.at = pos[i]; });
+  bodies.forEach((b, i) => {
+    b.seat = pos[i];                      /* where it sits when it is not swinging */
+    b.bp = bodyPhasor(b, i, bodies.length);
+  });
   return bodies;
+}
+/* where body i is at time t: the tip of its own phasor, from {:} */
+function bodyAt(b, t){
+  const v = comp(b.bp, t);
+  const m = b.bpMax || 1;
+  return [v[0] / m, v[1] / m, v[2] / m];
 }
 let BODIES = model(), CURVES = [], SPAN = 1;
 /* the traces the selected card's items draw over one turn: one per item, plus
@@ -216,6 +246,15 @@ function recompute(){
     c.max = mx;
     return c;
   });
+  /* each body's own swing, normalised so no card's total drowns the others */
+  for(const b of BODIES){
+    let m = 1e-9;
+    for(let i = 0; i <= 120; i++){
+      const v = comp(b.bp, TAU * i / 120);
+      m = Math.max(m, Math.hypot(v[0], v[1], v[2]));
+    }
+    b.bpMax = m;
+  }
   SPAN = Math.max(1e-9, ...CURVES.map(c => c.max || 0));
   traces();
 }
@@ -265,31 +304,41 @@ function draw(){
   g.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2;
   const many = BODIES.length > 1;
-  /* the shell the bodies are packed on, and the scale one body gets */
-  const SEP = many ? Math.min(w, h) * 0.31 : 0;
-  const R = Math.min(w, h) * (many ? 0.13 : 0.36) / SPAN;
+  /* the swing each body takes about {:}, and the scale its own points get */
+  const SEP = many ? Math.min(w, h) * 0.30 : Math.min(w, h) * 0.16;
+  const R = Math.min(w, h) * (many ? 0.12 : 0.30) / SPAN;
   const rule = css("--rule"), brass = css("--brass"), ink3 = css("--ink3"),
         blue = css("--blue"), red = css("--red"), green = css("--green");
-  if(many){
-    g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.5;
-    g.beginPath(); g.arc(cx, cy, SEP, 0, TAU); g.stroke(); g.globalAlpha = 1;
-  }
+  /* the shell the bodies swing on */
+  g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.4;
+  g.beginPath(); g.arc(cx, cy, SEP, 0, TAU); g.stroke(); g.globalAlpha = 1;
   /* back to front, so near bodies cover far ones */
-  const order = BODIES.map((b, i) => ({b, i, at: proj(b.at, cx, cy, SEP)}))
+  const order = BODIES.map((b, i) => ({b, i, at: proj(bodyAt(b, T), cx, cy, SEP)}))
     .sort((p, q) => p.at.d - q.at.d);
+  /* the spokes back to {:}, under everything */
+  for(const o of order){
+    g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.45;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(o.at.px, o.at.py); g.stroke();
+  }
+  g.globalAlpha = 1;
   for(const {b, i, at} of order){
     const near = 0.55 + 0.45 * Math.max(0, at.d);
     const bx = at.px, by = at.py;
-    /* the black body */
-    const rad = Math.max(6, Math.min(w, h) * (many ? 0.035 : 0.075) * near);
-    const gr = g.createRadialGradient(bx - rad * .3, by - rad * .4, rad * .1,
-                                      bx, by, rad);
-    gr.addColorStop(0, css("--ink2")); gr.addColorStop(1, css("--ink"));
-    g.fillStyle = gr; g.globalAlpha = near;
-    g.beginPath(); g.arc(bx, by, rad, 0, TAU); g.fill();
+    /* the black body — or, collapsed, nothing but the points it holds */
+    const rad = Math.max(5, Math.min(w, h) * (many ? 0.032 : 0.06) * near);
+    if(!COLLAPSE){
+      const gr = g.createRadialGradient(bx - rad * .3, by - rad * .4, rad * .1,
+                                        bx, by, rad);
+      gr.addColorStop(0, css("--ink2")); gr.addColorStop(1, css("--ink"));
+      g.fillStyle = gr; g.globalAlpha = near;
+      g.beginPath(); g.arc(bx, by, rad, 0, TAU); g.fill();
+      g.globalAlpha = 1;
+    }
+    g.strokeStyle = i === SEL ? brass : rule;
+    g.lineWidth = i === SEL ? 2 : 1;
+    g.globalAlpha = COLLAPSE ? 0.5 : 1;
+    g.beginPath(); g.arc(bx, by, COLLAPSE ? 2.5 : rad, 0, TAU); g.stroke();
     g.globalAlpha = 1;
-    g.strokeStyle = i === SEL ? brass : rule; g.lineWidth = i === SEL ? 2 : 1;
-    g.beginPath(); g.arc(bx, by, rad, 0, TAU); g.stroke();
     const C = CURVES[i] || [];
     if(!C.length) continue;
     /* the curve the rack traces round it */
@@ -328,11 +377,23 @@ function draw(){
       g.fillText(String(i + 1), bx, by + rad + 13);
     }
   }
+  /* {:} — the point every body swings against */
+  g.strokeStyle = css("--brass"); g.fillStyle = css("--panel"); g.lineWidth = 1.5;
+  g.beginPath(); g.arc(cx, cy, 6, 0, TAU); g.fill(); g.stroke();
+  g.fillStyle = css("--brass");
+  g.font = "600 9px 'IBM Plex Mono', monospace";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(":", cx, cy);
+  g.textBaseline = "alphabetic";
+  g.fillStyle = css("--ink3"); g.font = "9px 'IBM Plex Mono', monospace";
+  g.fillText("{:}", cx, cy + 19);
+
   drawWaves();
   const tot = BODIES.reduce((a, b) => a + b.good.length, 0);
   $("#hud").innerHTML = `<b>${BODIES.length}</b> black bod${BODIES.length === 1
     ? "y" : "ies"} &middot; <b>${tot}</b> phasor${tot === 1 ? "" : "s"}`
-    + (BODIES.length > 1 ? " &middot; packed on the Fibonacci lattice" : "")
+    + ` &middot; swinging about <b>{:}</b> at ${Math.round(360 / BODIES.length)}&deg;`
+    + (COLLAPSE ? " &middot; collapsed to point groups" : "")
     + "<br>" + BODIES.map((b, i) => (i + 1) + ": " + b.good.length
         + (b.good.length ? " at " + Math.round(360 / b.good.length) + "&deg;" : "")).join("  ");
 }
@@ -446,7 +507,7 @@ $("#add").addEventListener("click", () => {
   if(rows.length) rows[rows.length - 1].focus();
 });
 $("#run").addEventListener("change", e => { RUN = e.target.checked; });
-$("#trails").addEventListener("change", e => { TRAILS = e.target.checked; });
+$("#collapse").addEventListener("change", e => { COLLAPSE = e.target.checked; });
 $("#reset").addEventListener("click", () => { SPIN = 0.6; TILT = 0.35; });
 const sky = $("#sky");
 if(sky){
