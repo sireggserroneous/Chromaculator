@@ -55,9 +55,21 @@ label.chk{display:flex; gap:5px; align-items:center; font-size:.66rem;
   color:var(--ink2); font-family:"IBM Plex Sans",sans-serif; cursor:pointer}
 label.chk input{accent-color:var(--brass)}
 /* ---- the field ---- */
-.field{position:relative; min-height:0; background:var(--paper)}
+.field{min-height:0; background:var(--paper); display:grid;
+  grid-template-rows:minmax(0,1fr) auto}
+.sphwrap{position:relative; min-height:0}
 #sky{position:absolute; inset:0; width:100%; height:100%; display:block;
   cursor:grab; touch-action:none}
+.waves{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+  padding:8px 10px 10px; border-top:1px solid var(--rule)}
+@media (max-width:900px){ .waves{grid-template-columns:1fr} }
+.waves figure{margin:0; background:var(--panel); border:1px solid var(--rule);
+  border-radius:3px; box-shadow:var(--shadow); padding:6px 7px 4px;
+  display:flex; flex-direction:column}
+.waves canvas{width:100%; height:104px; display:block}
+.waves figcaption{font-family:"IBM Plex Mono",monospace; font-size:.57rem;
+  color:var(--ink3); letter-spacing:.06em; padding-top:3px}
+.waves figcaption b{color:var(--ink2)}
 #sky:active{cursor:grabbing}
 .hud{position:absolute; left:12px; top:10px; font-family:"IBM Plex Mono",monospace;
   font-size:.64rem; color:var(--ink3); pointer-events:none; line-height:1.7}
@@ -95,8 +107,18 @@ label.chk input{accent-color:var(--brass)}
     <div class="rows" id="rows"></div>
   </div>
   <div class="field">
-    <canvas id="sky"></canvas>
-    <div class="hud" id="hud"></div>
+    <div class="sphwrap">
+      <canvas id="sky"></canvas>
+      <div class="hud" id="hud"></div>
+    </div>
+    <div class="waves">
+      <figure><canvas id="wx"></canvas>
+        <figcaption><b>X</b> <i>i</i> — round the equator</figcaption></figure>
+      <figure><canvas id="wy"></canvas>
+        <figcaption><b>Y</b> <i>j</i> — quadrature</figcaption></figure>
+      <figure><canvas id="wz"></canvas>
+        <figcaption><b>Z</b> <i>fold</i> — north and south</figcaption></figure>
+    </div>
   </div>
 </div>
 
@@ -136,15 +158,30 @@ function readCard(src){
   for(const s of parts){
     try{
       const f = evalFrac(s);
-      const p = fracPhasor(f, WIDTH);
-      items.push({src: s, f, p, ok: true});
+      /* A whole number goes through phasor() — the same path Wub +- uses, so an
+         integer wubs here exactly as it does there. Cutting it to a fixed width
+         instead pushed every lit bit into the top-left, left the FOLD empty,
+         and the fold is the radius: the phasor had no width and only z moved,
+         so the sine waves came out flat. Only a fraction needs a cut. */
+      const p = f.den === 1n ? phasor(String(f.num), false)
+                             : fracPhasor(f, WIDTH);
+      /* whether it landed exactly belongs to the ITEM: a whole number goes
+         through phasor(), which has no such field because an integer always
+         does. Only a cut fraction can fall short. */
+      items.push({src: s, f, p, ok: true, whole: f.den === 1n,
+                  exact: f.den === 1n ? true : p.exact,
+                  rem: f.den === 1n ? {num: 0n, den: 1n} : p.rem});
     }catch(e){
       items.push({src: s, ok: false, why: e.message});
     }
   }
   const good = items.filter(i => i.ok);
   /* evenly round the body: two are 180 apart, three are 120, n are 360/n */
-  good.forEach((it, j) => { it.p.phase = TAU * j / good.length; });
+  good.forEach((it, j) => {
+    it.p.phase = TAU * j / good.length;
+    it.hue = (j * 360 / Math.max(1, good.length) + 20) % 360;
+    it.col = "hsl(" + it.hue.toFixed(0) + " 62% 52%)";
+  });
   return {items, good};
 }
 function model(){
@@ -154,6 +191,10 @@ function model(){
   return bodies;
 }
 let BODIES = model(), CURVES = [], SPAN = 1;
+/* the traces the selected card's items draw over one turn: one per item, plus
+   the sum, per axis. This is what Wub +- shows and what an integer looks like
+   as a wave. */
+let TR = [[], [], []], SUM = [[], [], []];
 
 const SAMPLES = 360;
 function recompute(){
@@ -176,6 +217,23 @@ function recompute(){
     return c;
   });
   SPAN = Math.max(1e-9, ...CURVES.map(c => c.max || 0));
+  traces();
+}
+function traces(){
+  const b = BODIES[SEL];
+  TR = [[], [], []]; SUM = [[], [], []];
+  if(!b || !b.good.length) return;
+  TR = [b.good.map(() => []), b.good.map(() => []), b.good.map(() => [])];
+  SUM = [[], [], []];
+  for(let i = 0; i <= SAMPLES; i++){
+    const t = TAU * i / SAMPLES;
+    const s3 = [0, 0, 0];
+    b.good.forEach((it, j) => {
+      const v = comp(it.p, t);
+      for(let k = 0; k < 3; k++){ TR[k][j].push(v[k]); s3[k] += v[k]; }
+    });
+    for(let k = 0; k < 3; k++) SUM[k].push(s3[k]);
+  }
 }
 
 /* ---- drawing ---- */
@@ -270,12 +328,67 @@ function draw(){
       g.fillText(String(i + 1), bx, by + rad + 13);
     }
   }
+  drawWaves();
   const tot = BODIES.reduce((a, b) => a + b.good.length, 0);
   $("#hud").innerHTML = `<b>${BODIES.length}</b> black bod${BODIES.length === 1
     ? "y" : "ies"} &middot; <b>${tot}</b> phasor${tot === 1 ? "" : "s"}`
     + (BODIES.length > 1 ? " &middot; packed on the Fibonacci lattice" : "")
     + "<br>" + BODIES.map((b, i) => (i + 1) + ": " + b.good.length
         + (b.good.length ? " at " + Math.round(360 / b.good.length) + "&deg;" : "")).join("  ");
+}
+
+/* ---- the waves ----
+ * What an integer looks like as a wave, the way Wub +- shows it: one trace per
+ * item in the card, in the item's own colour, and the sum over them in ink. A
+ * card with 3 in it is one sine; 3, 5, 7 is three, spaced 120 apart, and the
+ * heavy line is what they come to.
+ */
+function drawWaves(){
+  const AX = ["#wx", "#wy", "#wz"];
+  const b = BODIES[SEL];
+  for(let k = 0; k < 3; k++){
+    const cv = $(AX[k]); if(!cv) continue;
+    const {g, w, h} = fit(cv);
+    g.clearRect(0, 0, w, h);
+    const pad = 8, iw = w - pad * 2, ih = h - pad * 2, cy = pad + ih / 2;
+    g.strokeStyle = css("--rule2"); g.lineWidth = 1;
+    g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(pad, cy); g.lineTo(w - pad, cy); g.stroke();
+    g.setLineDash([]);
+    const T2 = TR[k], S2 = SUM[k];
+    if(!b || !b.good.length || !S2.length){
+      g.fillStyle = css("--ink3");
+      g.font = "10px 'IBM Plex Mono', monospace"; g.textAlign = "center";
+      g.fillText("card " + (SEL + 1) + " is empty", w / 2, cy + 3);
+      continue;
+    }
+    let peak = 1e-9;
+    for(const tr of T2) for(const y of tr) peak = Math.max(peak, Math.abs(y));
+    for(const y of S2) peak = Math.max(peak, Math.abs(y));
+    const X = i => pad + i / SAMPLES * iw, Y = y => cy - y / peak * (ih / 2);
+    g.lineWidth = 1.3; g.globalAlpha = 0.8;
+    b.good.forEach((it, j) => {
+      g.strokeStyle = it.col; g.beginPath();
+      T2[j].forEach((y, i) => i ? g.lineTo(X(i), Y(y)) : g.moveTo(X(i), Y(y)));
+      g.stroke();
+    });
+    g.globalAlpha = 1;
+    g.strokeStyle = css("--ink"); g.lineWidth = 2.2; g.beginPath();
+    S2.forEach((y, i) => i ? g.lineTo(X(i), Y(y)) : g.moveTo(X(i), Y(y)));
+    g.stroke();
+    /* where the chain stands right now */
+    const ph = ((T % TAU) + TAU) % TAU / TAU;
+    const idx = Math.min(SAMPLES, Math.round(ph * SAMPLES)), px = X(idx);
+    g.strokeStyle = css("--ink3"); g.lineWidth = 1; g.globalAlpha = 0.7;
+    g.beginPath(); g.moveTo(px, pad); g.lineTo(px, h - pad); g.stroke();
+    g.globalAlpha = 1;
+    b.good.forEach((it, j) => {
+      g.fillStyle = it.col;
+      g.beginPath(); g.arc(px, Y(T2[j][idx]), 2.6, 0, TAU); g.fill();
+    });
+    g.fillStyle = css("--ink"); g.strokeStyle = css("--panel"); g.lineWidth = 2;
+    g.beginPath(); g.arc(px, Y(S2[idx]), 4, 0, TAU); g.fill(); g.stroke();
+  }
 }
 
 /* ---- the list ---- */
@@ -287,14 +400,14 @@ function paint(){
     row.className = "row" + (i === SEL ? " sel" : "");
     const gut = document.createElement("div");
     gut.className = "gut"; gut.textContent = String(i + 1);
-    gut.addEventListener("click", () => { SEL = i; paint(); });
+    gut.addEventListener("click", () => { SEL = i; traces(); paint(); });
     const inp = document.createElement("input");
     inp.className = "inp"; inp.value = c.src; inp.spellcheck = false;
     inp.placeholder = "3, 5, 7  or  (13*3*127/2^4)";
     inp.addEventListener("input", () => {
       CARDS[i].src = inp.value; SEL = i; recompute(); info();
     });
-    inp.addEventListener("focus", () => { SEL = i; paint(); });
+    inp.addEventListener("focus", () => { SEL = i; traces(); paint(); });
     const del = document.createElement("button");
     del.className = "del"; del.innerHTML = "&times;"; del.title = "remove";
     del.addEventListener("click", () => {
@@ -320,8 +433,8 @@ function info(){
       if(!it.ok) return `<span class="bad">${it.src} &mdash; ${it.why}</span>`;
       const f = it.f;
       const v = f.den === 1n ? String(f.num) : f.num + "/" + f.den;
-      return "<b>" + v + "</b>" + (it.p.exact ? "" :
-        ` <span class="cut">cut to ${WIDTH}, rem ${it.p.rem.num}/${it.p.rem.den}</span>`);
+      return "<b>" + v + "</b>" + (it.exact ? "" :
+        ` <span class="cut">cut to ${WIDTH}, rem ${it.rem.num}/${it.rem.den}</span>`);
     }).join(" &middot; ");
   });
 }

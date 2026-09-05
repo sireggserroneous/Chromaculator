@@ -32,7 +32,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   const read = src => JSON.parse(p.run(
     `CARDS = [{src: ${JSON.stringify(src)}}]; recompute();
      JSON.stringify(BODIES[0].items.map(it => it.ok
-       ? {v: it.f.num + "/" + it.f.den, exact: it.p.exact}
+       ? {v: it.f.num + "/" + it.f.den, exact: it.exact}
        : {bad: it.why}))`));
   const CASES = [["47*127", "5969/1", true], ["(13*3*127/2^4)", "4953/16", true],
                  ["(1/3)", "1/3", false], ["(2/3)", "2/3", false],
@@ -50,8 +50,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
 /* ---- 3. a cut says what it dropped, and bad input is reported not crashed ---- */
 {
   const r = JSON.parse(p.run(`CARDS = [{src: "(1/3)"}]; recompute();
-    JSON.stringify({exact: BODIES[0].good[0].p.exact,
-      rem: BODIES[0].good[0].p.rem.num + "/" + BODIES[0].good[0].p.rem.den,
+    JSON.stringify({exact: BODIES[0].good[0].exact,
+      rem: BODIES[0].good[0].rem.num + "/" + BODIES[0].good[0].rem.den,
       cells: BODIES[0].good[0].raw ? BODIES[0].good[0].raw.join("") : ""})`));
   ok(!r.exact && r.rem !== "0/1", "1/3 must carry a remainder");
   const e = JSON.parse(p.run(`CARDS = [{src: "oops, 1/0, 3"}]; recompute();
@@ -96,6 +96,42 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
      "draw() threw");
   console.log(`  [5] draws          3 bodies, curves finite, depth a cosine `
     + `(worst ${worst.toFixed(4)}), draw() runs clean`);
+}
+
+/* ---- 6. an integer wubs the way it does in Wub +-, and the waves are not flat ----
+ * x is fold*cos(B)*cos(A), so a phasor with an empty fold has no radius and only
+ * z moves. Cutting an integer to a fixed 16 cells pushed every lit bit into the
+ * top-left, left the fold empty, and the sine waves came out dead flat. A whole
+ * number takes phasor() — the same path Wub +- uses.
+ */
+{
+  const same = p.run(`(() => {
+    CARDS = [{src: "3"}]; SEL = 0; recompute();
+    const mine = BODIES[0].good[0].p, theirs = phasor("3", false);
+    return JSON.stringify({whole: BODIES[0].good[0].whole,
+      cells: mine.shown.join(",") === theirs.shown.join(","),
+      fold: mine.fold === theirs.fold, inner: mine.inner === theirs.inner,
+      rates: mine.rateA === theirs.rateA && mine.rateB === theirs.rateB}); })()`);
+  const m = JSON.parse(same);
+  ok(m.whole && m.cells && m.fold && m.inner && m.rates,
+     "an integer must be exactly the phasor Wub +- builds: " + same);
+  /* and every axis must actually move */
+  for(const src of ["3", "3, 5", "3, 5, 7", "(13*3*127/2^4)", "(1/3)"]){
+    const pk = JSON.parse(p.run(`CARDS = [{src: ${JSON.stringify(src)}}]; SEL = 0;
+      recompute(); JSON.stringify([0,1,2].map(k =>
+        Math.max(...SUM[k].map(Math.abs))))`));
+    ok(pk.every(v => v > 1e-9),
+       `${src}: an axis is flat, peaks ${pk.map(v => v.toFixed(4))}`);
+  }
+  p.run(`CARDS = [{src: "3"}]; SEL = 0; recompute();`);
+  const one = JSON.parse(p.run(`JSON.stringify([0,1,2].map(k =>
+    Math.max(...SUM[k].map(Math.abs))))`));
+  ok(Math.abs(one[0] - 0.125) < 1e-12,
+     `3 should peak in X at its fold, 0.125, got ${one[0]}`);
+  console.log("  [6] integers wub   3 is the same phasor Wub +- builds, cells, "
+    + "regions and rates");
+  console.log(`                     and no axis is flat: 3 peaks X ${one[0]}, `
+    + `which is its fold`);
 }
 
 console.log("\n  certified.");
