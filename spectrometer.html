@@ -571,7 +571,6 @@ const clamp1 = t => Math.max(-1, Math.min(1, t));
    a bigger value is a longer wave, and the same number always gives the
    same colour. wavelength to RGB by the usual piecewise fit. */
 const VIS_LO = 380, VIS_HI = 730;
-const nmOf = val => VIS_LO + Math.min(1, Math.abs(val)) * (VIS_HI - VIS_LO);
 function nmToRGB(nm){
   let r = 0, g = 0, b = 0;
   if(nm < 440){ r = -(nm - 440) / 60; b = 1; }

@@ -675,3 +675,81 @@ function defOf(src){
   const m = /^\s*([A-Za-z][A-Za-z0-9]*)\s*=\s*(.+)$/.exec(String(src));
   return m ? {name: m[1], body: m[2]} : null;
 }
+
+/* ---- a card's first page, as Wubba Dub draws it ----
+ * Lifted out of wubbadub.html so Chromaculator's cards are the SAME card: the
+ * dominoes, the boxed grid, and the facts that describe the number.
+ */
+const OPNAME = {"+": "plus", "-": "minus", "*": "times", "/": "over"};
+const OPSYM  = {"+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7"};
+
+/* a declaration, not a const: a const does not escape an eval scope */
+function nmOf(val){ return 380 + Math.min(1, Math.abs(val)) * 350; }
+
+function dominoesHTML(digits){
+  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
+  const out = [];
+  commas(digits, n).forEach((g, gi) => {
+    if(gi) out.push(`<span class="dcma">,</span>`);
+    g.forEach((v, j) => out.push(`<div class="dbar ${cls(v)}" title="2^-${j + 1}"></div>`));
+  });
+  return `<div class="doms"><div class="dbars">${out.join("")}</div>`
+    + `<div class="dground"></div></div>`;
+}
+
+function page1HTML(p, e){
+  const cap = p.kind === "grid"
+    ? `${p.rows}\u00d7${p.cols} ${p.op === "/" ? "tableau" : "grid"}`
+    : (p.mode === "op" ? `${OPNAME[p.op]}` : `${p.n}\u00d7${p.n}`);
+  return `<div class="p1">`
+    + (p.overlay ? overlayHTML(p.overlay, p.op) : "")
+    + dominoesHTML(p.vec || p.shown)
+    + `<div class="gcol">` + boxes(p.cells, p.cols, p.rows, p.foldAt)
+    + `<div class="gcap">${cap}</div></div>`
+    + `<div class="tcol">${factsHTML(p, e)}</div></div>`;
+}
+/* Push runs to a canonical fixpoint, so a second pass changes nothing -- but
+   it can only move weight left, and it leaves a run of greens to the right of
+   the last lit cell. Spread is the move the other way. It is exact only in the
+   limit, so the tail is barred: it repeats forever. */
+function spreadRow(pushed){
+  const r = spreadRight(pushed);
+  if(!r.bar) return `<dt>Spread</dt><dd class="dim">no trailing greens to fill</dd>`;
+  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
+  const head = r.d.slice(0, r.at).map(gl).join("");
+  const tail = r.d.slice(r.at).map(gl).join("");
+  return `<dt>Spread</dt><dd class="bits">${head}<span class="rep">${tail}</span>`
+    + ` \u00b7 the barred tail repeats</dd>`;
+}
+function factsHTML(p, e){
+  const gl = v => `<i class="${cls(v)}">${glyph(v)}</i>`;
+  const bits = d => d.map(gl).join("");
+  /* commas fall on the anti-diagonals of a square. A rectangle has no such
+     arcs, so its rows are the honest grouping. */
+  /* Cells, Commas and Push all describe the number, which lives on the vector
+     -- for a rectangle that is its squash, not its cells read left to right. */
+  const vec = p.vec || p.shown;
+  const vn = Math.max(1, Math.ceil(Math.sqrt(vec.length)));
+  const grouped = commas(vec, vn).map(g => bits(g)).join(`<i class="cma">,</i>`);
+  const U = pushLeft(vec);
+  const opLine = p.mode === "op"
+    ? `<dt>Op</dt><dd><b>${OPSYM[p.op]} ${e.k}</b>`
+      + (p.E ? ` \u00b7 ring 2<sup>${p.E}</sup>` : "")
+      + (p.op === "/" && p.rem
+          ? ` \u00b7 R ${fmt(p.rem)}${p.exact ? " (exact)" : ""}` : "")
+      + `</dd>`
+    : "";
+  return `<dl class="facts">`
+    + opLine
+    + `<dt>Inner</dt><dd>${p.inner.toFixed(6)}</dd>`
+    + `<dt>Fold</dt><dd>${p.fold.toFixed(6)}</dd>`
+    + `<dt>Outer</dt><dd>${p.outer.toFixed(6)}</dd>`
+    + `<dt>Value</dt><dd><b>${fmt(p.value)}</b> \u00b7 ${Math.round(p.nm)} nm`
+      + ` \u00b7 ${p.greens} green</dd>`
+    + `<dt>Cells</dt><dd class="bits">${bits(vec)} \u00b7 ${vec.length}`
+      + `${p.kind === "grid" ? ` squashed from ${p.rows}\u00d7${p.cols}` : ` in ${p.n}\u00d7${p.n}`}</dd>`
+    + `<dt>Commas</dt><dd class="bits">${grouped}</dd>`
+    + `<dt>Push</dt><dd class="bits">${bits(U)} = ${fmt(hexValue(U))}</dd>`
+    + spreadRow(U)
+    + `</dl>`;
+}

@@ -601,6 +601,23 @@ A body's own phasor is what its card **sums to**, so `3, 5, 7` swings as 15 and
 the three points hanging off it are how it got there. Each swing is normalised,
 so `3` travels as far as `47*127` and neither drowns the other.
 
+### The card is a Wubba Dub card
+
+Not a lookalike — the same renderer. `dominoesHTML`, `boxes`, `factsHTML` and
+`nmOf` moved out of `wubbadub.html` into `stalk.js`, so a Chromaculator card
+draws what a Wubba Dub card draws:
+
+    3   Inner 0.000000  Fold 0.125000  Outer 0.062500
+        Value 3/16 · 446 nm · 2 green
+        Cells 0011 · 4 in 2x2    Commas 0,01,1
+        Push  1--1 = 3/16        Spread no trailing greens to fill
+
+Page 0 is the number — dominoes, the boxed grid, the facts, one block per item
+on the card. Pages 1 and 2 are its 1D and 2D projections. Dots at the bottom of
+each row page through.
+
+`nmOf` had five copies across the pages before this and now has one.
+
 ### Variables
 
 A card that reads `name = expr` is a **knob and a body**: it takes a slider,

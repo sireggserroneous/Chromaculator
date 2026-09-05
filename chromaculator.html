@@ -53,6 +53,42 @@ body{overflow:hidden}
   font-weight:600; min-width:3.2em; text-align:right}
 .sld .rng{font-family:"IBM Plex Mono",monospace; font-size:.56rem; color:var(--ink3)}
 .row.def .gut{background:var(--brass-soft); color:var(--panel)}
+/* ---- the card gallery, as Wubba Dub lays it out ---- */
+.gal{grid-column:2 / span 2; padding:2px 10px 10px}
+.p1{display:grid; grid-template-columns:auto auto 1fr; gap:11px; align-items:start;
+  padding:7px 0; border-top:1px dashed var(--rule)}
+.p1:first-child{border-top:none}
+@media (max-width:1100px){ .p1{grid-template-columns:1fr} }
+.gcol{display:flex; flex-direction:column; gap:3px; align-items:flex-start}
+.gcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; color:var(--ink3)}
+.tcol{min-width:0}
+.facts{display:grid; grid-template-columns:auto 1fr; gap:1px 9px; margin:0;
+  font-family:"IBM Plex Mono",monospace; font-size:.6rem}
+.facts dt{color:var(--ink3); text-transform:uppercase; letter-spacing:.09em}
+.facts dd{margin:0; color:var(--ink2); overflow-wrap:anywhere}
+.facts dd b{color:var(--brass)}
+.facts dd.dim{color:var(--rule2)}
+.bits i{font-style:normal; font-weight:600}
+.bits i.b{color:var(--blue)} .bits i.r{color:var(--red)}
+.bits i.g{color:var(--rule2)}
+.bits .rep{border-top:1px solid var(--brass); padding-top:1px}
+.cma{color:var(--ink3); font-style:normal; padding:0 1px}
+.doms{display:flex; flex-direction:column; justify-content:flex-end; min-width:54px}
+.dbars{display:flex; align-items:flex-end; gap:2px}
+.dbar{width:7px; height:30px; border-radius:1px}
+.dbar.b{background:var(--blue)} .dbar.r{background:var(--red)}
+.dbar.g{background:var(--green); opacity:.45}
+.dcma{color:var(--ink3); font-size:.6rem; align-self:flex-end}
+.dground{height:1px; background:var(--rule2); margin-top:3px}
+.dots{display:flex; gap:6px; justify-content:center; padding:4px 0 0}
+.dot{width:7px; height:7px; border-radius:50%; border:1px solid var(--rule2);
+  background:transparent; padding:0; cursor:pointer}
+.dot.on{background:var(--brass); border-color:var(--brass)}
+.pgcv{width:100%; height:96px; display:block}
+.pgrow{display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; padding-top:6px}
+.pgrow figure{margin:0; min-width:0; display:flex; flex-direction:column}
+.pgrow figcaption{font-family:"IBM Plex Mono",monospace; font-size:.53rem;
+  color:var(--ink3); padding-top:2px}
 button{font-family:"IBM Plex Mono",monospace; font-size:.7rem; padding:5px 9px;
   cursor:pointer; background:transparent; color:var(--ink2);
   border:1px solid var(--rule2); border-radius:2px}
@@ -181,6 +217,11 @@ function readCard(src){
       /* whether it landed exactly belongs to the ITEM: a whole number goes
          through phasor(), which has no such field because an integer always
          does. Only a cut fraction can fall short. */
+      /* the fields page1HTML wants, so a Chromaculator card is the same card
+         Wubba Dub draws: dominoes, the boxed grid, and the facts */
+      p.cells = p.shown; p.cols = p.n; p.rows = p.n; p.foldAt = p.n - 1;
+      p.vec = p.shown; p.kind = "stalk"; p.mode = "num";
+      p.nm = nmOf(Number(p.value.num) / Number(p.value.den));
       items.push({src: s, f, p, ok: true, whole: f.den === 1n,
                   exact: f.den === 1n ? true : p.exact,
                   rem: f.den === 1n ? {num: 0n, den: 1n} : p.rem});
@@ -606,9 +647,104 @@ function paint(){
       row.appendChild(sld);
     }
     row.appendChild(nfo);
+    /* the gallery: page 0 is the number itself — dominoes, grid, facts */
+    const gal = document.createElement("div");
+    gal.className = "gal"; gal.id = "gal" + i;
+    row.appendChild(gal);
+    const dots = document.createElement("div");
+    dots.className = "dots";
+    PAGES.forEach((nm2, k) => {
+      const d = document.createElement("button");
+      d.className = "dot" + ((c.page || 0) === k ? " on" : "");
+      d.title = nm2;
+      d.addEventListener("click", () => {
+        CARDS[i].page = k; SEL = i; traces(); paint();
+      });
+      dots.appendChild(d);
+    });
+    row.appendChild(dots);
     host.appendChild(row);
   });
   info();
+  gallery();
+}
+const PAGES = ["the number", "1D X Y Z", "2D XY XZ YZ"];
+/* page 0 is the number itself, drawn by the same page1HTML Wubba Dub uses.
+   Pages 1 and 2 are its projections, one small canvas each. */
+function gallery(){
+  BODIES.forEach((b, i) => {
+    const host = document.getElementById("gal" + i);
+    if(!host) return;
+    const pg = (CARDS[i] && CARDS[i].page) || 0;
+    if(!b.good.length){ host.innerHTML = ""; return; }
+    if(pg === 0){
+      host.innerHTML = b.good.map(it => page1HTML(it.p, {k: it.src})).join("");
+      return;
+    }
+    const set = pg === 1 ? ["X", "Y", "Z"] : ["XY", "XZ", "YZ"];
+    host.innerHTML = '<div class="pgrow">' + set.map((nm2, k) =>
+      `<figure><canvas class="pgcv" id="cv${i}_${k}"></canvas>`
+      + `<figcaption>${nm2}</figcaption></figure>`).join("") + "</div>";
+  });
+}
+/* the card's own projections, drawn every frame like the field is */
+function drawGallery(){
+  BODIES.forEach((b, i) => {
+    const pg = (CARDS[i] && CARDS[i].page) || 0;
+    if(!pg || !b.good.length) return;
+    const AXES = pg === 1 ? [[0], [1], [2]] : [[0, 1], [0, 2], [1, 2]];
+    AXES.forEach((ax, k) => {
+      const cv = document.getElementById("cv" + i + "_" + k);
+      if(!cv) return;
+      const {g, w, h} = fit(cv);
+      g.clearRect(0, 0, w, h);
+      const pad = 5;
+      /* one pass to find the extent, so each panel fills itself */
+      let mx = 1e-9;
+      const pts = [];
+      for(let q = 0; q <= SAMPLES; q++){
+        const t = TAU * q / SAMPLES;
+        let v = [0, 0, 0];
+        for(const it of b.good){ const c = comp(it.p, t);
+          v = [v[0] + c[0], v[1] + c[1], v[2] + c[2]]; }
+        pts.push(v);
+        for(const a of ax) mx = Math.max(mx, Math.abs(v[a]));
+      }
+      g.strokeStyle = css("--rule"); g.lineWidth = 1;
+      if(ax.length === 1){
+        g.beginPath(); g.moveTo(pad, h / 2); g.lineTo(w - pad, h / 2); g.stroke();
+        g.strokeStyle = css("--brass"); g.lineWidth = 1.5; g.beginPath();
+        pts.forEach((v, q) => {
+          const px = pad + q / SAMPLES * (w - pad * 2);
+          const py = h / 2 - v[ax[0]] / mx * (h / 2 - pad);
+          q ? g.lineTo(px, py) : g.moveTo(px, py);
+        });
+        g.stroke();
+        const idx = Math.min(SAMPLES, Math.round(((T % TAU) + TAU) % TAU / TAU * SAMPLES));
+        g.fillStyle = css("--green");
+        g.beginPath();
+        g.arc(pad + idx / SAMPLES * (w - pad * 2),
+              h / 2 - pts[idx][ax[0]] / mx * (h / 2 - pad), 3, 0, TAU);
+        g.fill();
+        return;
+      }
+      const cx2 = w / 2, cy2 = h / 2, R2 = Math.min(w, h) / 2 - pad;
+      g.beginPath(); g.moveTo(pad, cy2); g.lineTo(w - pad, cy2);
+      g.moveTo(cx2, pad); g.lineTo(cx2, h - pad); g.stroke();
+      g.strokeStyle = css("--brass"); g.lineWidth = 1.5; g.beginPath();
+      pts.forEach((v, q) => {
+        const px = cx2 + v[ax[0]] / mx * R2, py = cy2 - v[ax[1]] / mx * R2;
+        q ? g.lineTo(px, py) : g.moveTo(px, py);
+      });
+      g.stroke();
+      const idx = Math.min(SAMPLES, Math.round(((T % TAU) + TAU) % TAU / TAU * SAMPLES));
+      g.fillStyle = css("--green");
+      g.beginPath();
+      g.arc(cx2 + pts[idx][ax[0]] / mx * R2, cy2 - pts[idx][ax[1]] / mx * R2,
+            3, 0, TAU);
+      g.fill();
+    });
+  });
 }
 /* what each card came to, said exactly */
 function info(){
@@ -673,6 +809,7 @@ function frame(ts){
     });
   }
   draw();
+  drawGallery();
   requestAnimationFrame(frame);
 }
 recompute();

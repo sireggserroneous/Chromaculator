@@ -482,7 +482,6 @@ function crossingBound(curve){
    to red, which is 270 degrees of the wheel — so hue = 270 (1 - |value|).
    because each nibble class walks the whole band, k and 16k come out the
    same colour: the same note, an octave apart. */
-const nmOf  = val => 380 + Math.min(1, Math.abs(val)) * 350;
 const hueOf = val => Math.round(270 * (1 - Math.min(1, Math.abs(val))));
 const hue   = val => `hsl(${hueOf(val)} 72% 58%)`;
 

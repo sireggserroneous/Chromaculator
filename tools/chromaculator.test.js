@@ -321,4 +321,34 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
     + "all draw clean");
 }
 
+/* ---- 12. a card is a Wubba Dub card ----
+ * Same renderer, not a lookalike: dominoesHTML, boxes and factsHTML moved out
+ * of wubbadub.html into stalk.js, so the card here IS that card. nmOf had five
+ * copies across the pages and now has one.
+ */
+{
+  p.run(`CARDS = [{src: "3"}, {src: "3, 5, 7"}]; recompute();`);
+  const h = p.run(`BODIES[0].good.map(it => page1HTML(it.p, {k: it.src})).join("")`);
+  const WANT = ["Inner", "Fold", "Outer", "Value", "Cells", "Commas", "Push", "Spread"];
+  const missing = WANT.filter(k => !h.includes(k));
+  ok(!missing.length, "the card is missing " + missing.join(", "));
+  /* and the numbers are the ones Wubba Dub prints for 3 */
+  ok(h.includes("0.125000") && h.includes("0.062500") && h.includes("3/16"),
+     "fold 0.125, outer 0.0625 and value 3/16 should all be there");
+  ok(h.includes("446 nm"), "the wavelength should be there");
+  ok(/dbar/.test(h) && /gsc/.test(h), "dominoes and the boxed grid should be there");
+  /* one block per item on the card */
+  const h2 = p.run(`BODIES[1].good.map(it => page1HTML(it.p, {k: it.src})).join("")`);
+  ok((h2.match(/class="p1"/g) || []).length === 3,
+     "a card with three items should show three blocks");
+  /* every page builds and draws */
+  ok(p.run(`(() => { for(const pg of [0, 1, 2]){ CARDS[0].page = pg;
+      try { gallery(); drawGallery(); } catch(e){ return "page " + pg + ": " + e.message; } }
+    return true; })()`) === true, "a gallery page threw");
+  ok(p.run("PAGES.length") === 3, "three pages");
+  console.log("  [12] the card       Inner, Fold, Outer, Value, Cells, Commas, Push,");
+  console.log("                      Spread, dominoes and the boxed grid — 3 gives");
+  console.log("                      fold 0.125, outer 0.0625, 3/16 at 446 nm");
+}
+
 console.log("\n  certified.");
