@@ -1029,7 +1029,11 @@ fn try_predict(d: &mut Deflate) {
     if cut == 0 {
         return;
     }
-    let (cfg, _) = crate::zmatch::infer(&d.values[..sample], &actual[..cut]);
+    // no configuration explaining the sample means no prediction for this
+    // member -- the stored parse stands and the row is exactly what it was.
+    let Some((cfg, _)) = crate::zmatch::infer(&d.values[..sample], &actual[..cut]) else {
+        return;
+    };
     let (got, corr) = crate::zmatch::lockstep(&d.values, cfg, &actual);
     if got != actual {
         return;

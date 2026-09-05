@@ -129,6 +129,24 @@ impl Chains {
     fn upd(&mut self, c: u8) {
         self.ins_h = ((self.ins_h << self.hash_shift) ^ c as usize) & self.hash_mask;
     }
+    /// zlib's `deflate_fast` skip, for a match longer than `max_lazy`: the
+    /// positions the match covers are NOT hashed at all. `strstart` jumps and
+    /// `ins_h` is re-primed from two bytes (`deflate.c`: `ins_h = window[s];
+    /// UPDATE_HASH(ins_h, window[s+1])`). Modelling this is the difference
+    /// between predicting a level-1 stream and predicting 64% of one.
+    #[inline]
+    fn skip_and_reprime(&mut self, data: &[u8], to: usize) {
+        if to > self.upto {
+            self.upto = to;
+        }
+        let n = data.len();
+        if to < n {
+            self.ins_h = data[to] as usize;
+            if to + 1 < n {
+                self.upd(data[to + 1]);
+            }
+        }
+    }
     /// INSERT_STRING every position from `upto` through `target`, in order --
     /// the rolling hash demands the order. Returns the previous head of the
     /// LAST bucket touched, which is where `longest_match` starts its walk.
@@ -228,12 +246,17 @@ where
 
         let mut cur_len = MIN_MATCH - 1;
         let mut cur_start = 0usize;
-        if hash_head != NIL && prev_len < cfg.lazy && strstart - (hash_head as usize) <= MAX_DIST {
+        // `deflate_fast` has NO `prev_length < max_lazy` gate -- that belongs to
+        // `deflate_slow`'s lazy step and does not exist in the greedy loop.
+        let look = cfg.greedy() || prev_len < cfg.lazy;
+        if hash_head != NIL && look && strstart - (hash_head as usize) <= MAX_DIST {
             let (l, s) = longest_match(data, &ch, &cfg, strstart, hash_head as usize, MIN_MATCH - 1);
             cur_len = l;
             cur_start = s;
-            // zlib drops a three-byte match that reaches TOO_FAR back
-            if cur_len == MIN_MATCH && strstart - cur_start > TOO_FAR {
+            // and TOO_FAR is `deflate_slow`'s rule alone: the greedy loop keeps
+            // a distant three-byte match. Applying it at levels 1..=3 was one of
+            // the three reasons gz-l1.gz predicted at 64.6% when it IS level 1.
+            if !cfg.greedy() && cur_len == MIN_MATCH && strstart - cur_start > TOO_FAR {
                 cur_len = MIN_MATCH - 1;
             }
         }
@@ -273,12 +296,16 @@ where
             prev_start = cur_start;
             strstart += 1;
         } else {
-            // a match, a greedy emission, or a FORCED token: insert every
-            // position the token covers, then restart clean just past it
-            if span > 1 {
-                ch.insert_upto(data, pos + span - 1);
+            // a match, a greedy emission, or a FORCED token: settle the hash
+            // state across what the token covers, then restart clean past it
+            let after = pos + span;
+            if cfg.greedy() && span >= MIN_MATCH && (span > cfg.lazy || n - after < MIN_MATCH) {
+                // deflate_fast's long-match branch: no inserts, ins_h re-primed
+                ch.skip_and_reprime(data, after);
+            } else if span > 1 {
+                ch.insert_upto(data, after - 1);
             }
-            pos += span;
+            pos = after;
             strstart = pos;
             match_available = false;
             prev_len = MIN_MATCH - 1;
@@ -358,24 +385,29 @@ pub fn from_recipe(d: &crate::deflate::Deflate) -> Vec<Tok> {
 /// Try every (level, memLevel) zlib could have used and return the one needing
 /// the fewest corrections IN LOCKSTEP, with that count. This is the step v12
 /// skipped: the parameters are read out of the stream, not assumed.
-pub fn infer(data: &[u8], actual: &[Tok]) -> (Cfg, usize) {
-    let mut best = (Cfg::new(6, 8), usize::MAX);
+pub fn infer(data: &[u8], actual: &[Tok]) -> Option<(Cfg, usize)> {
+    // `lockstep` reproduces `actual` by forcing, so a config only counts as a
+    // FIT if it also covers the same bytes; a sample cut mid-token fails that
+    // for every config. This used to return a fabricated (level 6, memLevel 8)
+    // with a usize::MAX count that both callers threw away, so "no zlib
+    // configuration explains this stream" was indistinguishable from "level 6
+    // explains it perfectly" -- and on a 599-member archive that is 599 silent
+    // wrong answers. It returns None now and the callers must look.
+    debug_assert!(
+        actual.iter().map(|t| t.span()).sum::<usize>() == data.len(),
+        "infer was handed a token slice that does not cover its data"
+    );
+    let mut best: Option<(Cfg, usize)> = None;
     for level in 1..=9u8 {
         for mem_level in 1..=9u8 {
             let cfg = Cfg::new(level, mem_level);
             let (got, corr) = lockstep(data, cfg, actual);
-            // a config that cannot reproduce the stream is no fit at all. NOTE
-            // this demands `data` and `actual` cover the same bytes exactly: a
-            // sample cut mid-token fails here for EVERY config and silently
-            // returns the default. The caller aligns the sample; this asserts it.
-            debug_assert!(
-                actual.iter().map(|t| t.span()).sum::<usize>() == data.len(),
-                "infer was handed a token slice that does not cover its data"
-            );
-            let d = if got == actual { corr.len() } else { usize::MAX };
-            if d < best.1 {
-                best = (cfg, d);
-                if d == 0 {
+            if got != actual {
+                continue;
+            }
+            if best.is_none_or(|(_, b)| corr.len() < b) {
+                best = Some((cfg, corr.len()));
+                if corr.is_empty() {
                     return best;
                 }
             }
@@ -485,15 +517,40 @@ mod tests {
         }
     }
 
-    /// infer must FIND the config a stream was made with, not merely score it
+    /// infer must FIND the config a stream was made with, not merely score it.
+    /// Levels 1..=3 are `deflate_fast` and are here on purpose: this test fails
+    /// on the greedy loop as it was first written, which applied `deflate_slow`'s
+    /// lazy gate and TOO_FAR rule and hashed across every match.
     #[test]
     fn infer_recovers_the_config() {
         let v = sample();
-        for (lvl, ml) in [(4u8, 9u8), (6, 8), (9, 9)] {
+        for (lvl, ml) in [(1u8, 8u8), (2, 8), (3, 8), (4, 9), (6, 8), (9, 9)] {
             let target = replay(&v, Cfg::new(lvl, ml), &[]);
-            let (cfg, d) = infer(&v, &target);
+            let (cfg, d) = infer(&v, &target).expect("a stream made by zlib must have a zlib config");
             assert_eq!(d, 0, "infer settled for {} corrections on a {}/{} stream", d, lvl, ml);
             assert_eq!(replay(&v, cfg, &[]), target, "the inferred config does not reproduce the stream");
         }
+    }
+
+    /// and when NOTHING explains the stream it must say so rather than hand back
+    /// a plausible-looking default. A parse no zlib would ever emit -- every
+    /// byte a literal, where the matcher finds long matches -- has no fit.
+    #[test]
+    fn infer_reports_a_no_fit() {
+        let v = sample();
+        let all_literals: Vec<Tok> = v.iter().map(|&b| Tok::Lit(b)).collect();
+        // lockstep CAN reproduce it by forcing every token, so the honest answer
+        // is a fit with a huge correction count -- never a silent default.
+        if let Some((_, d)) = infer(&v, &all_literals) {
+            assert!(
+                d > v.len() / 100,
+                "a parse of nothing but literals should cost a great many corrections, got {}",
+                d
+            );
+        }
+        // a token slice that does not cover its data is the real no-fit, and it
+        // is the shape that once returned (level 6, memLevel 8) silently
+        let short = &all_literals[..all_literals.len() / 2];
+        assert!(infer(&v, short).is_none(), "a slice that does not cover its data must not report a fit");
     }
 }

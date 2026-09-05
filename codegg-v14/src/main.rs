@@ -1219,15 +1219,19 @@ fn main() -> ExitCode {
                 cut += 1;
             }
             let t0 = Instant::now();
-            let (cfg, _) = zmatch::infer(&d.values[..sample], &actual[..cut]);
+            let Some((cfg, sample_corr)) = zmatch::infer(&d.values[..sample], &actual[..cut]) else {
+                println!("{}: {}", path, d.describe());
+                println!("  NO zlib configuration reproduces the sample -- this member would ship its stored recipe");
+                return ExitCode::SUCCESS;
+            };
             let infer_ms = t0.elapsed().as_millis();
             let t1 = Instant::now();
             let (got, corr) = zmatch::lockstep(&d.values, cfg, &actual);
             let lock_ms = t1.elapsed().as_millis();
             println!("{}: {}", path, d.describe());
             println!(
-                "  inferred zlib level {} memLevel {} from a {} B sample in {} ms",
-                cfg.level, cfg.mem_level, sample, infer_ms
+                "  inferred zlib level {} memLevel {} from a {} B sample in {} ms ({} corrections on the sample)",
+                cfg.level, cfg.mem_level, sample, infer_ms, sample_corr
             );
             // THE LAW: a prediction that does not reproduce the parse EXACTLY
             // is not a prediction, however few corrections it claims.

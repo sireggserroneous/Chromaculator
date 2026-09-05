@@ -1274,3 +1274,54 @@ many-small-streams case, and its recipe is dominated by META (201 KB) rather
 than by corrections (95 KB)** -- the reverse of the save, where meta was 312 KB
 and the corrections were 142 BYTES. If N4 lands above 2,100,000, per-member meta
 is the thing to attack, and this is the number to attack it against.
+
+## N4 step 0 — the two silent failures inside the loop, fixed before the loop exists
+
+N4 runs the predictor once per ZIP member -- 599 times on `python312.zip`. Two
+things in that loop failed **silently**, which is the shape that has cost this
+project a day already, so they were fixed before a line of N4.
+
+### 1. `infer` invented a configuration when none fit
+
+It returned `(Cfg::new(6, 8), usize::MAX)` on total failure, and **both callers
+discarded the count** (`let (cfg, _) = infer(...)`). So "no zlib configuration
+explains this stream" was indistinguishable from "level 6 explains it
+perfectly". That is exactly how a mid-token sample once reported 8.1M
+corrections on a file needing 20. It returns `Option` now; `try_predict` falls
+back to the stored parse on `None`, and `zprobe` prints the no-fit instead of
+hiding it.
+
+### 2. `deflate_fast` was wrong, and three files prove the fix
+
+The greedy loop (levels 1..=3) was running `deflate_slow`'s rules. Three
+distinct bugs: it applied the `prev_length < max_lazy` gate, which does not
+exist in `deflate_fast`; it applied the TOO_FAR reduction, which is
+`deflate_slow`'s alone; and it hashed across every match, where zlib **skips the
+inserts entirely** for a match longer than `max_lazy` and re-primes `ins_h` from
+two bytes.
+
+| file | was | now |
+|---|---|---|
+| gz-l1.gz | 64.56% | **100.00000%** (level 1, 0 forced) |
+| gz-l2.gz | 67.85% | **100.00000%** |
+| gz-l3.gz | 71.62% | **100.00000%** |
+
+**The deflate conservation suite went from 14 files taking the peeled form to
+17**, 29/29 EXACT throughout. That is the fix paying for itself on rows that had
+been silently falling back.
+
+It does **not** move `python312.zip` (99.805%, unchanged) -- those members are
+not written at a fast level -- but ZIP writers commonly are, and a level-1
+archive would have fallen back on every member without a word.
+
+### Still open, now measured and LOUD rather than silent
+
+| hole | cost | why it is not fixed here |
+|---|---|---|
+| `windowBits` unmodelled | smallwindow.gz 59.9% | ZIP mandates a 32 KB window (APPNOTE), so N4 does not meet it. Sweeping it would multiply `infer`'s 81 configs by ~8 |
+| `Z_FILTERED` / `HUFFMAN_ONLY` / `Z_RLE` strategies | 83.6% / 57.8% / 57.5% | rare in archives; each needs its own `longest_match` variant |
+
+Both now produce a poor fit that is **reported and falls back**, rather than a
+confident wrong answer. `cargo test` **52**, clippy clean, 8 rows byte-identical,
+and the save still infers level 4 / memLevel 9 with 0 corrections on its sample
+and 20 on the whole stream.
