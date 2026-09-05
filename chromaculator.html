@@ -39,6 +39,9 @@ body{overflow:hidden}
 .del{border:none; background:transparent; color:var(--rule2); cursor:pointer;
   font-size:.9rem; line-height:1}
 .del:hover{color:var(--red)}
+.ends{display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px}
+.del.chev:hover{color:var(--brass)}
 .spell{grid-column:2 / span 2; padding:0 10px 6px}
 .rowinfo{grid-column:2 / span 2; padding:0 10px 8px;
   font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3);
@@ -170,6 +173,9 @@ label.chk input{accent-color:var(--brass)}
   <div class="list">
     <div class="bar">
       <button class="add" id="add" title="add a card">+</button>
+      <span class="sp"></span>
+      <button id="rand">randomise</button>
+      <button id="resetall">reset</button>
       <span class="sp"></span>
       <label class="chk"><input type="checkbox" id="collapse"> collapse to {:}</label>
       <label class="chk"><input type="checkbox" id="run" checked> run</label>
@@ -753,6 +759,11 @@ function paint(){
       if(wasDef !== !!CARDS[i].def) paint(); else { info(); gallery(); }
     });
     inp.addEventListener("focus", () => { SEL = i; traces(); paint(); });
+    const chev = document.createElement("button");
+    chev.className = "del chev";
+    chev.innerHTML = c.shut ? "&#9656;" : "&#9662;";
+    chev.title = c.shut ? "open the card" : "collapse to just the int";
+    chev.addEventListener("click", () => { CARDS[i].shut = !CARDS[i].shut; paint(); });
     const del = document.createElement("button");
     del.className = "del"; del.innerHTML = "&times;"; del.title = "remove";
     del.addEventListener("click", () => {
@@ -777,7 +788,12 @@ function paint(){
       });
       spell.appendChild(b2);
     }
-    row.appendChild(gut); row.appendChild(inp); row.appendChild(del);
+    row.appendChild(gut); row.appendChild(inp);
+    const ends = document.createElement("div");
+    ends.className = "ends";
+    ends.appendChild(chev); ends.appendChild(del);
+    row.appendChild(ends);
+    if(c.shut){ host.appendChild(row); return; }
     row.appendChild(spell);
     /* an errored definition has no range to slide: lo and hi were never set,
        and ticks() then reached BigInt(NaN) */
@@ -991,6 +1007,29 @@ $("#add").addEventListener("click", () => {
 });
 $("#run").addEventListener("change", e => { RUN = e.target.checked; });
 $("#collapse").addEventListener("change", e => { COLLAPSE = e.target.checked; });
+/* Randomise rewrites the integer LITERALS and leaves everything else standing,
+   so a = 3 keeps its name and a*5 keeps its shape. Wubba Dub's range: -63..63,
+   never zero, because a zero phasor has nothing to draw. */
+const RANDINT = () => Math.floor(Math.random() * 127) - 63 || 1;
+$("#rand").addEventListener("click", () => {
+  for(const c of CARDS){
+    /* not the exponents: 2^4 became 28^40, a three-hundred-bit number with a
+       stalk to match. An exponent is structure, not a value. */
+    c.src = c.src.replace(/(\^\s*)?\d+/g, (m, up) => up ? m : String(RANDINT()))
+      /* each pass leaves the last sign behind, so they piled up: --50, ---46.
+         A run of minuses is just its parity. */
+      .replace(/-{2,}/g, m => m.length % 2 ? "-" : "");
+    c.tick = null; c.lo = null; c.hi = null;
+  }
+  recompute(); paint();
+});
+const DEFAULT = () => [{src: "a = 3"}, {src: "a, a*5"}, {src: "a+1, a+2, a+3"}];
+$("#resetall").addEventListener("click", () => {
+  CARDS = DEFAULT(); SEL = 0; COLLAPSE = false;
+  const cb = $("#collapse"); if(cb) cb.checked = false;
+  SPIN = 0.6; TILT = 0.35; T = 0;
+  recompute(); paint();
+});
 $("#reset").addEventListener("click", () => { SPIN = 0.6; TILT = 0.35; });
 const sky = $("#sky");
 if(sky){

@@ -631,6 +631,23 @@ it, and each spliced element takes its own phase like any other. In an
 **expression** a list is an error rather than a guess — `a*2` over three values
 has no one obviously right answer.
 
+### Randomise, reset, collapse
+
+**Randomise** rewrites the integer *literals* and leaves everything else
+standing, so `a = 3` keeps its name and `a*5` keeps its shape:
+
+    a = 3                     ->  a = -22
+    a, a*5                    ->  a, a*20
+    47*127, (13*3*127/2^4)    ->  -23*-49, (60*8*37/34^4)
+
+Exponents are **structure, not values** — randomising `2^4` into `28^40` made a
+three-hundred-bit number with a stalk to match. And a run of minus signs is
+collapsed to its parity, or repeated passes pile up `---46`.
+
+**Reset** restores the defaults and the view. The **chevron** on each row
+collapses that card to just its int — hidden, not removed, so it still holds its
+phasors and still draws.
+
 ### The knob
 
 A single-value definition gets a **symmetric range** `−B…B` with `B = max(10, |v|)`,

@@ -518,4 +518,45 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                      gallery, not just the info line");
 }
 
+/* ---- 18. randomise, reset, and collapsing a card to just the int ---- */
+{
+  const rnd = () => p.run(`(() => { const R = () => Math.floor(Math.random()*127) - 63 || 1;
+    for(const c of CARDS){
+      c.src = c.src.replace(/(\\^\\s*)?\\d+/g, (m, up) => up ? m : String(R()))
+        .replace(/-{2,}/g, m => m.length % 2 ? "-" : "");
+      c.tick = null; c.lo = null; c.hi = null; }
+    recompute(); return JSON.stringify(CARDS.map(c => c.src)); })()`);
+  p.run(`CARDS = [{src: "a = 3"}, {src: "a, a*5"},
+                 {src: "47*127, (13*3*127/2^4)"}, {src: "2^10, 1/3"}]; recompute();`);
+  for(let r = 0; r < 6; r++){
+    const after = JSON.parse(rnd());
+    /* the shape survives: names, operators and exponents all stand */
+    ok(after[0].startsWith("a = "), "a definition keeps its name: " + after[0]);
+    ok(after[1].startsWith("a, a*"), "an expression keeps its shape: " + after[1]);
+    ok(/\^4/.test(after[2]) && /\^10/.test(after[3]),
+       "an exponent is structure, not a value: " + after[2] + " | " + after[3]);
+    ok(after.every(s => !/--/.test(s)),
+       "signs must not pile up across passes: " + after.join(" | "));
+    ok(p.run("BODIES.every(b => b.items.every(i => i.ok))"),
+       "everything randomised must still parse: " + after.join(" | "));
+    ok(p.run("Math.max(...BODIES.flatMap(b => b.good.map(i => i.p.shown.length)))") < 400,
+       "a randomised stalk should stay a reasonable size");
+  }
+  /* reset puts the defaults back */
+  p.run(`CARDS = DEFAULT(); SEL = 0; recompute();`);
+  ok(p.run(`JSON.stringify(CARDS.map(c => c.src))`)
+     === '["a = 3","a, a*5","a+1, a+2, a+3"]', "reset should restore the defaults");
+  /* a card can be collapsed to just its int, and still draws */
+  p.run(`CARDS = [{src: "3, 5"}, {src: "7"}]; recompute();
+    CARDS[0].shut = true; paint();`);
+  ok(p.run("CARDS[0].shut") === true, "the card should be shut");
+  ok(p.run("BODIES[0].good.length") === 2,
+     "a shut card is hidden, not removed — it still holds its phasors");
+  ok(p.run("(() => { try { draw(); gallery(); return true; } catch(e){ return e.message; } })()")
+     === true, "a shut card must not break the draw");
+  console.log("  [18] randomise      six passes keep every name, operator and");
+  console.log("                      exponent, never pile up signs, and always parse;");
+  console.log("                      reset restores; a shut card still holds its phasors");
+}
+
 console.log("\n  certified.");
