@@ -111,7 +111,37 @@ function seeded(q, lang, push, read, alphabet){
     + `${p.run("PH.length")} phasors and a new curve`);
 }
 
-/* ---- 6. the alphabet changes the digits, the base and the frame ---- */
+/* ---- 6. weight, and the card as a rack ----
+ * 2^-(k+1) is the positional weight: correct for the value, ruinous for the
+ * picture. Over eight characters the first is 96x the last, so phasor 0 drew a
+ * circle and everything else was a wobble on it.
+ */
+{
+  const p = loadPage(PAGE, {fetch: seeded("cervezas\nhello, 3, 45", "en", "",
+    "spell", "chroma").fetch});
+  await drain();
+  const share = w => p.run(`(() => { WEIGHT = ${JSON.stringify(w)}; recompute();
+    const m = PH.map(ph => { let x = 0;
+      for(let i = 0; i <= 180; i++){ const c = comp(ph, Math.PI*2*i/180);
+        x = Math.max(x, Math.hypot(c[0], c[1], c[2])); }
+      return x; });
+    const t = m.reduce((a, b) => a + b, 0);
+    return m.map(v => v / t); })()`);
+  const even = share("even"), val = share("value");
+  const ratio = a => Math.max(...a) / Math.min(...a);
+  ok(ratio(val) > 20, "the positional weight should be lopsided; that is the point");
+  ok(ratio(even) < 6, `even weights are still lopsided: ${ratio(even).toFixed(1)}x`);
+  p.run('WEIGHT = "even"; recompute()');
+  /* and a card is a rack: every item's phasors, laid end to end */
+  p.run("selectCard(CARDS[1], 1)");
+  const want = p.run("CARDS[1].items.reduce((a, i) => a + i.phasors.length, 0)");
+  ok(p.run("PH.length") === want, "the card rack lost phasors");
+  ok(p.run("CURVE.every(v => v.every(Number.isFinite))"), "the rack curve has a hole");
+  console.log(`  [6] weight & rack  positional ${ratio(val).toFixed(0)}x lopsided, `
+    + `even ${ratio(even).toFixed(1)}x; card 2 is a ${want}-phasor rack`);
+}
+
+/* ---- 7. the alphabet changes the digits, the base and the frame ---- */
 {
   const c = api("api_cards", "shit", "en", "", "sound", "chroma");
   const i = api("api_cards", "shit", "en", "", "sound", "ipa");
@@ -122,11 +152,11 @@ function seeded(q, lang, push, read, alphabet){
      "IPA should need fewer, narrower digits");
   ok(ii.phasors.every(p => p.n === 3) && ci.phasors.every(p => p.n === 4),
      "IPA draws 3x3 and Chroma 4x4");
-  console.log(`  [6] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
+  console.log(`  [7] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
     + `in 4x4; ipa ${ii.codes.length}/${ii.bits} in 3x3`);
 }
 
-/* ---- 7. the whole stack over a live socket ---- */
+/* ---- 8. the whole stack over a live socket ---- */
 {
   const PORT = 18338;
   const srv = spawn("python3", ["-u", "serve.py", "--port", String(PORT)],
@@ -149,7 +179,7 @@ function seeded(q, lang, push, read, alphabet){
        "live cards wrong");
     ok((await get("/api/nope")).status === 404, "unknown endpoint should 404");
     ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413, "should 413");
-    console.log("  [7] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
+    console.log("  [8] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
   } finally { srv.kill("SIGTERM"); }
 }
 
