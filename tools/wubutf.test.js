@@ -230,24 +230,37 @@ function seeded(q, lang, push, read, alphabet){
     + `[${c.codes.slice(0, 2)}...]`);
 }
 
-/* ---- 9. the alphabet changes the digits, the base and the frame ---- */
+/* ---- 9. three orderings, and each sets the storage width ----
+ * A character is just another int; the only thing an ordering changes is how
+ * big the int is, and the grid it is drawn in follows from that.
+ */
 {
-  const c = api("api_cards", "shit", "en", "", "sound", "chroma");
-  const i = api("api_cards", "shit", "en", "", "sound", "ipa");
-  /* 16 bits, not 12: twelve pads into a 4x4 with four cells left over and every
-     one of them lands in the OUTER region, so outer was always zero and fold —
-     the radius a phasor rides on — could only use three cells. */
-  ok(c.base === 65536 && c.codeBits === 16, "chroma should be 16-bit, base 65536");
-  ok(i.base === 256 && i.codeBits === 8, "ipa should be 8-bit, base 256");
-  const ci = c.cards[0].items[0], ii = i.cards[0].items[0];
-  ok(ii.codes.length < ci.codes.length && ii.bits < ci.bits,
-     "IPA should need fewer, narrower digits");
-  ok(ii.phasors.every(p => p.n === 3) && ci.phasors.every(p => p.n === 4),
-     "IPA draws 3x3 and Chroma 4x4");
-  ok(ci.phasors.every(p => p.inner + p.fold + p.outer === p.lit),
-     "the regions must account for every lit cell");
-  console.log(`  [9] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
-    + `in 4x4; ipa ${ii.codes.length}/${ii.bits} in 3x3`);
+  const p = loadPage(PAGE, {fetch: seeded("hi", "en", "", "sound", "chroma").fetch});
+  await drain();
+  const want = [["ipa", 8, 3, 127], ["chroma", 16, 4, 307], ["phonetic", 20, 5, 524287]];
+  const seen = [];
+  for(const [name, bits, side, base] of want){
+    const j = api("api_cards", "hi", "en", "", "sound", name);
+    const it = j.cards[0].items[0];
+    ok(j.codeBits === bits, `${name} should store ${bits} bits, got ${j.codeBits}`);
+    ok(it.countBase === base, `${name} counting base ${it.countBase}, wanted ${base}`);
+    ok(it.codes.every(c => c < 2 ** bits), `${name}: a code overflows its width`);
+    const g = p.run(`(() => { const x = gridFor(${it.codes[0]}, ${bits}, false);
+      return x.n + "," + x.cells.length; })()`).split(",");
+    ok(+g[0] === side, `${name} should draw ${side}x${side}, got ${g[0]}`);
+    seen.push(`${name} ${bits}b ${side}x${side} base ${base}`);
+  }
+  /* and pushed is the same value written differently, so it draws its own grid */
+  const same = p.run(`(() => {
+    const a = gridFor(31988, 16, false), b = gridFor(31988, 16, true);
+    return [hexValue(a.cells).num + "/" + hexValue(a.cells).den,
+            hexValue(b.cells).num + "/" + hexValue(b.cells).den,
+            a.cells.join("") === b.cells.join("")]; })()`);
+  ok(same[0] === same[1], "pushing must conserve the value");
+  ok(same[2] === false, "pushing must change the cells");
+  console.log(`  [9] three widths   ${seen.join("; ")}`);
+  console.log("                     pushed keeps the value and changes the cells, "
+    + "so it draws beside the plain grid");
 }
 
 /* ---- 10. the whole stack over a live socket ---- */

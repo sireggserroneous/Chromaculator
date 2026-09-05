@@ -82,7 +82,7 @@ def api_sort(q, lang, push="", read="sound", alphabet="chroma"):
     """
     C, P, S = ordering()
     A, alphabet = _alpha(alphabet)
-    if alphabet == "ipa": read = "sound"          # IPA needs a reading
+    if alphabet in ("ipa", "phonetic"): read = "sound"
     items = [l for l in q.split("\n") if l.strip()]
     ipa = lambda r: "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
     spell_axis = read == "spell"
@@ -94,7 +94,7 @@ def api_sort(q, lang, push="", read="sound", alphabet="chroma"):
             k, spell, r = (S._k(n, S.spellings(n)[0]) if spell_axis
                            else S.key(n, lang or None))
             rows.append({"name": n, "reading": spell, "ipa": ipa(r),
-                         "codes": _digits_for(alphabet, C, S, spell, ipa(r))})
+                         "codes": _digits_for(alphabet, C, S, spell, ipa(r), n)})
         return {"lang": lang, "push": "", "read": read, "alphabet": alphabet,
                 "codeBits": A["bits"], "base": 1 << A["bits"], "sorted": rows}
     ent = []
@@ -107,7 +107,7 @@ def api_sort(q, lang, push="", read="sound", alphabet="chroma"):
             if spell in seen: continue
             seen.add(spell)
             mine.append((k, {"name": n, "reading": spell, "ipa": ipa(rr),
-                             "codes": _digits_for(alphabet, C, S, spell, ipa(rr))}))
+                             "codes": _digits_for(alphabet, C, S, spell, ipa(rr), n)}))
         # sort BEFORE capping, so the cap keeps the lowest N in order rather
         # than whichever the branch product happened to emit first
         mine.sort(key=lambda x: x[0])
@@ -130,8 +130,30 @@ NUMERIC = re.compile(r"^[+-]?[0-9]+$")
 # An alphabet is one choice: it fixes the digits, the base, the frame they draw
 # in, AND the order. Sorting by one while drawing the other would put the
 # divergence marker on a digit that decides nothing.
-ALPHABETS = {"chroma": {"bits": CODE_BITS, "label": "Chroma UTF"},
-             "ipa":    {"bits": 8,         "label": "Chroma IPA"}}
+# Three orderings, and each one sets the storage width — a character is just
+# another int, so the only thing that changes is how big the int is.
+ALPHABETS = {"ipa":      {"bits": 8,  "label": "Chroma IPA"},
+             "chroma":   {"bits": 16, "label": "Chroma UTF"},
+             "phonetic": {"bits": 20, "label": "Phonetic index"}}
+_PHON = None
+
+
+def phonetic_map():
+    """char -> its first position in the multi-listed phonetic index.
+
+    370,571 entries, so it is built once and kept. The counting base is declared
+    as 524,287 = 2^19 - 1, a Mersenne prime, rather than taken as the entry count
+    plus one: 370,572 is even. The index already fits inside it with 153,715 to
+    spare, so the modulus only had to be named.
+    """
+    global _PHON
+    if _PHON is None:
+        C, P, S = ordering()
+        pos = {}
+        for i, e in enumerate(P.build()):
+            pos.setdefault(e[3], i + 1)       # rank 0 stays the zero
+        _PHON = pos
+    return _PHON
 
 
 def _alpha(name):
@@ -139,15 +161,18 @@ def _alpha(name):
            name if name in ALPHABETS else "chroma"
 
 
-def _digits_for(alphabet, C, S, spell, reading_ipa):
+def _digits_for(alphabet, C, S, spell, reading_ipa, text=""):
     """The CODES a string has in this alphabet — what gets drawn."""
     if alphabet == "ipa":
         import chroma_ipa as I
         return I.digits(reading_ipa)
+    if alphabet == "phonetic":
+        m = phonetic_map()
+        return [m.get(ch, 0) for ch in text]
     return [c for c in C.letters(spell)]
 
 
-def _ranks_for(alphabet, C, S, spell, reading_ipa):
+def _ranks_for(alphabet, C, S, spell, reading_ipa, *kwargs_text):
     """The RANKS — what gets counted.
 
     Rank and code are different numbers. The code is spread across the digit so
@@ -162,6 +187,8 @@ def _ranks_for(alphabet, C, S, spell, reading_ipa):
     if alphabet == "ipa":
         import chroma_ipa as I
         return I.digits(reading_ipa)          # IPA codes ARE its ranks today
+    if alphabet == "phonetic":
+        return _digits_for(alphabet, C, S, spell, reading_ipa, kwargs_text[0])
     back = {C.CODE[ch]: C.RANK[ch] for ch in C.TABLE}
     return [back.get(c, 0) for c in C.letters(spell)]
 
@@ -171,6 +198,8 @@ def _base_for(alphabet, C):
     if alphabet == "ipa":
         import chroma_ipa as I
         return len(I.ROWS) + 1
+    if alphabet == "phonetic":
+        return (1 << 19) - 1                  # 524,287, a Mersenne prime
     return len(C.TABLE) + 1
 
 
@@ -198,7 +227,7 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
     """One card per line; commas separate the items on a card."""
     C, P, S = ordering()
     A, alphabet = _alpha(alphabet)
-    if alphabet == "ipa": read = "sound"          # IPA needs a reading
+    if alphabet in ("ipa", "phonetic"): read = "sound"   # both need a reading
     B = 1 << A["bits"]
     ipa = lambda r: "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
     cards = []
@@ -226,8 +255,8 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
                 k, spell, r = S.key(t, lang or None)
                 alts = ["".join(x[0] for x in v)
                         for v in S.readings(t, lang or None, push != "all")] if push else []
-            codes = _digits_for(alphabet, C, S, spell, ipa(r))
-            ranks = _ranks_for(alphabet, C, S, spell, ipa(r))
+            codes = _digits_for(alphabet, C, S, spell, ipa(r), t)
+            ranks = _ranks_for(alphabet, C, S, spell, ipa(r), t)
             CB = _base_for(alphabet, C)
             n, den = _int_of(ranks, CB)
             # each character is a phasor: its code is the angle, its position

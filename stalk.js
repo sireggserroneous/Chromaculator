@@ -499,3 +499,24 @@ const comp = (p, t) => {
   return [rr * Math.cos(A), rr * Math.sin(A), m * sB + d * Math.abs(sB)];
 };
 
+
+/* ---- the boxed grid ----
+ * Lifted out of wubbadub.html so every page draws a stalk the same way: one
+ * boxed cell per digit with the digit written in it, the fold outlined.
+ */
+function boxes(cells, cols, rows, foldAt){
+  const sz = Math.max(6, Math.min(22, Math.floor(104 / cols), Math.floor(96 / rows)));
+  const gl = sz >= 9;
+  const body = cells.map((v, i) => {
+    const r = Math.floor(i / cols), c = i % cols;
+    return `<div class="gsc ${cls(v)}${r + c === foldAt ? " fold" : ""}">${gl ? glyph(v) : ""}</div>`;
+  }).join("");
+  return `<div class="gsq" style="--sc:${sz}px;`
+    + ` grid-template-columns:repeat(${cols},var(--sc))">${body}</div>`;
+}
+function stalkSquare(digits){
+  const n = Math.max(1, Math.ceil(Math.sqrt(digits.length)));
+  const cells = digits.slice();
+  while(cells.length < n * n) cells.push(0);
+  return boxes(cells, n, n, n - 1);
+}

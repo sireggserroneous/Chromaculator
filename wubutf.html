@@ -92,7 +92,20 @@ button.add{border-color:var(--brass); color:var(--brass)}
 .num{font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3);
   overflow-wrap:anywhere; margin-top:2px}
 
-.strip{display:flex; gap:4px; align-items:flex-start; flex-wrap:wrap; margin-top:6px}
+.strip{display:flex; gap:7px; align-items:flex-start; flex-wrap:wrap; margin-top:7px}
+.gsq{display:grid; gap:2px; width:max-content}
+.gsc{width:var(--sc,14px); height:var(--sc,14px); display:flex; align-items:center;
+  justify-content:center; border-radius:2px; border:1px solid transparent;
+  font-family:"IBM Plex Mono",monospace; font-size:calc(var(--sc,14px) * .62);
+  font-weight:600; line-height:1}
+.gsc.b{background:var(--blue-w); color:var(--blue); border-color:var(--blue)}
+.gsc.r{background:var(--red-w); color:var(--red); border-color:var(--red)}
+.gsc.g{background:var(--green-w); color:var(--green); border-color:var(--green); opacity:.6}
+.gsc.fold{box-shadow:inset 0 0 0 2px var(--brass)}
+.cellblk{display:flex; flex-direction:column; gap:3px; align-items:center}
+.cellcap{font-family:"IBM Plex Mono",monospace; font-size:.55rem; color:var(--ink3);
+  letter-spacing:.06em}
+.cellcap b{color:var(--brass); font-weight:600}
 .sq{display:grid; gap:1px; padding:2px; border:1px solid var(--rule2);
   border-radius:2px; background:var(--sunk)}
 .c{background:var(--rule); border-radius:1px}
@@ -171,7 +184,7 @@ dis, this, thin</textarea>
         <div class="field">
           <label>Alphabet</label>
           <div class="seg" id="alp">
-            <button data-v="chroma" class="on">Chroma UTF</button><button data-v="ipa">IPA</button>
+            <button data-v="ipa">Chroma IPA</button><button data-v="chroma" class="on">Chroma UTF</button><button data-v="phonetic">Phonetic</button>
           </div>
         </div>
         <div class="field">
@@ -293,6 +306,29 @@ const el = (tag, cls, html) => {
   return e;
 };
 const shown = r => esc(String(r).split(SEP).join("/"));
+
+/* One digit as the boxed grid Wubba Dub uses: the width is DECLARED by the
+   alphabet, padded to whole nibbles, laid into the smallest square. Pushed is
+   the same value written differently, so it draws its own grid beside the
+   plain one rather than replacing it. */
+function gridFor(code, bits, push){
+  const raw = code.toString(2).padStart(Math.ceil(bits / 4) * 4, "0")
+    .split("").map(c => +c);
+  const n = Math.max(1, Math.ceil(Math.sqrt(raw.length)));
+  const shown = push ? pushLeft(raw.slice()) : raw;
+  const cells = shown.slice();
+  while(cells.length < n * n) cells.push(0);
+  return {html: boxes(cells, n, n, n - 1), n, cells};
+}
+function cellBlock(label, code, bits, push){
+  const g = gridFor(code, bits, push);
+  const e = el("div", "cellblk");
+  e.appendChild(el("div", null, g.html));
+  e.appendChild(el("div", "cellcap",
+    (label ? "<b>" + esc(label) + "</b> " : "") + g.n + "\u00d7" + g.n
+    + (push ? " pushed" : "")));
+  return e;
+}
 
 /* an integer draws its own arrangement, and a negative one draws it in red:
    hexSequence multiplies every cell by -1, which is what negation IS here. */
@@ -674,9 +710,30 @@ function cardEl(card, idx){
     row.appendChild(el("div", "reads", "reads <b>" + shown(it.reading) + "</b>"
       + (it.ipa ? " &middot; /" + esc(it.ipa) + "/" : "")));
     const strip = el("div", "strip");
-    if(it.numeric) strip.appendChild(intSquareEl(it.k));
-    else for(const code of it.codes)
-      strip.appendChild(code <= 2 ? el("div", "sq sep", "&middot;") : squareEl(code));
+    if(it.numeric){
+      const {v, neg} = parse(String(it.k));
+      const h = hexSequence(v, neg);
+      const blk = el("div", "cellblk");
+      blk.appendChild(el("div", null, stalkSquare(h.cells)));
+      blk.appendChild(el("div", "cellcap", "<b>" + esc(it.k) + "</b> "
+        + h.n + "\u00d7" + h.n));
+      strip.appendChild(blk);
+      if(PUSH){
+        const pu = pushLeft(h.raw.slice()).concat(h.cells.slice(h.raw.length));
+        const b2 = el("div", "cellblk");
+        b2.appendChild(el("div", null, boxes(pu, h.n, h.n, h.n - 1)));
+        b2.appendChild(el("div", "cellcap", h.n + "\u00d7" + h.n + " pushed"));
+        strip.appendChild(b2);
+      }
+    } else {
+      const letters = (it.reading || "").replace(/\u0001/g, " ");
+      it.codes.forEach((code, j) => {
+        if(code <= 2){ strip.appendChild(el("div", "cellcap", "&middot;")); return; }
+        if(PLAIN) strip.appendChild(cellBlock(letters[j] || "", code, WIDTH, false));
+        if(PUSH)  strip.appendChild(cellBlock(PLAIN ? "" : (letters[j] || ""),
+                                              code, WIDTH, true));
+      });
+    }
     row.appendChild(strip);
     row.appendChild(el("div", "num", "0." + esc((it.approx || "").slice(2, 18))
       + (it.countBase ? " &middot; base " + it.countBase : "")
@@ -715,6 +772,7 @@ function selectCard(card, idx){
 
 /* ---- controls ---- */
 function chrome(){
+  if(ALPHA === "ipa" || ALPHA === "phonetic") PHONETIC = true;
   $("#lang").disabled = !PHONETIC;
   $("#leetWrap").hidden = !PHONETIC;
   for(const pair of [["alp", ALPHA], ["pho", PHONETIC ? "1" : "0"],
@@ -734,7 +792,7 @@ for(const id of ["alp", "pho", "wt", "ft"]){
     else if(id === "wt"){ WEIGHT = b.dataset.v; chrome(); recompute(); return; }
     else if(id === "ft"){ FIT = b.dataset.v === "fit"; chrome(); recompute(); return; }
     else PHONETIC = b.dataset.v === "1";
-    if(ALPHA === "ipa") PHONETIC = true;
+    if(ALPHA === "ipa" || ALPHA === "phonetic") PHONETIC = true;
     chrome(); go();
   });
 }
@@ -744,7 +802,7 @@ for(const id of ["plain", "push", "leet"]){
     if(id === "leet") return go();
     PLAIN = $("#plain").checked; PUSH = $("#push").checked;
     if(!PLAIN && !PUSH){ $("#plain").checked = true; PLAIN = true; }
-    recompute();
+    recompute(); paint();
   });
 }
 const sp = $("#speed");
