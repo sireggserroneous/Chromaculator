@@ -631,6 +631,25 @@ it, and each spliced element takes its own phase like any other. In an
 **expression** a list is an error rather than a guess — `a*2` over three values
 has no one obviously right answer.
 
+### The knob
+
+A single-value definition gets a **symmetric range** `−B…B` with `B = max(10, |v|)`,
+an **integer stepper**, and editable min, max and step. (It used to be
+`min(−10, v−10) … max(10, v+10)` — ten either side of what you typed, floored at
+−10…10 — so `3` gave the lopsided `−10…13` and `1000` gave `−10…1010`.)
+
+The slider moves in whole **ticks** of `step`, so its value stays an exact
+rational: a step of `1/2` from 3 gives `7/2`, never `3.5`. A float slider would
+put `0.30000000000000004` into a system whose whole claim is that the value is
+exact.
+
+### Plain and pushed, per card
+
+Not a toggle — both can be on, as in Wub ±, giving two rings per item. Push
+rewrites the cells and moves the fold while conserving the value, so `3` plain
+is `0011` with fold `0.125` and pushed is `1-1-11` with fold `−0.375`. With both
+on, `3, 5` is four rings at 90°.
+
 A card that reads `name = expr` with a single value is a **knob and a body**: it takes a slider,
 every card after it can use the name, and it still draws — it has a value.
 (Typing `a = 3` and getting an empty field was the page refusing to show the one

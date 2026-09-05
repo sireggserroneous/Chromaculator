@@ -210,7 +210,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   const items = () => p.run(`JSON.stringify(BODIES.slice(1)
     .map(b => b.good.map(i => String(i.f.num))))`);
   const before = items();
-  p.run("CARDS[0].slider = 7; recompute();");
+  p.run("CARDS[0].tick = tickOf({num:7n,den:1n}, CARDS[0]); CARDS[0].val = valOf(CARDS[0]); recompute();");
   ok(p.run("String(ENV.a.num)") === "7", "the slider should own the value");
   const after = items();
   ok(before !== after, "sliding a did not move the cards that use it");
@@ -295,7 +295,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   ok(p.run("BODIES.length") === 1 && p.run("BODIES[0].good.length") === 1,
      "a lone definition must still draw");
   ok(p.run("String(BODIES[0].total.num)") === "3", "and be worth what it says");
-  p.run("CARDS[0].slider = 5; recompute();");
+  p.run("CARDS[0].tick = tickOf({num:5n,den:1n}, CARDS[0]); CARDS[0].val = valOf(CARDS[0]); recompute();");
   ok(p.run("String(BODIES[0].total.num)") === "5", "and follow its slider");
   /* the trail fills and stays finite */
   p.run(`CARDS = [{src: "3, 5"}]; recompute();
@@ -374,7 +374,8 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   ok(/is a list/.test(err), "a list in an expression should say so: " + err);
   /* a scalar is still a knob, and its slider still drives everything */
   p.run(`CARDS = [{src: "n = 4"}, {src: "n, n*2"}]; recompute();
-    CARDS[0].slider = 7; recompute();`);
+    CARDS[0].tick = tickOf({num: 7n, den: 1n}, CARDS[0]);
+    CARDS[0].val = valOf(CARDS[0]); recompute();`);
   ok(p.run(`JSON.stringify(BODIES[1].items.map(i => String(i.f.num)))`)
      === '["7","14"]', "a scalar knob still drives its readers");
   ok(p.run("CARDS[0].list") === null, "a scalar is not a list");
@@ -403,7 +404,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   for(const typed of ["b = 5", "c = 3, 5, 7", "x=1/3", "a = 3", "z = 47*127"]){
     for(let k = 1; k <= typed.length; k++){
       const r = p.run(`(() => { try {
-        CARDS = [{src: ${JSON.stringify(typed.slice(0, k))}}]; CARDS[0].slider = null;
+        CARDS = [{src: ${JSON.stringify(typed.slice(0, k))}}]; CARDS[0].tick = null;
         recompute(); paint(); gallery();
         return "ok";
       } catch(e){ return e.message; } })()`);
@@ -411,7 +412,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
         + typed.slice(0, k) + `": ${r}`);
     }
     /* and it lands as the thing it says */
-    const end = p.run(`CARDS = [{src: ${JSON.stringify(typed)}}]; CARDS[0].slider = null;
+    const end = p.run(`CARDS = [{src: ${JSON.stringify(typed)}}]; CARDS[0].tick = null;
       recompute(); CARDS[0].partial ? "partial"
         : CARDS[0].def ? (CARDS[0].err ? "err" : (CARDS[0].list ? "list" : "knob"))
         : "plain"`);
@@ -419,7 +420,7 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
        `${JSON.stringify(typed)} should finish as a variable, got ${end}`);
   }
   /* half-typed is not wrong: it is quiet, not an error */
-  p.run(`CARDS = [{src: "b = "}]; CARDS[0].slider = null; recompute();`);
+  p.run(`CARDS = [{src: "b = "}]; CARDS[0].tick = null; recompute();`);
   ok(p.run("CARDS[0].partial") === true && p.run("CARDS[0].err") === null,
      "a half-typed definition should be partial, not an error");
   ok(p.run("BODIES[0].good.length") === 0, "and draw nothing yet");
@@ -432,6 +433,66 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("  [14] typing works   every keystroke of five variable spellings is");
   console.log("                      clean; half-typed is quiet, not an error; the");
   console.log("                      caret survives the repaint the '=' triggers");
+}
+
+/* ---- 15. the knob: a symmetric range, an integer stepper, exact ticks ----
+ * The range used to be min(-10, v-10) .. max(10, v+10) — ten either side of
+ * what you typed, floored at -10..10, so 3 gave the lopsided -10..13 and 1000
+ * gave -10..1010. It is now -B..B with B = max(10, |v|), and min, max and step
+ * are yours. The slider moves in whole TICKS of step, so its value stays an
+ * exact rational: a float slider would put 0.30000000000000004 into a system
+ * whose whole claim is that the value is exact.
+ */
+{
+  const knob = src => p.run(`CARDS = [{src: ${JSON.stringify(src)}}]; recompute();
+    JSON.stringify({lo: CARDS[0].lo, hi: CARDS[0].hi, ticks: ticks(CARDS[0]),
+      v: String(CARDS[0].val.num)})`);
+  for(const [src, lo, hi] of [["a = 3", -10, 10], ["a = 0", -10, 10],
+                              ["a = 47", -47, 47], ["a = -4", -10, 10]]){
+    const k = JSON.parse(knob(src));
+    ok(k.lo === lo && k.hi === hi,
+       `${src} should give ${lo}..${hi}, got ${k.lo}..${k.hi}`);
+    ok(k.lo === -k.hi, `${src}: the range should be symmetric`);
+  }
+  /* the stepper lands on whole numbers */
+  p.run(`CARDS = [{src: "a = 3"}]; recompute();
+    CARDS[0].tick += 1; CARDS[0].val = valOf(CARDS[0]); recompute();`);
+  ok(p.run("String(CARDS[0].val.num)") === "4" && p.run("CARDS[0].val.den") === 1n,
+     "one step up from 3 is 4");
+  /* and a fractional step stays exact */
+  p.run(`CARDS = [{src: "a = 3"}]; recompute();
+    CARDS[0].step = {num: 1n, den: 2n}; CARDS[0].tick = null; recompute();
+    CARDS[0].tick += 1; CARDS[0].val = valOf(CARDS[0]); recompute();`);
+  ok(p.run("CARDS[0].val.num + '/' + CARDS[0].val.den") === "7/2",
+     "a half step from 3 is 7/2 exactly, not 3.5");
+  console.log("  [15] the knob       -B..B with B = max(10, |v|), so 3 gives -10..10");
+  console.log("                      not -10..13; the stepper lands on whole numbers");
+  console.log("                      and a 1/2 step gives 7/2 exactly, never 3.5");
+}
+
+/* ---- 16. plain and pushed, per card ---- */
+{
+  const spell = (pl, pu) => JSON.parse(p.run(
+    `CARDS = [{src: "3, 5", plain: ${pl}, push: ${pu}}]; recompute();
+     JSON.stringify(BODIES[0].good.map(i => ({v: String(i.f.num), push: i.push,
+       fold: +i.p.fold.toFixed(4), cells: i.p.shown.join("")})))`));
+  const a = spell(true, false), b = spell(false, true), c = spell(true, true);
+  ok(a.length === 2 && b.length === 2 && c.length === 4,
+     "both on should give two rings per item");
+  ok(a[0].cells !== b[0].cells, "pushing must rewrite the cells");
+  ok(a[0].fold !== b[0].fold, "pushing must move the fold");
+  /* push conserves the value, which is the whole point of it */
+  ok(p.run(`(() => { const x = hexValue(BODIES[0].good[0].p.shown),
+      y = hexValue(BODIES[0].good[1].p.shown);
+    return x.num * y.den === y.num * x.den; })()`),
+     "a pushed ring must be worth what the plain one is");
+  /* and the count drives the phase step, as it does everywhere else */
+  ok(p.run(`JSON.stringify(BODIES[0].good.map(i =>
+    Math.round(i.p.phase * 180 / Math.PI)))`) === "[0,90,180,270]",
+     "four rings should be 90 apart");
+  console.log("  [16] plain / pushed  both can be on, giving two rings an item; push");
+  console.log("                      rewrites the cells and moves the fold while");
+  console.log("                      conserving the value, and 4 rings sit at 90°");
 }
 
 console.log("\n  certified.");

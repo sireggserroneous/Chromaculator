@@ -39,6 +39,7 @@ body{overflow:hidden}
 .del{border:none; background:transparent; color:var(--rule2); cursor:pointer;
   font-size:.9rem; line-height:1}
 .del:hover{color:var(--red)}
+.spell{grid-column:2 / span 2; padding:0 10px 6px}
 .rowinfo{grid-column:2 / span 2; padding:0 10px 8px;
   font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--ink3);
   overflow-wrap:anywhere}
@@ -52,7 +53,22 @@ body{overflow:hidden}
 .sld input[type=range]{flex:1; min-width:0; accent-color:var(--brass)}
 .sld .v{font-family:"IBM Plex Mono",monospace; font-size:.72rem; color:var(--brass);
   font-weight:600; min-width:3.2em; text-align:right}
-.sld .rng{font-family:"IBM Plex Mono",monospace; font-size:.56rem; color:var(--ink3)}
+.sld .lim{font-family:"IBM Plex Mono",monospace; font-size:.6rem; color:var(--ink3);
+  background:var(--sunk); border:1px solid var(--rule2); border-radius:2px;
+  padding:2px 4px; text-align:center}
+.sld .lim:focus{color:var(--ink); outline:none; border-color:var(--brass)}
+.spin{display:flex; flex-direction:column; border:1px solid var(--rule2);
+  border-radius:2px; overflow:hidden}
+.spin button{border:none; background:var(--sunk); color:var(--ink2); padding:0 5px;
+  font-size:.5rem; line-height:1.35; border-radius:0}
+.spin button:hover{background:var(--brass); color:var(--panel)}
+/* plain and pushed are not a toggle: both can be on, as in Wub +- */
+.spell{display:flex; gap:0; margin-left:auto}
+.spell button{font-size:.58rem; padding:3px 7px; border-radius:0; margin-left:-1px}
+.spell button:first-child{border-radius:2px 0 0 2px; margin-left:0}
+.spell button:last-child{border-radius:0 2px 2px 0}
+.spell button.on{background:var(--brass); border-color:var(--brass);
+  color:var(--panel); font-weight:600}
 .row.def .gut{background:var(--brass-soft); color:var(--panel)}
 /* ---- the card gallery, as Wubba Dub lays it out ---- */
 .gal{grid-column:2 / span 2; padding:2px 10px 10px}
@@ -210,19 +226,57 @@ function sites(n){
   return out;
 }
 
+/* ---- a knob's range, in exact ticks ----
+ * The slider moves in whole ticks of `step`, so its value is min + k*step and
+ * stays an exact rational — a float slider would put 0.30000000000000004 into
+ * a system whose whole claim is that the value is exact.
+ */
+function tickOf(v, c){
+  const lo = {num: BigInt(Math.round(c.lo)), den: 1n};
+  const d = fDiv(fSub(v, lo), c.step);
+  return Math.max(0, Math.round(Number(d.num) / Number(d.den)));
+}
+function valOf(c){
+  const lo = {num: BigInt(Math.round(c.lo)), den: 1n};
+  return fAdd(lo, fMul(c.step, {num: BigInt(c.tick), den: 1n}));
+}
+function ticks(c){
+  const span = fSub({num: BigInt(Math.round(c.hi)), den: 1n},
+                    {num: BigInt(Math.round(c.lo)), den: 1n});
+  const n = fDiv(span, c.step);
+  return Math.max(1, Math.round(Number(n.num) / Number(n.den)));
+}
+
 /* ---- what a card holds ---- */
 let ENV = {};
-/* one item: its exact value, and the ring that value rides */
-function mkItem(src, f, p){
-  if(!p) p = f.den === 1n ? phasor(String(f.num), false) : fracPhasor(f, WIDTH);
+/* one item, per spelling: its exact value, and the ring that value rides.
+   Plain and pushed are not a toggle — both can be on, as in Wub +-, and push
+   is a real second ring: it conserves the value and rewrites the cells, so the
+   radius, the height and the run count all move. */
+function mkItem(src, f, push){
+  const p = f.den === 1n ? phasor((f.num < 0n ? "" : "") + String(f.num), push)
+                         : fracPhasor(f, WIDTH);
+  if(f.den !== 1n && push){
+    const u = pushLeft(p.shown.slice());
+    const q = phasorOf(u, p.n, {frac: f, E: p.E, exact: p.exact, rem: p.rem});
+    q.dir = Math.sign(q.fold) || (f.num < 0n ? -1 : 1);
+    Object.assign(p, q);
+  }
   p.cells = p.shown; p.cols = p.n; p.rows = p.n; p.foldAt = p.n - 1;
   p.vec = p.shown; p.kind = "stalk"; p.mode = "num";
   p.nm = nmOf(Number(p.value.num) / Number(p.value.den));
-  return {src, f, p, ok: true, whole: f.den === 1n,
+  return {src, f, p, ok: true, push: !!push, whole: f.den === 1n,
           exact: f.den === 1n ? true : p.exact,
           rem: f.den === 1n ? {num: 0n, den: 1n} : p.rem};
 }
-function readCard(src){
+function mkItems(src, f, spell){
+  const out = [];
+  if(spell.plain) out.push(mkItem(src, f, false));
+  if(spell.push)  out.push(mkItem(src, f, true));
+  return out.length ? out : [mkItem(src, f, false)];
+}
+function readCard(src, spell){
+  spell = spell || {plain: true, push: false};
   const parts = String(src).split(",").map(s => s.trim()).filter(Boolean);
   const items = [];
   for(const s of parts){
@@ -233,7 +287,7 @@ function readCard(src){
        that is obviously right. */
     const bare = /^[A-Za-z][A-Za-z0-9]*$/.test(s) ? ENV[s] : null;
     if(bare && bare.list){
-      for(const f of bare.list) items.push(mkItem(s, f));
+      for(const f of bare.list) for(const it of mkItems(s, f, spell)) items.push(it);
       continue;
     }
     try{
@@ -252,8 +306,7 @@ function readCard(src){
          Wubba Dub draws: dominoes, the boxed grid, and the facts */
       p.cells = p.shown; p.cols = p.n; p.rows = p.n; p.foldAt = p.n - 1;
       p.vec = p.shown; p.kind = "stalk"; p.mode = "num";
-      p.nm = nmOf(Number(p.value.num) / Number(p.value.den));
-      items.push(mkItem(s, f, p));
+      for(const it of mkItems(s, f, spell)) items.push(it);
     }catch(e){
       items.push({src: s, ok: false, why: e.message});
     }
@@ -312,7 +365,7 @@ function buildEnv(){
          reporting a raw "Cannot read properties of undefined" made adding a
          variable look broken at the moment you were doing it. */
       if(!vals.length){
-        c.list = null; c.val = null; c.slider = null; c.err = null;
+        c.list = null; c.val = null; c.tick = null; c.err = null;
         c.partial = true;
         continue;
       }
@@ -321,19 +374,28 @@ function buildEnv(){
         /* a list variable: no single knob to turn, so no slider */
         c.list = vals;
         ENV[d.name] = {list: c.list};
-        c.val = null; c.slider = null; c.err = null;
+        c.val = null; c.tick = null; c.err = null;
         continue;
       }
       c.list = null;
-      /* the slider owns the value once it has one; the text sets it the first
-         time and then says what the slider is for */
-      c.val = (c.slider != null) ? {num: BigInt(c.slider), den: 1n} : vals[0];
-      if(c.slider == null){
-        const v = Number(c.val.num) / Number(c.val.den);
-        c.slider = Math.round(v);
-        c.lo = Math.min(-10, Math.round(v) - 10);
-        c.hi = Math.max(10, Math.round(v) + 10);
+      /* The slider owns the value once it has one; the text sets it the first
+         time and then says what the slider is for.
+         The range is SYMMETRIC and yours to change. It used to be
+         min(-10, v-10) .. max(10, v+10), which is ten either side of what you
+         typed floored at -10..10 — so 3 gave -10..13, lopsided because the two
+         guards clamp at opposite ends, and 1000 gave -10..1010, a useless
+         slider. Now it is -B..B with B = max(10, |v|), and min, max and step
+         are editable. */
+      if(c.tick == null){
+        const v0 = vals[0];
+        c.step = c.step || {num: 1n, den: 1n};
+        const mag = Math.abs(Number(v0.num) / Number(v0.den));
+        const B = Math.max(10, Math.ceil(mag));
+        c.lo = c.lo == null ? -B : c.lo;
+        c.hi = c.hi == null ? B : c.hi;
+        c.tick = tickOf(v0, c);
       }
+      c.val = valOf(c);
       ENV[d.name] = c.val;
       c.err = null;
     }catch(e){ c.err = e.message; }
@@ -345,14 +407,17 @@ function model(){
      a = 3 and getting an empty field was the page refusing to show the one
      thing on it. The slider is what makes it a knob; the value still wubs. */
   const bodies = CARDS.map(c => {
-    if(!c.def) return readCard(c.src);
+    const spell = {plain: c.plain !== false, push: !!c.push};
+    if(!c.def) return readCard(c.src, spell);
     /* A definition that failed must not draw. buildEnv runs first and every
        definition is in ENV by the time a body is read, so a forward reference
        reported "q is not defined" and then rendered q anyway. */
     if(c.partial) return {items: [], good: [], isDef: true, name: c.def.name};
     if(c.err) return {items: [{src: c.def.body, ok: false, why: c.err}],
                       good: [], isDef: true, name: c.def.name};
-    const b = readCard(c.slider != null ? String(c.slider) : c.def.body);
+    const b = readCard(c.val
+      ? (c.val.den === 1n ? String(c.val.num) : c.val.num + "/" + c.val.den)
+      : c.def.body, spell);
     b.isDef = true;
     b.name = c.def.name;
     return b;
@@ -678,7 +743,9 @@ function paint(){
       /* editing the text hands control back to it; the slider takes over again
          once buildEnv has read a value out of the new text */
       const wasDef = !!CARDS[i].def;
-      CARDS[i].src = inp.value; CARDS[i].slider = null; SEL = i;
+      CARDS[i].src = inp.value;
+      CARDS[i].tick = null; CARDS[i].lo = null; CARDS[i].hi = null;
+      SEL = i;
       recompute();
       if(wasDef !== !!CARDS[i].def) paint(); else info();
     });
@@ -693,25 +760,90 @@ function paint(){
     });
     const nfo = document.createElement("div");
     nfo.className = "rowinfo"; nfo.id = "nfo" + i;
+    const spell = document.createElement("div");
+    spell.className = "spell";
+    for(const [k2, lab] of [["plain", "PLAIN"], ["push", "PUSHED"]]){
+      const b2 = document.createElement("button");
+      b2.textContent = lab;
+      if(c[k2] === undefined) c[k2] = (k2 === "plain");
+      if(c[k2]) b2.className = "on";
+      b2.addEventListener("click", () => {
+        CARDS[i][k2] = !CARDS[i][k2];
+        if(!CARDS[i].plain && !CARDS[i].push) CARDS[i].plain = true;
+        SEL = i; recompute(); paint();
+      });
+      spell.appendChild(b2);
+    }
     row.appendChild(gut); row.appendChild(inp); row.appendChild(del);
-    if(c.def && !c.list && !c.partial){
+    row.appendChild(spell);
+    /* an errored definition has no range to slide: lo and hi were never set,
+       and ticks() then reached BigInt(NaN) */
+    if(c.def && !c.list && !c.partial && !c.err && c.val){
       row.className += " def";
       const sld = document.createElement("div");
       sld.className = "sld";
+      const num = (val, w, on) => {
+        const e = document.createElement("input");
+        e.type = "text"; e.className = "lim"; e.value = String(val);
+        e.style.width = w;
+        e.addEventListener("change", () => { on(e.value); recompute(); paint(); });
+        return e;
+      };
+      sld.appendChild(num(c.lo, "3em", v => {
+        const n = parseFloat(v);
+        if(isFinite(n)) { CARDS[i].lo = Math.round(n); CARDS[i].tick = null; }
+      }));
       const rng = document.createElement("input");
       rng.type = "range";
-      rng.min = String(c.lo); rng.max = String(c.hi); rng.step = "1";
-      rng.value = String(c.slider);
+      rng.min = "0"; rng.max = String(ticks(c)); rng.step = "1";
+      rng.value = String(c.tick);
       const v = document.createElement("span");
-      v.className = "v"; v.textContent = String(c.slider);
-      const lab = document.createElement("span");
-      lab.className = "rng"; lab.textContent = c.lo + "\u2026" + c.hi;
+      v.className = "v";
+      v.textContent = c.val.den === 1n ? String(c.val.num)
+        : c.val.num + "/" + c.val.den;
       rng.addEventListener("input", () => {
-        CARDS[i].slider = +rng.value;
-        v.textContent = rng.value;
-        SEL = i; recompute(); info();
+        CARDS[i].tick = +rng.value;
+        CARDS[i].val = valOf(CARDS[i]);
+        v.textContent = CARDS[i].val.den === 1n ? String(CARDS[i].val.num)
+          : CARDS[i].val.num + "/" + CARDS[i].val.den;
+        SEL = i; recompute(); info(); gallery();
       });
-      sld.appendChild(lab); sld.appendChild(rng); sld.appendChild(v);
+      sld.appendChild(rng);
+      sld.appendChild(num(c.hi, "3em", x => {
+        const n = parseFloat(x);
+        if(isFinite(n)) { CARDS[i].hi = Math.round(n); CARDS[i].tick = null; }
+      }));
+      sld.appendChild(v);
+      const st = document.createElement("input");
+      st.type = "text"; st.className = "lim"; st.style.width = "3.4em";
+      st.title = "step";
+      st.value = c.step.den === 1n ? String(c.step.num)
+        : c.step.num + "/" + c.step.den;
+      st.addEventListener("change", () => {
+        try{
+          const f = evalFrac(st.value);
+          if(f.num > 0n){ CARDS[i].step = f; CARDS[i].tick = null; }
+        }catch(e){}
+        recompute(); paint();
+      });
+      sld.appendChild(st);
+      /* an integer stepper, the way Wubba Dub's card has one: the slider is
+         for sweeping, the stepper is for landing on a number */
+      const bump = d => {
+        const c2 = CARDS[i];
+        c2.tick = Math.max(0, Math.min(ticks(c2), c2.tick + d));
+        c2.val = valOf(c2);
+        SEL = i; recompute(); paint();
+      };
+      const sp = document.createElement("div");
+      sp.className = "spin";
+      for(const [lab, d] of [["\u25b4", 1], ["\u25be", -1]]){
+        const b2 = document.createElement("button");
+        b2.textContent = lab;
+        b2.addEventListener("click", () => bump(d));
+        sp.appendChild(b2);
+      }
+      sld.appendChild(sp);
       row.appendChild(sld);
     }
     row.appendChild(nfo);
