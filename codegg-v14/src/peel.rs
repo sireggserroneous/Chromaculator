@@ -34,6 +34,7 @@
 use crate::deflate;
 use crate::jcoef;
 use crate::jpeg;
+use crate::zip;
 
 /// no peel
 pub const PEEL_NONE: u8 = 0;
@@ -42,8 +43,10 @@ pub const PEEL_JPEG: u8 = 1;
 /// deflate (gzip, zlib, PNG IDAT, a bare stream): the parse off, the bytes
 /// underneath
 pub const PEEL_DEFLATE: u8 = 2;
+/// a ZIP: the deflate peel run per member, everything between them verbatim
+pub const PEEL_ZIP: u8 = 3;
 /// the highest peel id this build can read. ONE constant, both sides.
-pub const PEEL_MAX: u8 = PEEL_DEFLATE;
+pub const PEEL_MAX: u8 = PEEL_ZIP;
 
 /// the preamble that opens a MODEL_PEEL payload
 pub const PREAMBLE: usize = 15;
@@ -54,6 +57,11 @@ pub const PREAMBLE: usize = 15;
 pub fn nominate(src: &[u8]) -> u8 {
     if src.len() >= 4 && src[0] == 0xFF && src[1] == 0xD8 && src[2] == 0xFF {
         return PEEL_JPEG;
+    }
+    // the ZIP is asked FIRST: a container whose members are deflate is not
+    // itself a deflate stream, and `deflate::nominates` reads offset zero only.
+    if zip::nominates(src) {
+        return PEEL_ZIP;
     }
     if deflate::nominates(src) {
         return PEEL_DEFLATE;
@@ -153,6 +161,7 @@ pub struct Peeled {
     pub recipe: Vec<u8>,
     pub jpeg: Option<jpeg::Jpeg>,
     pub deflate: Option<deflate::Deflate>,
+    pub zip: Option<zip::Zip>,
     /// the raw weight of the values: for the JPEG, 2 B per coefficient (the
     /// dump v12 weighed); for deflate, the inflated byte count
     pub values_raw_len: usize,
@@ -162,7 +171,7 @@ pub struct Peeled {
 /// byte from main.rs), or its own values model? One answer, read by the arm and
 /// by the restore.
 pub fn values_are_bytes(id: u8) -> bool {
-    id == PEEL_DEFLATE
+    id == PEEL_DEFLATE || id == PEEL_ZIP
 }
 
 /// peel `src`, or say why not
@@ -172,13 +181,19 @@ pub fn peel(src: &[u8], id: u8) -> Result<Peeled, String> {
             let j = jpeg::peel(src)?;
             let recipe = jpeg::recipe_bytes(&j);
             let values_raw_len = jcoef::raw_len(&j);
-            Ok(Peeled { id, recipe, jpeg: Some(j), deflate: None, values_raw_len })
+            Ok(Peeled { id, recipe, jpeg: Some(j), deflate: None, zip: None, values_raw_len })
         }
         PEEL_DEFLATE => {
             let d = deflate::peel(src)?;
             let recipe = deflate::blob(&d);
             let values_raw_len = d.values.len();
-            Ok(Peeled { id, recipe, jpeg: None, deflate: Some(d), values_raw_len })
+            Ok(Peeled { id, recipe, jpeg: None, deflate: Some(d), zip: None, values_raw_len })
+        }
+        PEEL_ZIP => {
+            let z = zip::peel(src)?;
+            let recipe = zip::blob(&z);
+            let values_raw_len = z.vlens.iter().sum();
+            Ok(Peeled { id, recipe, jpeg: None, deflate: None, zip: Some(z), values_raw_len })
         }
         _ => Err(format!("peel id {} is not a peel", id)),
     }
@@ -186,9 +201,10 @@ pub fn peel(src: &[u8], id: u8) -> Result<Peeled, String> {
 
 /// what this peel found, for the trace
 pub fn describe(p: &Peeled) -> String {
-    match (p.jpeg.as_ref(), p.deflate.as_ref()) {
-        (Some(j), _) => j.describe(),
-        (_, Some(d)) => d.describe(),
+    match (p.jpeg.as_ref(), p.deflate.as_ref(), p.zip.as_ref()) {
+        (Some(j), _, _) => j.describe(),
+        (_, Some(d), _) => d.describe(),
+        (_, _, Some(z)) => z.describe(),
         _ => "a peel with no parse".into(),
     }
 }
@@ -198,6 +214,7 @@ pub fn respell(p: &Peeled) -> Result<Vec<u8>, String> {
     match p.id {
         PEEL_JPEG => jpeg::respell(p.jpeg.as_ref().ok_or("peel: no JPEG parse")?),
         PEEL_DEFLATE => deflate::respell(p.deflate.as_ref().ok_or("peel: no deflate parse")?),
+        PEEL_ZIP => zip::respell(p.zip.as_ref().ok_or("peel: no ZIP parse")?),
         _ => Err(format!("peel id {} is not a peel", p.id)),
     }
 }
@@ -205,6 +222,9 @@ pub fn respell(p: &Peeled) -> Result<Vec<u8>, String> {
 /// the values as ORDINARY BYTES, taken out of the parse so the roster can model
 /// them. Only ever called after THE LAW's re-spell has already run.
 pub fn take_values(p: &mut Peeled) -> Vec<u8> {
+    if let Some(z) = p.zip.as_mut() {
+        return zip::take_values(z);
+    }
     match p.deflate.as_mut() {
         Some(d) => std::mem::take(&mut d.values),
         None => Vec::new(),
@@ -278,6 +298,19 @@ pub fn respell_bytes(id: u8, recipe: &[u8], values: Vec<u8>) -> Result<Vec<u8>, 
             // recipe already has one and this is a no-op.
             deflate::expand(&mut d)?;
             deflate::respell(&d)
+        }
+        PEEL_ZIP => {
+            let mut z = zip::from_blob(recipe)?;
+            if values.len() != zip::values_len(recipe)? {
+                return Err(format!(
+                    "the ZIP recipe expects {} inflated bytes, the values restored {}",
+                    zip::values_len(recipe)?,
+                    values.len()
+                ));
+            }
+            z.values = values;
+            zip::expand(&mut z)?;
+            zip::respell(&z)
         }
         _ => Err(format!("peel id {} does not take its values as bytes", id)),
     }

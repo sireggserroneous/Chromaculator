@@ -47,6 +47,7 @@ mod squash_tab;
 mod structure;
 mod token;
 mod zmatch; // N3b's WS-P: the PREDICTED parse (a zlib-compatible matcher)
+mod zip; // N4's WS-Z: the ZIP peel, the deflate peel run per member
 
 use armor::{armor, dearmor, fnv64, geom, offsets, price, promise, rib_no_armor, rib_search, rib_search_with, scratch_guaranteed, square_off, CtMode, Extras, Rib, SURVIVE_DEFAULT};
 use std::env;

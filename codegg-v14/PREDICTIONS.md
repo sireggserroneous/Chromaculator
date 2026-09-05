@@ -1325,3 +1325,73 @@ Both now produce a poor fit that is **reported and falls back**, rather than a
 confident wrong answer. `cargo test` **52**, clippy clean, 8 rows byte-identical,
 and the save still infers level 4 / memLevel 9 with 0 corrections on its sample
 and 20 on the whole stream.
+
+## N4 SHIPPED — the ZIP peel, and two filed thresholds missed by a nameable cause
+
+`src/zip.rs`, `PEEL_ZIP = 3`. A file becomes alternating spans — gap, member,
+gap, ..., gap, with `gaps.len() == members.len() + 1`. Gaps are carried
+VERBATIM: local headers, the central directory, the EOCD, and **every member
+this peel did not take**. A member is taken only if `deflate::peel` reads it AND
+re-spells it exactly; anything else stays in the gap and the archive is peeled
+around it.
+
+| row | before | after | |
+|---|---|---|---|
+| python312.zip (599 deflate) | 3,753,980 | **2,027,506** | **-46.0%** |
+| ipf-alienware.zip (31 deflate + 3 stored) | 5,653,821 | **2,925,145** | **-48.3%** |
+| icu4j.jar (5,826 STORED, 0 deflate) | — | 7,691,219 | **no peel nominated** |
+
+**All three restore EXACT**, read back from disk.
+
+### The filed predictions, judged — misses first
+
+| filed | measured | verdict |
+|---|---|---|
+| the row lands **under 2,000,000** | **2,027,506** | **MISS** by 27,506 (1.4%) |
+| it lands **within 6%** of precomp+zpaq (1,847,299) | **9.8% behind** | **MISS** |
+| a fall of **at least 45%** | **-46.0%** | HIT |
+| above 2,100,000 and per-member meta is the thing to attack | 2,027,506 | not triggered |
+
+**The cause is one number in the trace, and it is not meta:**
+
+```
+zip: 599 members peeled, 8,840,215 B inflated;
+     recipe 69,074 B verbatim frame + 415,766 B of member recipes
+     (331 predicted, 268 stored)
+```
+
+**268 of 599 members ship a STORED parse.** `try_predict` takes the prediction
+only when it costs fewer bytes than the streams it replaces, and on a small
+member the corrections lose that comparison — 20 corrections at 10 B each is
+200 B against a parse that may itself be under 200 B. So the forecast, which
+assumed all 599 would predict, undershot the recipe: **489,649 B raw where I
+forecast ~297,054**, coding to 156,705 against my ~59,000.
+
+That is a good refusal doing its job — every one of those 268 is a member where
+storing genuinely wins — but it is also **the named next lever for N4**: the
+per-member recipe on SMALL members. `ipf-alienware.zip`, whose 31 members are
+large, predicts **31 of 31** and its recipe is 337,275 B raw for 14.3 MB
+inflated.
+
+### What the hostile proved
+
+`icu4j.jar` — 35.6 MB, 5,826 members, all stored, zero deflate — is **not
+nominated at all**: `zip::nominates` reads the central directory and finds no
+method-8 member, so no peel is attempted, nothing is expanded, and the row goes
+through the ordinary ladder and restores EXACT. That was the shape written into
+`corpus-zip/suite.txt` as the one that breaks a peel assuming deflate, and it
+does not break this one.
+
+### Gates
+
+clippy clean · `cargo test --release` **56** (4 new in `zip.rs`, including a
+constructed archive whose LOCAL headers carry different name/extra lengths from
+its central directory — the disagreement that makes reading the wrong header
+silently read the wrong bytes) · **8 sealed rows byte-identical**, which matters
+because `zip::nominates` now runs on every file · deflate suite **29 EXACT, 0
+WRONG, 0 LOST**.
+
+### Still not a sealed row
+
+`corpus-zip/` remains its own suite. N4 is proven; **whether a ZIP row joins the
+sealed twenty is the next decision**, and it changes every future comparison.
