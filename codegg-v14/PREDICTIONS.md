@@ -1395,3 +1395,74 @@ WRONG, 0 LOST**.
 
 `corpus-zip/` remains its own suite. N4 is proven; **whether a ZIP row joins the
 sealed twenty is the next decision**, and it changes every future comparison.
+
+## N4 POST-SEAL — my diagnosis of the 268 was WRONG, and the row breaks the speed floor
+
+Three findings, and the first is a correction to what I published one commit ago.
+
+### 1. The 268 stored members: the cause I named is false
+
+The N4 commit says they ship a stored parse because "on a small member 20
+corrections at 10 B each lose to a parse under 200 B". **That was inferred, not
+measured, and it is wrong.** A sweep of all 599 members says:
+
+```
+  members 599  (no-fit 0, lockstep-fail 0)
+  predicted at W=10   599        REFUSED on width   0
+  would flip at W=7 : 0     at W=4 : 0     at W=2 : 0
+```
+
+**Every one of the 599 wins its size comparison.** None is refused on the
+correction width, so a varint record -- the lever I named and the one suggested
+back to me -- **buys exactly zero members.** Both of us were aiming at a gate
+that never fires.
+
+The real cause is a guard I wrote myself, `deflate.rs:1011`:
+
+```rust
+if d.ntok == 0 || d.values.len() < 4096 { return; }
+```
+
+**268 of 599 members inflate to under 4,096 B** (median member: 5,254 B), so
+`try_predict` returns before it ever tries. Counted independently: exactly 268.
+
+**Priced:**
+
+| | members | stored | predicted | saving |
+|---|---|---|---|---|
+| below the guard (never attempted) | **268** | 159,366 B | 3,876 B | **155,490 B** |
+| above it (predicted today) | 331 | 2,490,966 B | 48,682 B | 2,442,284 B |
+
+Dropping the guard puts the recipe at ~334,159 B raw, ~106,930 coded at the
+observed 32%, and the row near **1,977,731** -- under the 2,000,000 I filed and
+missed. **268 flips against the "seal instead if under ~100" bar.**
+
+### 2. The peel was never timed, and it is half the row
+
+```
+peel 3: [parse 33,679 ms]   THE LAW re-spelled and compared in 30 ms
+python312.zip  3,814,526 B -> 2,027,506 armored in 71,457 ms (0.053 MB/s)
+```
+
+**The parse is 47% of the row**; the law that validates it costs 30 ms. The
+parse is `infer` running up to 81 lockstep passes per member, 599 times, in
+series. Parallelising per member is **byte-identical** -- members are
+independent and each inference is deterministic -- and is the obvious first cut.
+
+### 3. THE FLOOR IS BROKEN, and promoting this row is what broke it
+
+`python312.zip` runs at **0.053 MB/s against the home floor of 0.25** -- five
+times under, measured twice on an idle machine. It is a `corpus-real` row now,
+so the floor applies to it.
+
+Even a free parse leaves ~38 s of roster and lands ~0.10 MB/s, because the
+roster models the **inflated** 8,840,215 B, not the 3,814,526 B of input. **The
+floor counts input bytes per second, and a peel row's work is proportional to
+what it inflates to.** `wallpaper.jpg` never exposed this: its JPEG parse is
+42 ms and its values ride a dedicated model.
+
+That is a bar question, not a bug, and it wants an explicit answer rather than a
+quiet one: move the row to `corpus-big` (where the bar is wall clock), restate
+the floor to measure modelled bytes, or record the breach. **Restating a bar to
+accommodate the row that broke it is the option that needs the most argument,
+and it should not happen silently.**

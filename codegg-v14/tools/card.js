@@ -76,3 +76,10 @@ console.log(`\nagainst single tools (all ${rows.length} rows):`);
 console.log(`  ours                            ${n(allOursT)}`);
 console.log(`  zpaq -m5 alone                  ${n(zAll)}   ${pct(zAll, allOursT)} (we WIN)`);
 console.log(`  precomp on the save + zpaq      ${n(zPre)}   ${pct(zPre, allOursT)}`);
+// and the one a rival would ACTUALLY run: precomp pointed at every row it was
+// measured to help, not just the save. Its whole purpose is archives, so
+// declining to aim it at a 599-member ZIP is a concession no competitor makes.
+// This is the honest headline column; the line above is kept because its
+// literal label is true and the two differ by 1,894,942 B.
+const zBest = rows.reduce((s, r) => s + (C.precomp_best[r.f] ?? C.zpaq_m5[r.f] ?? r.ours), 0);
+console.log(`  precomp wherever it helps + zpaq ${n(zBest)}  ${pct(zBest, allOursT)}   <- the best runnable pipeline`);

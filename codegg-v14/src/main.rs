@@ -338,6 +338,11 @@ fn peel_arm_at(src: &[u8], depth: u32) -> Option<(Vec<u8>, u8)> {
         return None;
     }
     let trace = std::env::var_os("EGG_PEEL").is_some() || std::env::var_os("EGG_ARMS").is_some();
+    // v14-N4: the peel itself was never timed. On a ZIP it runs the matcher's
+    // parameter search once PER MEMBER -- 599 times on python312.zip -- and a
+    // member with no zlib fit costs all 81 configs before the size gate ever
+    // sees it. That is the only part of N4 nobody had priced.
+    let t_peel = Instant::now();
     let mut p = match peel::peel(src, id) {
         Ok(p) => p,
         Err(e) => {
@@ -347,11 +352,17 @@ fn peel_arm_at(src: &[u8], depth: u32) -> Option<(Vec<u8>, u8)> {
             return None;
         }
     };
+    let peel_ms = t_peel.elapsed().as_millis();
     if trace {
-        eprintln!("  peel {}: {}", id, peel::describe(&p));
+        eprintln!("  peel {}: {} [parse {} ms]", id, peel::describe(&p), peel_ms);
     }
+    let t_law = Instant::now();
     match peel::respell(&p) {
-        Ok(back) if back == src => {}
+        Ok(back) if back == src => {
+            if trace {
+                eprintln!("  peel {}: THE LAW re-spelled and compared in {} ms", id, t_law.elapsed().as_millis());
+            }
+        }
         Ok(back) => {
             if trace {
                 eprintln!("  peel {}: REFUSED -- the re-encode is not the original ({} B vs {} B); the bytes are kept", id, back.len(), src.len());
@@ -1248,10 +1259,13 @@ fn main() -> ExitCode {
                 lock_ms
             );
             let stored = d.flags.len() + d.lens.len() + d.dists.len() * 2;
-            let predicted = 2 + corr.len() * 7;
+            // the format's OWN record size, not a friendlier one: this probe
+            // printed 7 B per correction while `deflate::CORR` spends 10, so it
+            // reported a prediction cheaper than the one that would ship.
+            let predicted = 2 + corr.len() * deflate::CORR;
             println!(
-                "  recipe parse streams: STORED {} B -> PREDICTED {} B (2 param bytes + 7 B per correction) = {:.1}x smaller",
-                stored, predicted, stored as f64 / predicted.max(1) as f64
+                "  recipe parse streams: STORED {} B -> PREDICTED {} B (2 param bytes + {} B per correction) = {:.1}x smaller",
+                stored, predicted, deflate::CORR, stored as f64 / predicted.max(1) as f64
             );
             ExitCode::SUCCESS
         }

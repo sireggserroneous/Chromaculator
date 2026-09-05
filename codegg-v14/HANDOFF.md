@@ -159,7 +159,7 @@ became a **2.02% WIN**. Against zpaq -m5 alone we are **14.85% ahead**.
 | next | worth | state |
 |---|---|---|
 | ~~N4 ZIP peel~~ | **SHIPPED** -- python312.zip -46.0%, ipf -48.3%, all restore EXACT | now the corpus's 21st sealed row |
-| PE / binary model | 1,991,562 B over 6 rows | a model-architecture project, not a fix |
+| PE / binary model | **2,150,378 B** over 6 rows | a model-architecture project, not a fix |
 | JPEG baseline peel | 265,778 B | vs paq8px on wallpaper.jpg |
 | font / TTF model | 222,450 B | both TTF rows ~26% under paq8px |
 | JS / text model | 188,813 B | |
