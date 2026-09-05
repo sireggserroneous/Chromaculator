@@ -88,21 +88,58 @@ pub fn peel(src: &[u8]) -> Result<Zip, String> {
             return Err(format!("ZIP members overlap at {} and {}", w[0].off, w[1].off));
         }
     }
+    // The per-member peel is the row's clock: 599 members x up to 81 lockstep
+    // passes each is 33.7 s of a 71.5 s row. Members are independent and each
+    // inference is deterministic, so this is byte-identical -- the results are
+    // sorted back into file order before a single gap is cut.
+    //
+    // A WORK-STEALING cursor rather than fixed chunks, because the members are
+    // wildly uneven: one member of the 599 takes 4,047 ms against a 100.7 s
+    // total, so a chunked split would leave one thread holding it while the
+    // rest idled. N2b's law applies here unchanged -- the pool finishes when
+    // its SLOWEST task finishes, which bounds this at ~8.3x however many cores
+    // are thrown at it.
+    let cand: Vec<(usize, &crate::peel::Member)> = ms
+        .iter()
+        .enumerate()
+        .filter(|(_, m)| m.method == 8 && m.len > 0 && m.off + m.len <= src.len())
+        .collect();
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let lanes = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).min(cand.len().max(1));
+    let taken: Vec<(usize, deflate::Deflate)> = std::thread::scope(|sc| {
+        let hs: Vec<_> = (0..lanes)
+            .map(|_| {
+                let cand = &cand;
+                let next = &next;
+                sc.spawn(move || {
+                    let mut mine: Vec<(usize, deflate::Deflate)> = Vec::new();
+                    loop {
+                        let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        let Some(&(idx, m)) = cand.get(k) else { break };
+                        let body = &src[m.off..m.off + m.len];
+                        let Ok(d) = deflate::peel(body) else { continue };
+                        // THE LAW, per member and before it is taken: a member
+                        // that does not re-spell to its own bytes stays in the
+                        // gap, and the archive is still peeled around it.
+                        match deflate::respell(&d) {
+                            Ok(back) if back == body => {}
+                            _ => continue,
+                        }
+                        mine.push((idx, d));
+                    }
+                    mine
+                })
+            })
+            .collect();
+        hs.into_iter().flat_map(|h| h.join().expect("a ZIP member lane")).collect()
+    });
+    let mut taken = taken;
+    taken.sort_by_key(|(i, _)| *i);
+
     let mut z = Zip { gaps: Vec::new(), members: Vec::new(), vlens: Vec::new(), values: Vec::new() };
     let mut cur = 0usize;
-    for m in &ms {
-        if m.method != 8 || m.len == 0 || m.off + m.len > src.len() {
-            continue;
-        }
-        let body = &src[m.off..m.off + m.len];
-        let Ok(d) = deflate::peel(body) else { continue };
-        // THE LAW, per member and before it is taken: a member that does not
-        // re-spell to its own bytes stays in the gap, and the archive is still
-        // peeled around it.
-        match deflate::respell(&d) {
-            Ok(back) if back == body => {}
-            _ => continue,
-        }
+    for (idx, d) in taken {
+        let m = &ms[idx];
         if m.off < cur {
             return Err("a ZIP member starts before the previous one ended".into());
         }

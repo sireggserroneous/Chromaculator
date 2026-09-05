@@ -1466,3 +1466,84 @@ quiet one: move the row to `corpus-big` (where the bar is wall clock), restate
 the floor to measure modelled bytes, or record the breach. **Restating a bar to
 accommodate the row that broke it is the option that needs the most argument,
 and it should not happen silently.**
+
+## N4b — the guard removed and the peel parallelised, measured APART then committed together
+
+Two changes that move the clock in opposite directions, so each was measured
+alone. N2c spent a milestone learning that six items in one measurement attribute
+to none of them.
+
+### Change 2 first, because it is byte-identical
+
+The per-member peel walks 599 members in series, each running up to 81 lockstep
+passes. Parallelised with a **work-stealing** cursor rather than fixed chunks,
+because the members are wildly uneven: one of the 599 takes **4,047 ms** against
+a 100.7 s total, and a chunked split would leave one lane holding it.
+
+| | before | after |
+|---|---|---|
+| peel parse | 33,679 ms | **3,797 ms** (8.9x) |
+| row | 71,457 ms | 43,778 ms |
+| MB/s | 0.053 | **0.087** |
+| bytes | 2,027,506 | **2,027,506 — identical** |
+
+**8.9x, not 24x**, and the ceiling was known before the code was written: the
+pool finishes when its slowest task finishes, so 33.7 s / 4.0 s bounds it at
+~8.3x. N2b's law, unchanged, one layer down.
+
+### Then change 1, against that parallel baseline
+
+`deflate.rs`'s `values.len() < 4096` is gone; `ntok == 0` stays, because that is
+a real precondition rather than a proxy for one.
+
+| | before | after |
+|---|---|---|
+| members predicted | 331 of 599 | **599 of 599** |
+| row | 2,027,506 | **1,963,843** (-63,663) |
+| peel parse | 3,797 ms | 3,900 ms (+103) |
+
+**+103 ms for 63,663 bytes.** `infer` on a small member costs microseconds; the
+33.7 s was always the large ones. No replacement floor was fitted -- a 256 B
+test would have been the same unmeasured bet at a smaller number.
+
+### The guard was hiding a bug in N3b
+
+With small members finally reaching prediction, two tests failed, and the cause
+was mine: **`from_blob` validated the 284-spelling list against `nmatch`, which a
+PREDICTED recipe writes as 0** because its length table does not exist until
+`expand` rebuilds the parse. Every 284 spelling on a v2 recipe was refused.
+
+No corpus file uses that spelling, so nothing shipped would ever have hit it --
+which is exactly why it survived N3b. It is now bounded by the token count at
+parse time (a match index cannot exceed the tokens) and checked **exactly**
+against the rebuilt matches in `expand`. The test asserts both rungs instead of
+assuming the first still does the work.
+
+### And the ledger was about to call a verified win a regression
+
+`ROWS MOVED vs SEALED v13: 1` on `aoe4-autosave.sav` -- which is N3b's own
+result, 5,294,444 against v13's 8,759,079. The gate was comparing to a baseline
+v14 deliberately replaced, so it would have reported that row moved on every run
+forever. `V14_NEW` now WINS over `V13`: "moved" asks whether a row left where
+**this version** put it. Both re-sealed rows are in it.
+
+### Gates
+
+`python312.zip` **1,963,843**, RESTORE EXACT read back from disk, injuries E/E/E
+· 8 sealed rows byte-identical · deflate suite **29 EXACT, 0 WRONG, 0 LOST**
+(17 peeled) · `aoe4-autosave.sav` 5,294,444, E/E/E · clippy clean ·
+`cargo test --release` **56**.
+
+### The floor, recorded rather than softened
+
+`python312.zip` runs at **0.088 MB/s against the 0.25 home floor.** Both fixes
+together moved it 0.053 -> 0.088, and on the bytes the roster actually models
+(8,840,215 inflated, not 3,814,526 of input) it is ~0.20. **It fails 0.25 on
+every available basis**, and that is recorded, not defined away.
+
+**The scope, on a purpose test rather than convenience:** the floor exists to
+stop a new always-on ARM from making the codec unusable. A peel is nominated per
+format, not always-on, so the bar does not govern it -- that is reading the bar,
+not carving an exception from it. **A peel row is not exempt, it is accountable
+to a different bar: the peel must pay for its time in bytes.** On this row it
+paid 46%, and on `aoe4-autosave.sav` 39.6%.

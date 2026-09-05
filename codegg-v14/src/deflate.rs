@@ -174,6 +174,17 @@ pub fn expand(d: &mut Deflate) -> Result<(), String> {
             d.dists.push(*dd);
         }
     }
+    // the exact check the layout could only bound: the spelling list indexes
+    // the MATCHES, and they exist only now that the parse is rebuilt
+    if let Some(&last) = d.resp.last() {
+        if last as usize >= d.lens.len() {
+            return Err(format!(
+                "the predicted parse rebuilt {} matches, but the spelling list names match {}",
+                d.lens.len(),
+                last
+            ));
+        }
+    }
     Ok(())
 }
 
@@ -1008,7 +1019,16 @@ pub fn peel(src: &[u8]) -> Result<Deflate, String> {
 /// all -- goes on seeing an ordinary recipe. Only the decoder, which reads a
 /// blob with no parse in it, needs `expand()`.
 fn try_predict(d: &mut Deflate) {
-    if d.ntok == 0 || d.values.len() < 4096 {
+    // `ntok == 0` is a real precondition -- there is no parse to predict -- and
+    // the `cut == 0` bail below agrees with it. There is NO size test: one used
+    // to sit here (`values.len() < 4096`) and it was a heuristic short-circuit
+    // in front of an exact gate, which is either doing nothing or doing harm.
+    // It did harm: on `python312.zip` it skipped 268 of 599 members, and a
+    // sweep of all 599 found every one of them would have WON the size
+    // comparison it never reached. A smaller floor would have been the same
+    // unmeasured bet at a smaller number, and `infer` on a tiny member costs
+    // microseconds -- the 33.7 s this peel used to spend was large members.
+    if d.ntok == 0 {
         return;
     }
     let actual = crate::zmatch::from_recipe(d);
@@ -1257,8 +1277,16 @@ pub fn from_blob(b: &[u8]) -> Result<Deflate, String> {
         }
     }
     if let Some(&last) = resp.last() {
-        if last as usize >= l.nmatch {
-            return Err(format!("a deflate recipe whose spelling list names match {} of {}", last, l.nmatch));
+        // v14-N3b bug, found when N4 stopped skipping small members: a
+        // PREDICTED recipe writes nmatch = 0, because its length table does not
+        // exist until `expand` rebuilds the parse -- so checking the spelling
+        // list against nmatch refused every 284 spelling on a v2 recipe. The
+        // token count is the honest bound available here (a match index cannot
+        // exceed the number of tokens); `expand` then checks it EXACTLY against
+        // the rebuilt matches, which is the check this one was standing in for.
+        let bound = if b[0] == 2 { l.ntok as usize } else { l.nmatch };
+        if last as usize >= bound {
+            return Err(format!("a deflate recipe whose spelling list names match {} of {}", last, bound));
         }
     }
     // v2 spends the flags section on [level, mem_level] + fixed-size
@@ -1399,17 +1427,36 @@ mod tests {
         let mut back = from_blob(&b).expect("from_blob");
         assert_eq!(back.resp, d.resp);
         back.values = d.values.clone();
+        // this fixture is small, so N4's removal of the size guard means its
+        // parse is now PREDICTED: the blob carries no length table and expand()
+        // rebuilds one before anything can re-spell. That is v2's contract.
+        expand(&mut back).expect("expand");
         assert!(respell(&back).expect("respell") == gz);
         // hostile spelling lists: unascending, past the match count, and one
         // that names a match of another length. Each refuses with a reason.
         let mut unasc = b.clone();
         unasc[l.resp.0..l.resp.0 + 4].copy_from_slice(&9u32.to_le_bytes());
         assert!(from_blob(&unasc).is_err(), "an unascending spelling list must refuse");
+        // past the MATCH count but inside the token count: a predicted recipe
+        // has no length table at parse time, so this is bounded by ntok there
+        // and caught EXACTLY by expand once the matches exist. Both rungs are
+        // asserted rather than assuming the first one still does the work.
         let mut far = b.clone();
         far[l.resp.0 + 4..l.resp.0 + 8].copy_from_slice(&99u32.to_le_bytes());
-        assert!(from_blob(&far).is_err(), "a spelling list past the match count must refuse");
+        match from_blob(&far) {
+            Err(_) => {}
+            Ok(mut f) => {
+                f.values = d.values.clone();
+                assert!(expand(&mut f).is_err(), "a spelling list past the match count must refuse at expand");
+            }
+        }
+        // and past the token count, which the layout can and does refuse
+        let mut way_far = b.clone();
+        way_far[l.resp.0 + 4..l.resp.0 + 8].copy_from_slice(&999_999u32.to_le_bytes());
+        assert!(from_blob(&way_far).is_err(), "a spelling list past the token count must refuse at parse");
         let mut wrong = from_blob(&b).expect("from_blob");
         wrong.values = d.values.clone();
+        expand(&mut wrong).expect("expand");
         wrong.lens[0] = 0; // now a 3-byte match, still named by the spelling list
         assert!(respell(&wrong).is_err(), "284 on a match that is not 258 must refuse");
     }

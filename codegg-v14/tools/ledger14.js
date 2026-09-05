@@ -29,11 +29,15 @@ const V13 = {
   'segoeui.ttf': 409683, 'vim-version9.txt': 273743, 'wallpaper.jpg': 1126497,
   'wubbadub.html': 27621, 'zstd.exe': 488915, 'rustc_driver.dll': 37436978,
 };
-// rows this corpus gained AT v14, which therefore have no v11 or v13 baseline.
-// They are judged against this table instead, so "ROWS MOVED" still covers them
-// and the v11 totals are not polluted by a row v11 never saw.
+// rows v14 SEALED ITSELF: either the corpus gained them (python312.zip, which
+// has no v11 or v13 baseline at all) or v14 moved them on purpose (the save,
+// whose recipe stopped being stored at N3b). This table WINS over V13, because
+// "ROWS MOVED" must ask whether a row moved from where THIS version put it --
+// otherwise a deliberate, verified win is reported as a regression on every
+// run from now on, which is how a gate stops being read.
 const V14_NEW = {
-  'python312.zip': 2027506,
+  'python312.zip': 1963843,
+  'aoe4-autosave.sav': 5294444,
 };
 // the M0 column, filed in PREDICTIONS.md BEFORE M1 code: every row is judged to the byte
 const PRED = process.env.EGG_PRED ? JSON.parse(fs.readFileSync(process.env.EGG_PRED, 'utf8')) : null;
@@ -117,11 +121,11 @@ async function pool(items, n, fn){
     if(!ok) fail++;
     if(!fresh && d > 0) worse++;
     const mbs = (r.orig / 1e6 / Math.max(0.001, r.ms / 1000)).toFixed(2);
-    const b13 = V13[r.f] !== undefined ? V13[r.f] : V14_NEW[r.f];
+    const b13 = V14_NEW[r.f] !== undefined ? V14_NEW[r.f] : V13[r.f];
     let col13 = '';
     if(b13 !== undefined){
       const d13 = r.n12 - b13;
-      const tag = V13[r.f] !== undefined ? 'v13' : 'v14';
+      const tag = V14_NEW[r.f] !== undefined ? 'v14' : 'v13';
       col13 = ` ${tag}=${String(b13).padStart(9)} ${d13 === 0 ? 'SAME' : (d13 > 0 ? '+' : '') + d13}`;
       if(d13 !== 0) moved++;
     }

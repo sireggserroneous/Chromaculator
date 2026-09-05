@@ -21,7 +21,7 @@
     "wubbadub.html": 27621,
     "zstd.exe": 488915,
     "rustc_driver.dll": 37436978,
-    "python312.zip": 2027506
+    "python312.zip": 1963843
   },
   "armor_price": 4812,
   "zpaq_m5": {
@@ -74,6 +74,6 @@
   "_ours_now_note": "rows this build has MOVED since the v13 seal. card.js prefers these over sealed_v13 when scoring, because the card must compare a rival to what we ship today, not to what we shipped in September.",
   "ours_now": {
     "aoe4-autosave.sav": 5294444,
-    "python312.zip": 2027506
+    "python312.zip": 1963843
   }
 }
