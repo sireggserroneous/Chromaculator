@@ -59,8 +59,12 @@ def api_read(q, lang):
 MAX_PUSH = 64                                # per name, so a page stays a page
 
 
-def api_sort(q, lang, push="", read="sound"):
+def api_sort(q, lang, push="", read="sound", order="chroma"):
     """Two independent axes.
+
+    order "chroma" the Chroma UTF ordering, which comes first
+          "ipa"    the IPA ordering, a different sort rather than a level
+                   inside the other one -- ties in it fall back to the Chroma key
 
     read  "spell"  the string as written, in Chroma UTF codes
           "sound"  its phonetic reading
@@ -80,13 +84,15 @@ def api_sort(q, lang, push="", read="sound"):
     spell_axis = read == "spell"
     if not push:
         rows = []
-        keyed = [(S._k(n, S.spellings(n)[0]) if spell_axis else S.key(n, lang or None), n)
-                 for n in items]
-        keyed.sort(key=lambda x: x[0][0])
-        for (k, spell, r), n in keyed:
+        ordered = (S.chroma_sorted(items, lang or None, order) if not spell_axis
+                   else sorted(items, key=lambda n: S._k(n, S.spellings(n)[0])[0]))
+        for n in ordered:
+            k, spell, r = (S._k(n, S.spellings(n)[0]) if spell_axis
+                           else S.key(n, lang or None))
             rows.append({"name": n, "reading": spell, "ipa": ipa(r),
                          "codes": [c for c in C.letters(spell)]})
-        return {"lang": lang, "push": "", "read": read, "sorted": rows}
+        return {"lang": lang, "push": "", "read": read, "order": order,
+                "sorted": rows}
     ent = []
     for n in items:
         mine, seen = [], set()
@@ -107,7 +113,7 @@ def api_sort(q, lang, push="", read="sound"):
             row["truncated"] = total > MAX_PUSH
         ent += shown
     ent.sort(key=lambda x: x[0])
-    return {"lang": lang, "push": push, "read": read,
+    return {"lang": lang, "push": push, "read": read, "order": order,
             "sorted": [r for _k, r in ent]}
 
 
@@ -233,11 +239,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         lang = (qs.get("lang") or [""])[0]
         push = (qs.get("push") or [""])[0]
         read = (qs.get("read") or ["sound"])[0]
-        if len(q) > MAX_Q or len(lang) > 64 or len(push) > 8 or len(read) > 8:
+        order = (qs.get("order") or ["chroma"])[0]
+        if len(q) > MAX_Q or len(lang) > 64 or len(push) > 8 or len(read) > 8 \
+                or len(order) > 8:
             self.send_error(413, "too long"); return
         try:
             if u.path == "/api/read":    body = api_read(q, lang)
-            elif u.path == "/api/sort":  body = api_sort(q, lang, push, read)
+            elif u.path == "/api/sort":  body = api_sort(q, lang, push, read, order)
             elif u.path == "/api/cards": body = api_cards(q, lang, push, read)
             elif u.path == "/api/ipa":   body = api_ipa(q, lang)
             elif u.path == "/api/base":  body = api_base()
@@ -334,6 +342,14 @@ def demo():
     assert sorted(ws, key=frac) == real, "the fraction must agree with the key"
     assert sorted(ws, key=whole) != real, \
         "the integer is length-dominant; if this ever matches, the control is dead"
+    # two sibling orderings, both total, and they genuinely disagree
+    W = "church\ncat\ntop\nshoe\nsun"
+    ch = [r["name"] for r in api_sort(W, "en", "", "sound", "chroma")["sorted"]]
+    ia = [r["name"] for r in api_sort(W, "en", "", "sound", "ipa")["sorted"]]
+    assert sorted(ch) == sorted(ia) == sorted(W.split("\n")), (ch, ia)
+    assert ch != ia, "the two orderings must differ, or one of them is not doing anything"
+    assert ia.index("church") > ia.index("top"), \
+        "in IPA church follows top: an affricate starts with /t/"
     ip = api_ipa("shit", "en")
     assert ip["width"] == 8 and ip["base"] == 256, ip
     assert ip["count"] == 126 and ip["modulus"] == 127, (ip["count"], ip["modulus"])

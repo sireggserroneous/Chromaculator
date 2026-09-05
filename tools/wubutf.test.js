@@ -170,18 +170,36 @@ function seeded(q, lang, push, read){
     + `${allRows[0].of} rules off (kervezas present)`);
 }
 
-/* ---- 7. the shape axis is orthogonal to the sound axis ---- */
+/* ---- 8. two sibling orderings, not two levels of one ---- */
+{
+  const W = "church\ncat\ntop\nshoe\nsun";
+  const ord = o => api("api_sort", W, "en", "", "sound", o).sorted.map(x => x.name);
+  const ch = ord("chroma"), ia = ord("ipa");
+  ok(String([...ch].sort()) === String([...ia].sort()),
+     "both orderings must be permutations of the same input");
+  ok(String(ch) !== String(ia),
+     "the two orderings agreed — one of them is not doing anything");
+  ok(ia.indexOf("church") === ia.indexOf("top") + 1,
+     `in IPA church must follow top — an affricate opens with /t/: ${ia}`);
+  ok(ch.indexOf("church") === 0,
+     `in Chroma church leads, because its reading spells ch: ${ch}`);
+  console.log(`  [8] two orderings  chroma ${ch.join(" ")}`);
+  console.log(`                     ipa    ${ia.join(" ")}`);
+  console.log("                     church moves behind top: /tʃ/ opens with /t/");
+}
+
+/* ---- 9. the shape axis is orthogonal to the sound axis ---- */
 {
   const leet = api("api_read", "c3rv3zas", "en leet").reading;
   const plain = api("api_read", "c3rv3zas", "en").reading;
   const target = api("api_read", "cervezas", "en").reading;
   ok(leet === target && plain !== target,
      `shape axis: ${plain} plain, ${leet} with leet, cervezas is ${target}`);
-  console.log(`  [8] shape axis     c3rv3zas -> ${plain} plain, ${leet} with leet `
+  console.log(`  [9] shape axis     c3rv3zas -> ${plain} plain, ${leet} with leet `
     + `— the same key as cervezas`);
 }
 
-/* ---- 8. the whole stack over a live socket ---- */
+/* ---- 10. the whole stack over a live socket ---- */
 {
   const PORT = 18338;
   const srv = spawn("python3", ["-u", "serve.py", "--port", String(PORT)],
@@ -212,7 +230,7 @@ function seeded(q, lang, push, read){
     ok((await get("/api/nope")).status === 404, "unknown endpoint should 404");
     ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413,
        "oversized query should 413");
-    console.log(`  [9] live stack     page 200, 3 cards, sort ${names.join(" ")}, `
+    console.log(`  [10] live stack     page 200, 3 cards, sort ${names.join(" ")}, `
       + "飼 as ja-on -> shi, /api/nope 404, 5000 chars 413");
   } finally { srv.kill("SIGTERM"); }
 }

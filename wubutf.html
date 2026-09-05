@@ -195,6 +195,10 @@ dis, this, thin</textarea>
         <div class="seg" id="pho">
           <button data-v="0" class="on">As written</button><button data-v="1">Phonetic</button>
         </div>
+        <label id="ordWrap" hidden style="margin-top:8px">Ordering</label>
+        <div class="seg" id="ord" hidden>
+          <button data-v="chroma" class="on">Chroma</button><button data-v="ipa">IPA</button>
+        </div>
         <label class="check" id="rulesWrap" hidden>
           <input type="checkbox" id="rules"> rules off &mdash; every branch, no position
         </label>
@@ -444,7 +448,10 @@ function renderOrder(rows){
   const host = $("#rows");
   host.textContent = "";
   const st = state();
-  $("#mode").textContent = (st.phonetic ? "Ordered by sound" : "Ordered by spelling")
+  $("#mode").textContent = (st.phonetic
+      ? (st.order === "ipa" ? "Ordered by sound \u00b7 IPA alphabet"
+                            : "Ordered by sound \u00b7 Chroma UTF")
+      : "Ordered by spelling")
     + (!st.push ? ""
        : st.phonetic
          ? (st.push === "all" ? " · pushed, rules off — every branch"
@@ -487,18 +494,25 @@ function renderOrder(rows){
 /* Plain|Pushed and As written|Phonetic are INDEPENDENT axes, so all four
    combinations exist. The page holds them itself rather than reading them back
    out of a button's class. */
-let REP = "plain", PHONETIC = false;
+let REP = "plain", PHONETIC = false, ORDER = "chroma";
 function state(){
   const push = REP === "pushed"
     ? (PHONETIC && $("#rules").checked ? "all" : "ctx") : "";
-  return {rep: REP, phonetic: PHONETIC, push};
+  /* Chroma comes first and IPA is its own kind of sorting, so the two are
+     siblings rather than levels: pick one. IPA needs a reading, so it is only
+     offered on the phonetic axis. */
+  return {rep: REP, phonetic: PHONETIC, push,
+          order: PHONETIC ? ORDER : "chroma"};
 }
 function chrome(){
   const st = state();
   $("#rulesWrap").hidden = !(st.rep === "pushed" && st.phonetic);
   $("#leetWrap").hidden = !st.phonetic;
+  $("#ordWrap").hidden = !st.phonetic;
+  $("#ord").hidden = !st.phonetic;
   $("#lang").disabled = !st.phonetic;
-  for(const pair of [["rep", REP], ["pho", PHONETIC ? "1" : "0"]]){
+  for(const pair of [["rep", REP], ["pho", PHONETIC ? "1" : "0"],
+                     ["ord", ORDER]]){
     const host = $("#" + pair[0]);
     if(!host || !host.querySelectorAll) continue;
     for(const x of host.querySelectorAll("button"))
@@ -506,10 +520,12 @@ function chrome(){
   }
 }
 function pick(id, v){
-  if(id === "rep") REP = v; else PHONETIC = v === "1";
+  if(id === "rep") REP = v;
+  else if(id === "ord") ORDER = v;
+  else PHONETIC = v === "1";
   chrome(); go();
 }
-for(const id of ["rep", "pho"]){
+for(const id of ["rep", "pho", "ord"]){
   const host = $("#" + id);
   if(host) host.addEventListener("click", e => {
     const b = e.target && e.target.closest && e.target.closest("button");
@@ -522,6 +538,7 @@ function query(){
   const lang = st.phonetic ? $("#lang").value + ($("#leet").checked ? " leet" : "") : "";
   return "lang=" + encodeURIComponent(lang.trim())
     + "&read=" + (st.phonetic ? "sound" : "spell")
+    + "&order=" + st.order
     + "&push=" + st.push + "&q=" + encodeURIComponent($("#q").value);
 }
 

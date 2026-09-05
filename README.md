@@ -484,9 +484,17 @@ Stack them and each one resolves what the last could not. 20,000 English words:
 even when the sound does not, and alphabet 3 is total by construction: distinct
 words have distinct spellings.
 
-Levels 2 and 3 are already the key. Level 1 is not, and leading with IPA would
-move **99.7% of positions** — because an affricate is two IPA symbols, so
-`church` sorts under **t**, from the /t/ in /tʃ/. That is defensible IPA and a
-large surprise; it is a decision, not an improvement.
+Levels 2 and 3 are already the key. **Chroma UTF comes first and IPA is its own
+kind of sorting**, so the two are *siblings, not levels*: pick one with
+`order=chroma` (the default) or `order=ipa`. Within the IPA sort, ties fall back
+to the Chroma key — the cascade again.
 
-    churchman   2,597 -> 18,328   reads churchman, sounds /tʃuɹtʃman/
+    chroma   church  cat  shoe  sun  top
+             /tʃuɹtʃ/ /kat/ /ʃoe/ /sun/ /top/
+
+    ipa      cat  sun  shoe  top  church
+             /kat/ /sun/ /ʃoe/ /top/ /tʃuɹtʃ/
+
+`church` moves behind `top` because an affricate is **two** IPA symbols and
+/tʃ/ opens with /t/. Over 20,000 words that relocates 99.7% of positions — which
+is exactly why it is a separate sort rather than the default.

@@ -285,8 +285,30 @@ def positions(s, lang=None):
     """Every position the string occupies — the multi-listing, sorted."""
     return sorted((_k(s, r) for r in readings(s, lang)), key=lambda x: x[0])
 
-def chroma_sorted(items, lang=None):
-    return sorted(items, key=lambda s: key(s, lang)[0])
+def ipa_key(s, lang=None):
+    """The IPA ordering. A DIFFERENT sort, not a level inside the Chroma one.
+
+    Chroma UTF comes first and IPA is its own kind of sorting, so this is a
+    sibling: pick one. Within it, ties fall back to the Chroma key, which is the
+    cascade -- an alphabet resolves what the one before it could not.
+
+    They disagree a lot. An affricate is two IPA symbols, so church sorts under
+    t, from the /t/ in /tʃ/. That is correct IPA and a large surprise, which is
+    exactly why it is a separate sort rather than the default.
+    """
+    import chroma_ipa as I
+    r = primary(s, lang)
+    ipa = "".join(x[1] for x in r if x[1] not in ("", MID))
+    return (tuple(I.digits(ipa)), key(s, lang)[0])
+
+
+ORDERS = {"chroma": lambda s, lang: key(s, lang)[0],
+          "ipa": ipa_key}
+
+
+def chroma_sorted(items, lang=None, order="chroma"):
+    k = ORDERS.get(order, ORDERS["chroma"])
+    return sorted(items, key=lambda s: k(s, lang))
 
 if __name__ == "__main__":
     a = sys.argv[1:]
