@@ -135,6 +135,19 @@ function seeded(q, lang, push, read, alphabet){
      height and both rates are read off its whole cell arrangement */
   ok(p.run("PH.every(x => x.rateA > 1 && x.rateB > 0 && x.n === 4)"),
      "a character is not filling a ring");
+  /* plain and pushed are not a toggle — Wub +- shows both at once, and push is
+     a real second ring: it conserves the value and rewrites the cells, so the
+     radius, height and run count all move and the fold can flip sign. */
+  const rings = (pl, pu) => p.run(`PLAIN = ${pl}; PUSH = ${pu}; recompute();
+    JSON.stringify([PH.length, PH.map(x => x.fold)])`);
+  const [n1, f1] = JSON.parse(rings(true, false));
+  const [n2, f2] = JSON.parse(rings(false, true));
+  const [n3] = JSON.parse(rings(true, true));
+  ok(n3 === n1 + n2, `both on should give ${n1 + n2} rings, got ${n3}`);
+  ok(f1.some((v, i) => v !== f2[i]), "pushing did not change a single ring");
+  ok(f1.some((v, i) => Math.sign(v) !== Math.sign(f2[i])),
+     "pushing should flip a fold's sign somewhere, which flips the handedness");
+  p.run("PLAIN = true; PUSH = false; recompute()");
   p.run('WEIGHT = "even"; recompute()');
   /* and a card is a rack: every item's phasors, laid end to end */
   p.run("selectCard(CARDS[1], 1)");

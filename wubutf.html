@@ -179,6 +179,20 @@ dis, this, thin</textarea>
           </div>
         </div>
       </div>
+      <div class="field" style="margin-top:8px">
+        <label>Representation</label>
+        <div class="btnrow" style="gap:14px; margin-top:2px">
+          <label class="check" style="margin:0">
+            <input type="checkbox" id="plain" checked> Plain
+          </label>
+          <label class="check" style="margin:0">
+            <input type="checkbox" id="push"> Pushed
+          </label>
+          <label class="check" id="leetWrap" style="margin:0" hidden>
+            <input type="checkbox" id="leet"> shape axis
+          </label>
+        </div>
+      </div>
       <div class="two" style="margin-top:8px">
         <div class="field">
           <label>Phasor weight</label>
@@ -304,12 +318,20 @@ function phasorsOf(item){
      phasor() reads its whole cell arrangement for the radius, the height and
      both rates. This used to build a different, flatter phasor per character —
      one spoke each instead of a ring — which is why it looked like nothing. */
-  const P = item.codes.filter(c => c > 2).map(c => phasor(c, false));
-  const N = P.length || 1;
-  P.forEach((p, j) => {
-    p.phase = TAU * j / N;              /* position in the rack stays positional */
-    p.ch = (item.reading || "").replace(/\u0001/g, " ")[j] || "";
+  /* Plain and Pushed are not a toggle: Wub +- shows both at once, and push is
+     a real second ring rather than a different listing. It conserves the value
+     and rewrites the cells, so 305 of the 306 codes come back with a different
+     radius, height and run count — and the fold can flip sign, which flips the
+     handedness. */
+  const codes = item.codes.filter(c => c > 2);
+  const letters = (item.reading || "").replace(/\u0001/g, " ");
+  const P = [];
+  codes.forEach((c, j) => {
+    if(PLAIN) P.push(Object.assign(phasor(c, false), {ch: letters[j] || "", pu: false}));
+    if(PUSH)  P.push(Object.assign(phasor(c, true),  {ch: letters[j] || "", pu: true}));
   });
+  const N = P.length || 1;
+  P.forEach((p, j) => { p.phase = TAU * j / N; });
   /* A display scale, not a model change. settled() weighs cell i by 2^-(i+1)
      and the INNER region holds the most significant cells, so inner outweighs
      fold — the radius — at any width, and every ring came out a spike three
@@ -341,7 +363,7 @@ let CURVE = [], JOINTS = [], EXTENT = 1, PH = [], TRAIL = [], WEIGHT = "even";
    and a rack comes out six times taller than wide. Each 2D projection here
    already scales to what it contains; AX does the same for the sphere. Uniform
    scaling is one click away for anyone who wants the raw proportion. */
-let AX = [1, 1, 1], FIT = true;
+let AX = [1, 1, 1], FIT = true, PLAIN = true, PUSH = false;
 function recompute(){
   PH = phasorsOf(SEL);
   CURVE = []; JOINTS = PH.map(() => []); TRAIL = [];
@@ -467,6 +489,8 @@ function drawSphere(){
     g.fillStyle = col; g.globalAlpha = 1;
     const rad = 3 + 2.4 * Math.max(0, q.d);
     g.beginPath(); g.arc(q.px, q.py, rad, 0, TAU); g.fill();
+    if(p.pu){ g.strokeStyle = col; g.lineWidth = 1;
+      g.beginPath(); g.arc(q.px, q.py, rad + 2.5, 0, TAU); g.stroke(); }
     if(p.ch && q.d > -0.2){
       g.fillStyle = css("--panel");
       g.font = "600 " + (7 + 2 * Math.max(0, q.d)).toFixed(0)
@@ -580,7 +604,9 @@ function badge(){
   const codes = SEL.codes || [];
   b.innerHTML = "<b>" + esc(SEL.text) + "</b>"
     + (SEL.reading !== SEL.text ? " &rarr; " + shown(SEL.reading) : "")
-    + "<br><i>" + codes.length + " phasors &middot; " + WEIGHT
+    + "<br><i>" + PH.length + " rings ("
+    + (PLAIN ? "plain" : "") + (PLAIN && PUSH ? " + " : "") + (PUSH ? "pushed" : "")
+    + ") &middot; " + WEIGHT
     + " &middot; base " + BASE
     + " &middot; 0." + esc((SEL.approx || "").slice(2, 14)) + "</i>"
     + "<br><i>" + codes.map(c => Math.round(360 * c / BASE) + "&deg;").join(" ") + "</i>";
@@ -649,6 +675,7 @@ function selectCard(card, idx){
 /* ---- controls ---- */
 function chrome(){
   $("#lang").disabled = !PHONETIC;
+  $("#leetWrap").hidden = !PHONETIC;
   for(const pair of [["alp", ALPHA], ["pho", PHONETIC ? "1" : "0"],
                      ["wt", WEIGHT], ["ft", FIT ? "fit" : "raw"]]){
     const host = $("#" + pair[0]);
@@ -670,6 +697,15 @@ for(const id of ["alp", "pho", "wt", "ft"]){
     chrome(); go();
   });
 }
+for(const id of ["plain", "push", "leet"]){
+  const b = $("#" + id);
+  if(b) b.addEventListener("change", () => {
+    if(id === "leet") return go();
+    PLAIN = $("#plain").checked; PUSH = $("#push").checked;
+    if(!PLAIN && !PUSH){ $("#plain").checked = true; PLAIN = true; }
+    recompute();
+  });
+}
 const sp = $("#speed");
 if(sp) sp.addEventListener("input", () => { SPEED = +sp.value / 10; });
 const tabs = $("#tabs");
@@ -683,7 +719,8 @@ if(tabs) tabs.addEventListener("click", e => {
 });
 
 async function go(){
-  const lang = PHONETIC ? $("#lang").value : "";
+  const lang = PHONETIC
+    ? ($("#lang").value + ($("#leet").checked ? " leet" : "")).trim() : "";
   const qs = "lang=" + encodeURIComponent(lang)
     + "&read=" + (PHONETIC ? "sound" : "spell")
     + "&alphabet=" + ALPHA
