@@ -21,8 +21,11 @@ body{overflow:hidden}
 /* ---- the list, Desmos-shaped: a numbered gutter and one row per card ---- */
 .list{min-height:0; display:flex; flex-direction:column;
   background:var(--panel); border-right:1px solid var(--rule)}
-.bar{display:flex; align-items:center; gap:6px; padding:7px 9px;
-  border-bottom:1px solid var(--rule); flex:none}
+.bar{display:flex; align-items:center; gap:7px; padding:7px 9px;
+  border-bottom:1px solid var(--rule); flex:none; flex-wrap:wrap}
+/* the sweep needs room to be swept, so it gets its own row rather than being
+   squeezed to nothing beside the buttons */
+.bar2{padding-top:5px; padding-bottom:6px; background:var(--sunk)}
 .bar .sp{flex:1}
 .rows{flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain}
 .row{display:grid; grid-template-columns:34px 1fr 30px; align-items:stretch;
@@ -128,8 +131,8 @@ button.add{border-color:var(--brass); color:var(--brass); font-size:.85rem;
 label.chk{display:flex; gap:5px; align-items:center; font-size:.66rem;
   color:var(--ink2); font-family:"IBM Plex Sans",sans-serif; cursor:pointer}
 label.chk input{accent-color:var(--brass)}
-.sweep{display:flex; align-items:center; gap:5px}
-.sweep input[type=range]{width:82px; accent-color:var(--brass)}
+.sweep{display:flex; align-items:center; gap:6px; flex:1; min-width:0}
+.sweep input[type=range]{flex:1; min-width:120px; accent-color:var(--brass)}
 .sweep button{padding:2px 6px; font-size:.6rem; line-height:1.2}
 .sweep .sv{font-family:"IBM Plex Mono",monospace; font-size:.66rem;
   color:var(--brass); font-weight:600; min-width:3.2em; text-align:right}
@@ -178,11 +181,12 @@ label.chk input{accent-color:var(--brass)}
   <div class="list">
     <div class="bar">
       <button class="add" id="add" title="add a card">+</button>
-      <span class="sp"></span>
       <button id="rand">randomise</button>
       <button id="resetall">reset</button>
       <span class="sp"></span>
-      <label class="chk"><input type="checkbox" id="collapse"> collapse to {:}</label>
+      <button id="reset">reset view</button>
+    </div>
+    <div class="bar bar2">
       <label class="chk"><input type="checkbox" id="run" checked> run</label>
       <div class="sweep">
         <button id="slower" title="halve the sweep">&#9666;</button>
@@ -190,7 +194,8 @@ label.chk input{accent-color:var(--brass)}
         <button id="faster" title="double the sweep">&#9656;</button>
         <span class="sv" id="sweepv">1&times;</span>
       </div>
-      <button id="reset">reset view</button>
+      <span class="sp"></span>
+      <label class="chk"><input type="checkbox" id="collapse"> collapse to {:}</label>
     </div>
     <div class="rows" id="rows"></div>
   </div>

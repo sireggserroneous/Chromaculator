@@ -621,8 +621,17 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   ok(Math.abs(fast / slow - 64) < 1e-9,
      `8x should advance 64 times as far as 1/8x, got ${fast / slow}`);
   p.run("setSweep(0)");
+  /* the sweep gets its own row: squeezed in beside the buttons it had no room
+     to be swept, and the multiplier was pushed off the edge */
+  ok((p.html.match(/class="bar/g) || []).length === 2, "the toolbar should be two rows");
+  ok(/bar2[\s\S]{0,400}id="sweep"/.test(p.html),
+     "the sweep belongs on the second row, with room to move");
+  for(const id of ["add", "rand", "resetall", "reset", "run", "sweep",
+                   "slower", "faster", "sweepv", "collapse"])
+    ok(p.g.document.getElementById(id), `the toolbar lost #${id}`);
   console.log("  [20] the sweep      1/8x to 8x in seven exact doublings, clamped at");
-  console.log("                      both ends; 8x advances the clock 64 times 1/8x");
+  console.log("                      both ends; 8x advances the clock 64 times 1/8x,");
+  console.log("                      on its own row with room to be swept");
 }
 
 console.log("\n  certified.");
