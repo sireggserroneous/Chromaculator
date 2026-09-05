@@ -495,4 +495,27 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                      conserving the value, and 4 rings sit at 90°");
 }
 
+/* ---- 17. the card refreshes with the number ----
+ * The sphere followed the value and the card did not: the input handler updated
+ * the info line and never the gallery, so the dominoes, the grid and the facts
+ * kept showing the number before the edit. 22339 and -22339 drew identically.
+ */
+{
+  const facts = src => p.run(`CARDS = [{src: ${JSON.stringify(src)}}]; recompute();
+    BODIES[0].good.map(it => page1HTML(it.p, {k: it.src})).join("")`);
+  const a = facts("22339"), b = facts("-22339");
+  ok(a !== b, "22339 and -22339 must not render the same card");
+  ok(/class="gsc b/.test(a) && /class="gsc r/.test(b),
+     "a positive draws blue cells and a negative red");
+  ok(a.includes("22339/65536") && b.includes("-22339/65536"),
+     "and each says its own value");
+  /* the handler that edits a card must repaint the gallery, not only the info */
+  const src = p.run("paint.toString()");
+  ok(/gallery\(\)/.test(src),
+     "editing a card must refresh the gallery, or the dominoes go stale");
+  console.log("  [17] card refreshes  22339 and -22339 draw different cards — blue");
+  console.log("                      cells against red — and editing repaints the");
+  console.log("                      gallery, not just the info line");
+}
+
 console.log("\n  certified.");

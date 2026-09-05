@@ -747,7 +747,10 @@ function paint(){
       CARDS[i].tick = null; CARDS[i].lo = null; CARDS[i].hi = null;
       SEL = i;
       recompute();
-      if(wasDef !== !!CARDS[i].def) paint(); else info();
+      /* the gallery holds the dominoes, the grid and the facts, and it was
+         never refreshed on a keystroke — so the sphere followed the number and
+         the card kept showing the old one */
+      if(wasDef !== !!CARDS[i].def) paint(); else { info(); gallery(); }
     });
     inp.addEventListener("focus", () => { SEL = i; traces(); paint(); });
     const del = document.createElement("button");
