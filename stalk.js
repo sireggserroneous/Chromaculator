@@ -578,7 +578,10 @@ function fPow(a, n){
   return r;
 }
 
-function evalFrac(src){
+/* evalFrac(src, env) — env maps a name to a rational, so a card can say a = 3
+   and every other card can use a. An unknown name is an error rather than a
+   zero: a typo should say so, not quietly draw the wrong thing. */
+function evalFrac(src, env){
   const s = String(src).replace(/[\s_]/g, "");
   let i = 0;
   const peek = () => s[i];
@@ -588,6 +591,12 @@ function evalFrac(src){
       const v = expr();
       if(!eat(")")) throw new Error("missing )");
       return v;
+    }
+    const id = /^[A-Za-z][A-Za-z0-9]*/.exec(s.slice(i));
+    if(id){
+      i += id[0].length;
+      if(!env || !(id[0] in env)) throw new Error(id[0] + " is not defined");
+      return env[id[0]];
     }
     const m = /^[0-9]+/.exec(s.slice(i));
     if(!m) throw new Error("expected a number at " + (i + 1));
@@ -659,4 +668,10 @@ function fracStalk(f, W){
   const d = m.toString(2).padStart(W, "0").split("").map(c => (c === "1" ? sgn : 0));
   return {d, E, exact: rest === 0n,
           rem: rest === 0n ? {num: 0n, den: 1n} : rat(rest * BigInt(sgn), scaledDen)};
+}
+
+/* a card that reads  name = expr  defines a variable */
+function defOf(src){
+  const m = /^\s*([A-Za-z][A-Za-z0-9]*)\s*=\s*(.+)$/.exec(String(src));
+  return m ? {name: m[1], body: m[2]} : null;
 }

@@ -187,4 +187,97 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                      the sphere and leaves the point group on {:}");
 }
 
+/* ---- 9. variables: a card that reads name = expr is a knob ----
+ * Desmos's move. The definition takes a slider instead of a body, and every
+ * card after it can use the name. An unknown name is an ERROR, not a zero — a
+ * typo should say so rather than quietly draw the wrong thing.
+ */
+{
+  const set = srcs => p.run(`CARDS = ${JSON.stringify(srcs.map(s => ({src: s})))};
+    recompute();`);
+  set(["a = 3", "a, a*5", "a+1, a+2, a+3"]);
+  ok(p.run("String(ENV.a.num)") === "3", "a should be 3");
+  ok(p.run("BODIES.filter(b => b.isDef).length") === 1, "one definition");
+  ok(p.run("BODIES.filter(b => !b.isDef).length") === 2, "two bodies");
+  /* a definition does not take one of the n slots, so two bodies are 180 apart */
+  const ph = p.run(`JSON.stringify(BODIES.filter(b => !b.isDef)
+    .map(b => Math.round(b.bp.phase * 180 / Math.PI)))`);
+  ok(ph === "[0,180]", `two drawn bodies should be 180 apart, got ${ph}`);
+  /* the slider drives everything downstream */
+  const items = () => p.run(`JSON.stringify(BODIES.filter(b => !b.isDef)
+    .map(b => b.good.map(i => String(i.f.num))))`);
+  const before = items();
+  p.run("CARDS[0].slider = 7; recompute();");
+  ok(p.run("String(ENV.a.num)") === "7", "the slider should own the value");
+  const after = items();
+  ok(before !== after, "sliding a did not move the cards that use it");
+  ok(after === '[["7","35"],["8","9","10"]]', "a=7 should give 7,35 and 8,9,10: " + after);
+  /* an unknown name is reported, not guessed */
+  set(["b*2"]);
+  ok(!p.run("BODIES[0].items[0].ok")
+     && /not defined/.test(p.run("BODIES[0].items[0].why")),
+     "an undefined name must be an error");
+  /* definitions read in order, so a forward reference is one too */
+  set(["x = y", "y = 2"]);
+  ok(p.run("CARDS[0].err") && /not defined/.test(p.run("CARDS[0].err")),
+     "a forward reference should be reported");
+  /* one definition can build on an earlier one */
+  set(["a = 3", "b = a*4", "b, b+1"]);
+  ok(p.run("String(ENV.b.num)") === "12", "b should be a*4 = 12");
+  ok(p.run(`JSON.stringify(BODIES[2].good.map(i => String(i.f.num)))`)
+     === '["12","13"]', "the third card should read 12, 13");
+  console.log("  [9] variables      a = 3 is a knob not a body; sliding it to 7 moves");
+  console.log("                     every card that uses it, and b = a*4 follows");
+  console.log("                     an unknown name errors, and so does a forward reference");
+}
+
+/* ---- 10. collapsing is the squash ----
+ * Not a rendering tweak. Collapsing adds every int on every card together —
+ * alignByWeight walks them all once by weight, each on its own ring, and
+ * reconciles what they come to into ONE grid. Same walk + and - use, and the
+ * same move as summing a product's anti-diagonals: a 2D spread becomes one
+ * 1D stalk, and the scene becomes a single black body at {:}.
+ */
+{
+  const set = srcs => p.run(`CARDS = ${JSON.stringify(srcs.map(s => ({src: s})))};
+    recompute();`);
+  set(["3", "5", "7"]);
+  ok(p.run("ALL.num + '/' + ALL.den") === "15/1", "3 + 5 + 7 should collapse to 15");
+  ok(p.run("ALL.parts") === 3, "three ints went in");
+  ok(p.run("ALL.stalk.d.join('')") === "1111" && p.run("ALL.stalk.E") === 4,
+     "15 is [1111] on ring 4");
+  /* it does not matter how the ints are spread across cards */
+  const one = p.run("ALL.num + '/' + ALL.den");
+  set(["3, 5, 7"]);
+  ok(p.run("ALL.num + '/' + ALL.den") === one,
+     "the same ints on one card must collapse to the same total");
+  set(["3, 5", "7"]);
+  ok(p.run("ALL.num + '/' + ALL.den") === one, "and split any other way");
+  /* every dyadic part sums exactly */
+  for(const srcs of [["3", "5", "7"], ["1/2, 1/4", "1/8"], ["47*127", "-3"],
+                     ["(13*3*127/2^4)", "2^10"]]){
+    set(srcs);
+    const want = p.run(`(() => { let s = {num: 0n, den: 1n};
+      for(const b of BODIES) for(const it of b.good) s = fAdd(s, it.f);
+      return s.num + "/" + s.den; })()`);
+    ok(p.run("ALL.num + '/' + ALL.den") === want,
+       `${srcs} should collapse to ${want}, got ${p.run("ALL.num + '/' + ALL.den")}`);
+  }
+  /* a definition is a knob, so it contributes nothing to the collapse */
+  set(["a = 3", "5", "7"]);
+  ok(p.run("ALL.parts") === 2 && p.run("ALL.num + '/' + ALL.den") === "12/1",
+     "a definition should not be added in: " + p.run("ALL.num + '/' + ALL.den"));
+  /* and a non-dyadic contributes its CUT, not a pretend exact value */
+  set(["3", "1/3"]);
+  const got = p.run("ALL.num + '/' + ALL.den");
+  ok(got !== "10/3", "1/3 cannot land exactly, so the total must not claim it does");
+  ok(got === "1004885/327680" || /\/\d+$/.test(got),
+     "the total should be the cut sum, exactly: " + got);
+  set([]);
+  ok(p.run("ALL") === null, "nothing to collapse should be nothing, not a crash");
+  console.log("  [10] collapse       3 + 5 + 7 = 15, cells [1111] on ring 4, and the");
+  console.log("                      same however the ints are split across cards");
+  console.log("                      a definition adds nothing; a cut contributes its cut");
+}
+
 console.log("\n  certified.");

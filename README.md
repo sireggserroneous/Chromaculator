@@ -601,8 +601,27 @@ A body's own phasor is what its card **sums to**, so `3, 5, 7` swings as 15 and
 the three points hanging off it are how it got there. Each swing is normalised,
 so `3` travels as far as `47*127` and neither drowns the other.
 
-**Collapse to `{:}`** drops the sphere and leaves each body as a point group on
-the shared midpoint.
+### Variables
+
+A card that reads `name = expr` is a **knob, not a body**: it takes a slider and
+every card after it can use the name. Slide `a` and everything downstream moves.
+Definitions read in order, so one can build on another — and an unknown name is
+an **error**, not a zero, because a typo should say so rather than quietly draw
+the wrong thing.
+
+### Collapse to `{:}`
+
+Not a rendering tweak. Collapsing **adds every int on every card together**:
+`alignByWeight` walks them all once by weight, each on its own ring, and
+reconciles what they come to into one grid. Same walk `+` and `−` already use,
+and the same move as summing a product's anti-diagonals — a 2D spread of parts
+becomes one 1D stalk.
+
+    3, 5, 7   collapses to   15   cells [1111] on ring 4
+
+The whole scene becomes a single black body at `{:}`, and it comes to the same
+total however the ints are split across cards. A definition contributes nothing,
+and a non-dyadic contributes its **cut** rather than pretending to land.
 
 Where a body starts is still the **Fibonacci lattice** — evenly spread with no
 relaxation to run and no two landing on each other, checked at 1, 2, 3, 8 and 30.

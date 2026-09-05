@@ -45,6 +45,14 @@ body{overflow:hidden}
 .rowinfo b{color:var(--ink2); font-weight:500}
 .rowinfo .bad{color:var(--red)}
 .rowinfo .cut{color:var(--brass)}
+/* a definition gets a knob instead of a body */
+.sld{grid-column:2 / span 2; display:flex; align-items:center; gap:9px;
+  padding:0 10px 9px}
+.sld input[type=range]{flex:1; min-width:0; accent-color:var(--brass)}
+.sld .v{font-family:"IBM Plex Mono",monospace; font-size:.72rem; color:var(--brass);
+  font-weight:600; min-width:3.2em; text-align:right}
+.sld .rng{font-family:"IBM Plex Mono",monospace; font-size:.56rem; color:var(--ink3)}
+.row.def .gut{background:var(--brass-soft); color:var(--panel)}
 button{font-family:"IBM Plex Mono",monospace; font-size:.7rem; padding:5px 9px;
   cursor:pointer; background:transparent; color:var(--ink2);
   border:1px solid var(--rule2); border-radius:2px}
@@ -129,7 +137,7 @@ const TAU = Math.PI * 2;
 const WIDTH = 16;                    /* cells a card's items are cut to */
 
 /* a card is a black body; what you type in it is its rack */
-let CARDS = [{src: "3"}, {src: "3, 5"}, {src: "3, 5, 7"}];
+let CARDS = [{src: "a = 3"}, {src: "a, a*5"}, {src: "a+1, a+2, a+3"}];
 let SEL = 0, T = 0, RUN = true, COLLAPSE = false;
 let SPIN = 0.6, TILT = 0.35, DRAG = null;
 
@@ -152,12 +160,13 @@ function sites(n){
 }
 
 /* ---- what a card holds ---- */
+let ENV = {};
 function readCard(src){
   const parts = String(src).split(",").map(s => s.trim()).filter(Boolean);
   const items = [];
   for(const s of parts){
     try{
-      const f = evalFrac(s);
+      const f = evalFrac(s, ENV);
       /* A whole number goes through phasor() — the same path Wub +- uses, so an
          integer wubs here exactly as it does there. Cutting it to a fixed width
          instead pushed every lit bit into the top-left, left the FOLD empty,
@@ -205,15 +214,80 @@ function bodyPhasor(b, i, n){
   b.total = tot;
   return p;
 }
+/* A card that reads  name = expr  is a definition: it gets a slider instead of
+   a body, and every card after it can use the name. Definitions are read in
+   order, so a later one may build on an earlier one and a forward reference is
+   an error rather than a silent zero. */
+function buildEnv(){
+  ENV = {};
+  for(const c of CARDS){
+    const d = defOf(c.src);
+    c.def = d;
+    if(!d) continue;
+    try{
+      /* the slider owns the value once it has one; the text sets it the first
+         time and then says what the slider is for */
+      c.val = (c.slider != null) ? {num: BigInt(c.slider), den: 1n}
+                                 : evalFrac(d.body, ENV);
+      if(c.slider == null){
+        const v = Number(c.val.num) / Number(c.val.den);
+        c.slider = Math.round(v);
+        c.lo = Math.min(-10, Math.round(v) - 10);
+        c.hi = Math.max(10, Math.round(v) + 10);
+      }
+      ENV[d.name] = c.val;
+      c.err = null;
+    }catch(e){ c.err = e.message; }
+  }
+}
 function model(){
-  const bodies = CARDS.map(c => readCard(c.src));
-  const pos = sites(bodies.length);
-  bodies.forEach((b, i) => {
-    b.seat = pos[i];                      /* where it sits when it is not swinging */
-    b.bp = bodyPhasor(b, i, bodies.length);
+  buildEnv();
+  const bodies = CARDS.map(c => c.def ? {items: [], good: [], isDef: true}
+                                      : readCard(c.src));
+  /* only the cards that draw take a seat and a phase; a definition is a knob,
+     not a body, so it does not consume one of the n slots */
+  const draws = bodies.filter(b => !b.isDef);
+  const pos = sites(draws.length);
+  draws.forEach((b, i) => {
+    b.seat = pos[i];
+    b.bp = bodyPhasor(b, i, draws.length);
   });
   return bodies;
 }
+/* ---- collapsed: everything IS {:} ----
+ * Not a rendering tweak. Collapsing adds every int on every card together —
+ * alignByWeight walks them all once by weight, each on its own ring, and
+ * reconciles what they come to into ONE grid. That is the same walk + and -
+ * already use, and the same move as summing the anti-diagonals of a product:
+ * a 2D spread of parts becomes one 1D stalk.
+ *
+ * So collapsed is a single black body whose value is the whole scene.
+ */
+let ALL = null;
+function collapse(){
+  const src = [];
+  for(const b of BODIES){
+    if(b.isDef) continue;
+    for(const it of b.good){
+      const st = fracStalk(it.f, WIDTH);
+      src.push({d: st.d, E: st.E, sign: 1});
+    }
+  }
+  if(!src.length){ ALL = null; return; }
+  const r = alignByWeight(src);
+  const n = Math.max(1, Math.ceil(Math.sqrt(r.stalk.d.length)));
+  const full = r.stalk.d.slice();
+  while(full.length < n * n) full.push(0);
+  const p = phasorOf(full, n, {E: r.stalk.E});
+  p.phase = 0;
+  let m = 1e-9;
+  for(let i = 0; i <= 120; i++){
+    const v = comp(p, TAU * i / 120);
+    m = Math.max(m, Math.hypot(v[0], v[1], v[2]));
+  }
+  ALL = {num: r.num, den: r.den, stalk: r.stalk, p, max: m, parts: src.length};
+}
+
 /* where body i is at time t: the tip of its own phasor, from {:} */
 function bodyAt(b, t){
   const v = comp(b.bp, t);
@@ -230,7 +304,7 @@ const SAMPLES = 360;
 function recompute(){
   BODIES = model();
   CURVES = BODIES.map(b => {
-    if(!b.good.length) return [];
+    if(b.isDef || !b.good.length) return [];
     const c = [];
     let mx = 1e-9;
     for(let i = 0; i <= SAMPLES; i++){
@@ -248,6 +322,7 @@ function recompute(){
   });
   /* each body's own swing, normalised so no card's total drowns the others */
   for(const b of BODIES){
+    if(b.isDef) continue;
     let m = 1e-9;
     for(let i = 0; i <= 120; i++){
       const v = comp(b.bp, TAU * i / 120);
@@ -256,6 +331,7 @@ function recompute(){
     b.bpMax = m;
   }
   SPAN = Math.max(1e-9, ...CURVES.map(c => c.max || 0));
+  collapse();
   traces();
 }
 function traces(){
@@ -309,11 +385,24 @@ function draw(){
   const R = Math.min(w, h) * (many ? 0.12 : 0.30) / SPAN;
   const rule = css("--rule"), brass = css("--brass"), ink3 = css("--ink3"),
         blue = css("--blue"), red = css("--red"), green = css("--green");
+  if(COLLAPSE){
+    drawOne(g, w, h, cx, cy);
+    drawWaves();
+    const n = ALL ? ALL.parts : 0;
+    $("#hud").innerHTML = "<b>collapsed</b> &middot; " + n
+      + " int" + (n === 1 ? "" : "s") + " added into one grid at <b>{:}</b>"
+      + (ALL ? "<br>" + ALL.num + (ALL.den === 1n ? "" : "/" + ALL.den)
+          + " &middot; cells [" + ALL.stalk.d.join("") + "] on ring " + ALL.stalk.E
+        : "");
+    return;
+  }
   /* the shell the bodies swing on */
   g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.4;
   g.beginPath(); g.arc(cx, cy, SEP, 0, TAU); g.stroke(); g.globalAlpha = 1;
   /* back to front, so near bodies cover far ones */
-  const order = BODIES.map((b, i) => ({b, i, at: proj(bodyAt(b, T), cx, cy, SEP)}))
+  const order = BODIES.map((b, i) => ({b, i}))
+    .filter(o => !o.b.isDef)
+    .map(o => Object.assign(o, {at: proj(bodyAt(o.b, T), cx, cy, SEP)}))
     .sort((p, q) => p.at.d - q.at.d);
   /* the spokes back to {:}, under everything */
   for(const o of order){
@@ -389,13 +478,55 @@ function draw(){
   g.fillText("{:}", cx, cy + 19);
 
   drawWaves();
-  const tot = BODIES.reduce((a, b) => a + b.good.length, 0);
-  $("#hud").innerHTML = `<b>${BODIES.length}</b> black bod${BODIES.length === 1
+  const drawn = BODIES.filter(b => !b.isDef);
+  const tot = drawn.reduce((a, b) => a + b.good.length, 0);
+  $("#hud").innerHTML = `<b>${drawn.length}</b> black bod${drawn.length === 1
     ? "y" : "ies"} &middot; <b>${tot}</b> phasor${tot === 1 ? "" : "s"}`
-    + ` &middot; swinging about <b>{:}</b> at ${Math.round(360 / BODIES.length)}&deg;`
+    + ` &middot; swinging about <b>{:}</b> at `
+    + `${Math.round(360 / Math.max(1, drawn.length))}&deg;`
     + (COLLAPSE ? " &middot; collapsed to point groups" : "")
-    + "<br>" + BODIES.map((b, i) => (i + 1) + ": " + b.good.length
-        + (b.good.length ? " at " + Math.round(360 / b.good.length) + "&deg;" : "")).join("  ");
+    + "<br>" + BODIES.map((b, i) => b.isDef ? "" : (i + 1) + ": " + b.good.length
+        + (b.good.length ? " at " + Math.round(360 / b.good.length) + "&deg;" : ""))
+      .filter(Boolean).join("  ");
+}
+
+/* one body, at {:}, holding the whole scene */
+function drawOne(g, w, h, cx, cy){
+  const brass = css("--brass"), rule = css("--rule"), green = css("--green");
+  if(!ALL){
+    g.fillStyle = css("--ink3"); g.font = "11px 'IBM Plex Mono', monospace";
+    g.textAlign = "center"; g.fillText("nothing to collapse", cx, cy);
+    return;
+  }
+  const R = Math.min(w, h) * 0.34 / ALL.max;
+  const C = [];
+  for(let i = 0; i <= SAMPLES; i++) C.push(comp(ALL.p, TAU * i / SAMPLES));
+  g.lineWidth = 2;
+  for(let i = 1; i < C.length; i++){
+    const a = proj(C[i - 1], cx, cy, R), b = proj(C[i], cx, cy, R);
+    g.strokeStyle = b.d > 0 ? brass : rule;
+    g.globalAlpha = b.d > 0 ? 0.95 : 0.35;
+    g.beginPath(); g.moveTo(a.px, a.py); g.lineTo(b.px, b.py); g.stroke();
+  }
+  g.globalAlpha = 1;
+  const rad = Math.max(10, Math.min(w, h) * 0.075);
+  const gr = g.createRadialGradient(cx - rad * .3, cy - rad * .4, rad * .1,
+                                    cx, cy, rad);
+  gr.addColorStop(0, css("--ink2")); gr.addColorStop(1, css("--ink"));
+  g.fillStyle = gr;
+  g.beginPath(); g.arc(cx, cy, rad, 0, TAU); g.fill();
+  g.strokeStyle = brass; g.lineWidth = 2;
+  g.beginPath(); g.arc(cx, cy, rad, 0, TAU); g.stroke();
+  const v = comp(ALL.p, T), q = proj(v, cx, cy, R);
+  g.strokeStyle = brass; g.lineWidth = 1.6; g.globalAlpha = 0.8;
+  g.beginPath(); g.moveTo(cx, cy); g.lineTo(q.px, q.py); g.stroke();
+  g.globalAlpha = 1;
+  g.fillStyle = green;
+  g.beginPath(); g.arc(q.px, q.py, 5, 0, TAU); g.fill();
+  g.fillStyle = brass; g.font = "600 10px 'IBM Plex Mono', monospace";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText("{:}", cx, cy);
+  g.textBaseline = "alphabetic";
 }
 
 /* ---- the waves ----
@@ -406,7 +537,9 @@ function draw(){
  */
 function drawWaves(){
   const AX = ["#wx", "#wy", "#wz"];
-  const b = BODIES[SEL];
+  const b = COLLAPSE
+    ? (ALL ? {good: [{col: css("--brass"), p: ALL.p}]} : {good: []})
+    : BODIES[SEL];
   for(let k = 0; k < 3; k++){
     const cv = $(AX[k]); if(!cv) continue;
     const {g, w, h} = fit(cv);
@@ -416,7 +549,14 @@ function drawWaves(){
     g.setLineDash([3, 3]);
     g.beginPath(); g.moveTo(pad, cy); g.lineTo(w - pad, cy); g.stroke();
     g.setLineDash([]);
-    const T2 = TR[k], S2 = SUM[k];
+      let T2 = TR[k], S2 = SUM[k];
+    if(COLLAPSE && ALL){
+      T2 = [[]]; S2 = [];
+      for(let i = 0; i <= SAMPLES; i++){
+        const v = comp(ALL.p, TAU * i / SAMPLES);
+        T2[0].push(v[k]); S2.push(v[k]);
+      }
+    }
     if(!b || !b.good.length || !S2.length){
       g.fillStyle = css("--ink3");
       g.font = "10px 'IBM Plex Mono', monospace"; g.textAlign = "center";
@@ -466,7 +606,12 @@ function paint(){
     inp.className = "inp"; inp.value = c.src; inp.spellcheck = false;
     inp.placeholder = "3, 5, 7  or  (13*3*127/2^4)";
     inp.addEventListener("input", () => {
-      CARDS[i].src = inp.value; SEL = i; recompute(); info();
+      /* editing the text hands control back to it; the slider takes over again
+         once buildEnv has read a value out of the new text */
+      const wasDef = !!CARDS[i].def;
+      CARDS[i].src = inp.value; CARDS[i].slider = null; SEL = i;
+      recompute();
+      if(wasDef !== !!CARDS[i].def) paint(); else info();
     });
     inp.addEventListener("focus", () => { SEL = i; traces(); paint(); });
     const del = document.createElement("button");
@@ -480,6 +625,26 @@ function paint(){
     const nfo = document.createElement("div");
     nfo.className = "rowinfo"; nfo.id = "nfo" + i;
     row.appendChild(gut); row.appendChild(inp); row.appendChild(del);
+    if(c.def){
+      row.className += " def";
+      const sld = document.createElement("div");
+      sld.className = "sld";
+      const rng = document.createElement("input");
+      rng.type = "range";
+      rng.min = String(c.lo); rng.max = String(c.hi); rng.step = "1";
+      rng.value = String(c.slider);
+      const v = document.createElement("span");
+      v.className = "v"; v.textContent = String(c.slider);
+      const lab = document.createElement("span");
+      lab.className = "rng"; lab.textContent = c.lo + "\u2026" + c.hi;
+      rng.addEventListener("input", () => {
+        CARDS[i].slider = +rng.value;
+        v.textContent = rng.value;
+        SEL = i; recompute(); info();
+      });
+      sld.appendChild(lab); sld.appendChild(rng); sld.appendChild(v);
+      row.appendChild(sld);
+    }
     row.appendChild(nfo);
     host.appendChild(row);
   });
@@ -490,6 +655,13 @@ function info(){
   BODIES.forEach((b, i) => {
     const el = document.getElementById("nfo" + i);
     if(!el) return;
+    const c = CARDS[i];
+    if(c && c.def){
+      el.innerHTML = c.err ? `<span class="bad">${c.err}</span>`
+        : `<b>${c.def.name}</b> = ${c.val.den === 1n ? c.val.num
+            : c.val.num + "/" + c.val.den} &mdash; a knob, not a body`;
+      return;
+    }
     el.innerHTML = b.items.map(it => {
       if(!it.ok) return `<span class="bad">${it.src} &mdash; ${it.why}</span>`;
       const f = it.f;
