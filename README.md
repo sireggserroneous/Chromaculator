@@ -620,7 +620,18 @@ each row page through.
 
 ### Variables
 
-A card that reads `name = expr` is a **knob and a body**: it takes a slider,
+A variable can hold **int elements**, not just one value:
+
+    a = 3, 5, 7      three elements, no slider
+    1, a, 100        splices to 1, 3, 5, 7, 100
+    b = a, 9         lists compose
+
+Naming a list on its own splices it where it stands, keeping whatever is around
+it, and each spliced element takes its own phase like any other. In an
+**expression** a list is an error rather than a guess — `a*2` over three values
+has no one obviously right answer.
+
+A card that reads `name = expr` with a single value is a **knob and a body**: it takes a slider,
 every card after it can use the name, and it still draws — it has a value.
 (Typing `a = 3` and getting an empty field was the page refusing to show the one
 thing on it.) Slide `a` and everything downstream moves.

@@ -201,10 +201,30 @@ function sites(n){
 
 /* ---- what a card holds ---- */
 let ENV = {};
+/* one item: its exact value, and the ring that value rides */
+function mkItem(src, f, p){
+  if(!p) p = f.den === 1n ? phasor(String(f.num), false) : fracPhasor(f, WIDTH);
+  p.cells = p.shown; p.cols = p.n; p.rows = p.n; p.foldAt = p.n - 1;
+  p.vec = p.shown; p.kind = "stalk"; p.mode = "num";
+  p.nm = nmOf(Number(p.value.num) / Number(p.value.den));
+  return {src, f, p, ok: true, whole: f.den === 1n,
+          exact: f.den === 1n ? true : p.exact,
+          rem: f.den === 1n ? {num: 0n, den: 1n} : p.rem};
+}
 function readCard(src){
   const parts = String(src).split(",").map(s => s.trim()).filter(Boolean);
   const items = [];
   for(const s of parts){
+    /* A variable can hold a LIST — a = 3, 5, 7 — and naming it on its own
+       splices those elements in. So a variable comes in the form of int
+       elements, and a card holding it holds them. In an expression a list is
+       an error rather than a guess: a*2 over three values has no one answer
+       that is obviously right. */
+    const bare = /^[A-Za-z][A-Za-z0-9]*$/.test(s) ? ENV[s] : null;
+    if(bare && bare.list){
+      for(const f of bare.list) items.push(mkItem(s, f));
+      continue;
+    }
     try{
       const f = evalFrac(s, ENV);
       /* A whole number goes through phasor() — the same path Wub +- uses, so an
@@ -222,9 +242,7 @@ function readCard(src){
       p.cells = p.shown; p.cols = p.n; p.rows = p.n; p.foldAt = p.n - 1;
       p.vec = p.shown; p.kind = "stalk"; p.mode = "num";
       p.nm = nmOf(Number(p.value.num) / Number(p.value.den));
-      items.push({src: s, f, p, ok: true, whole: f.den === 1n,
-                  exact: f.den === 1n ? true : p.exact,
-                  rem: f.den === 1n ? {num: 0n, den: 1n} : p.rem});
+      items.push(mkItem(s, f, p));
     }catch(e){
       items.push({src: s, ok: false, why: e.message});
     }
@@ -270,10 +288,26 @@ function buildEnv(){
     c.def = d;
     if(!d) continue;
     try{
+      const parts = d.body.split(",").map(x => x.trim()).filter(Boolean);
+      /* a definition's body splices lists exactly as a card does, so lists
+         compose: b = a, 9 is one longer than a */
+      const vals = [];
+      for(const x of parts){
+        const bare = /^[A-Za-z][A-Za-z0-9]*$/.test(x) ? ENV[x] : null;
+        if(bare && bare.list) vals.push(...bare.list);
+        else vals.push(evalFrac(x, ENV));
+      }
+      if(vals.length > 1){
+        /* a list variable: no single knob to turn, so no slider */
+        c.list = vals;
+        ENV[d.name] = {list: c.list};
+        c.val = null; c.slider = null; c.err = null;
+        continue;
+      }
+      c.list = null;
       /* the slider owns the value once it has one; the text sets it the first
          time and then says what the slider is for */
-      c.val = (c.slider != null) ? {num: BigInt(c.slider), den: 1n}
-                                 : evalFrac(d.body, ENV);
+      c.val = (c.slider != null) ? {num: BigInt(c.slider), den: 1n} : vals[0];
       if(c.slider == null){
         const v = Number(c.val.num) / Number(c.val.den);
         c.slider = Math.round(v);
@@ -292,7 +326,12 @@ function model(){
      thing on it. The slider is what makes it a knob; the value still wubs. */
   const bodies = CARDS.map(c => {
     if(!c.def) return readCard(c.src);
-    const b = readCard(String(c.slider != null ? c.slider : c.def.body));
+    /* A definition that failed must not draw. buildEnv runs first and every
+       definition is in ENV by the time a body is read, so a forward reference
+       reported "q is not defined" and then rendered q anyway. */
+    if(c.err) return {items: [{src: c.def.body, ok: false, why: c.err}],
+                      good: [], isDef: true, name: c.def.name};
+    const b = readCard(c.slider != null ? String(c.slider) : c.def.body);
     b.isDef = true;
     b.name = c.def.name;
     return b;
@@ -626,7 +665,7 @@ function paint(){
     const nfo = document.createElement("div");
     nfo.className = "rowinfo"; nfo.id = "nfo" + i;
     row.appendChild(gut); row.appendChild(inp); row.appendChild(del);
-    if(c.def){
+    if(c.def && !c.list){
       row.className += " def";
       const sld = document.createElement("div");
       sld.className = "sld";
@@ -754,8 +793,11 @@ function info(){
     const c = CARDS[i];
     if(c && c.def){
       el.innerHTML = c.err ? `<span class="bad">${c.err}</span>`
-        : `<b>${c.def.name}</b> = ${c.val.den === 1n ? c.val.num
-            : c.val.num + "/" + c.val.den} &mdash; a knob, not a body`;
+        : c.list
+          ? `<b>${c.def.name}</b> = ${c.list.map(f => f.den === 1n ? f.num
+              : f.num + "/" + f.den).join(", ")} &mdash; ${c.list.length} elements`
+          : `<b>${c.def.name}</b> = ${c.val.den === 1n ? c.val.num
+              : c.val.num + "/" + c.val.den} &mdash; a knob`;
       return;
     }
     el.innerHTML = b.items.map(it => {

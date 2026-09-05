@@ -596,7 +596,11 @@ function evalFrac(src, env){
     if(id){
       i += id[0].length;
       if(!env || !(id[0] in env)) throw new Error(id[0] + " is not defined");
-      return env[id[0]];
+      const v = env[id[0]];
+      /* a list has no one value, so it cannot stand inside an expression. Say
+         so, rather than letting BigInt throw about mixed types. */
+      if(v && v.list) throw new Error(id[0] + " is a list — name it on its own");
+      return v;
     }
     const m = /^[0-9]+/.exec(s.slice(i));
     if(!m) throw new Error("expected a number at " + (i + 1));

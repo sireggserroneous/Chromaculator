@@ -351,4 +351,45 @@ const p = loadPage(path.join(ROOT, "chromaculator.html"));
   console.log("                      fold 0.125, outer 0.0625, 3/16 at 446 nm");
 }
 
+/* ---- 13. a variable can hold int elements ----
+ * a = 3, 5, 7 is a variable in the form of int elements, and naming it on its
+ * own splices them in. Lists compose. In an EXPRESSION a list is an error
+ * rather than a guess: a*2 over three values has no one obviously right answer.
+ */
+{
+  const items = srcs => JSON.parse(p.run(
+    `CARDS = ${JSON.stringify([].concat(srcs).map(s => ({src: s})))}; recompute();
+     JSON.stringify(BODIES.map(b => b.items.map(i => i.ok
+       ? (i.f.den === 1n ? String(i.f.num) : i.f.num + "/" + i.f.den)
+       : "ERR")))`));
+  ok(String(items(["a = 3, 5, 7", "a"])[1]) === "3,5,7", "a should splice its elements");
+  ok(String(items(["a = 3, 5, 7", "1, a, 100"])[1]) === "1,3,5,7,100",
+     "a list splices in place, keeping what is around it");
+  ok(String(items(["a = 3, 5", "b = a, 9", "b"])[2]) === "3,5,9", "lists compose");
+  ok(String(items(["a = 3, 5", "b = a, a", "b"])[2]) === "3,5,3,5",
+     "a list can be used twice");
+  /* a list has no one value, so it cannot stand in an expression */
+  const err = p.run(`CARDS = [{src: "a = 3, 5, 7"}, {src: "a*2"}]; recompute();
+    BODIES[1].items[0].why`);
+  ok(/is a list/.test(err), "a list in an expression should say so: " + err);
+  /* a scalar is still a knob, and its slider still drives everything */
+  p.run(`CARDS = [{src: "n = 4"}, {src: "n, n*2"}]; recompute();
+    CARDS[0].slider = 7; recompute();`);
+  ok(p.run(`JSON.stringify(BODIES[1].items.map(i => String(i.f.num)))`)
+     === '["7","14"]', "a scalar knob still drives its readers");
+  ok(p.run("CARDS[0].list") === null, "a scalar is not a list");
+  /* a definition that failed must not draw */
+  const fwd = items(["z = q, 1", "q = 2"]);
+  ok(String(fwd[0]) === "ERR",
+     "a forward reference must not render: " + JSON.stringify(fwd[0]));
+  /* and every spliced element gets its own phase */
+  p.run(`CARDS = [{src: "a = 3, 5, 7"}, {src: "a"}]; recompute();`);
+  ok(p.run(`JSON.stringify(BODIES[1].good.map(i =>
+    Math.round(i.p.phase * 180 / Math.PI)))`) === "[0,120,240]",
+     "spliced elements should space like any others");
+  console.log("  [13] list variables  a = 3, 5, 7 splices where it is named; lists");
+  console.log("                      compose; a list in an expression says so; and a");
+  console.log("                      failed definition draws nothing");
+}
+
 console.log("\n  certified.");
