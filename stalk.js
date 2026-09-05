@@ -458,31 +458,54 @@ const wOf = c => c.v * Math.pow(2, -c.w);
 const settled = cells => cells.reduce((s, c) => s + wOf(c), 0);
 const spreadOf = cells => cells.reduce((s, c) => s + (c.v === 0 ? Math.pow(2, -c.w) : 0), 0);
 
+/* A phasor from CELLS, so anything that is a stalk can be one: an integer, or
+   a fraction cut to a width. phasor() is this with the cells read off an
+   integer, which is all it ever was. */
+function phasorOf(full, n, extra){
+  const R = hexRegions(full, n);
+  const runs = full.reduce((c, d, i) => c + (i && d !== full[i-1] ? 1 : 0),
+                           full.length ? 1 : 0);
+  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
+  return Object.assign({
+    n, R, shown: full, inner, outer, fold,
+    greens: full.filter(d => d === 0).length,
+    spread: spreadOf(R.outer),
+    amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
+    dir: Math.sign(fold) || 1,
+    rateA: Math.max(1, full.length),
+    rateB: Math.max(1, runs),                // one per run of like colour
+    value: hexValue(full),
+  }, extra || {});
+}
+
 function phasor(k, push){
   const {v, neg} = parse(String(k));
   const {n, raw, cells} = hexSequence(v, neg);
   const shown = push ? pushLeft(raw) : raw;
   const full = shown.concat(cells.slice(raw.length));
-  const R = hexRegions(full, n);
-  const runs = full.reduce((c, d, i) => c + (i && d !== full[i-1] ? 1 : 0), full.length ? 1 : 0);
-  const inner = settled(R.inner), outer = settled(R.outer), fold = settled(R.fold);
-  return {
-    k, push, n, R, shown,
-    inner, outer, fold,
-    greens: full.filter(d => d === 0).length,
-    spread: spreadOf(R.outer),
-    amp: Math.abs(fold) + Math.max(Math.abs(inner), Math.abs(outer)),
-    /* handedness must reverse with the sign, always. the Fold usually says
-       which way, but it can be exactly zero — then the integer's own sign
-       does, rather than defaulting everything to one direction. */
-    dir: Math.sign(fold) || (neg ? -1 : 1),
-    /* the hex string is nibble-quantised, so its length alone would put every
-       integer under 16 on the same rate. the bit length is what actually
-       varies, and it is what the stalk length stood for before. */
-    rateA: Math.max(1, v === 0n ? 1 : v.toString(2).length),
-    rateB: Math.max(1, runs),                // one per run of like colour
-    value: hexValue(shown),
-  };
+  const p = phasorOf(full, n, {k, push});
+  /* handedness must reverse with the sign, always. the Fold usually says which
+     way, but it can be exactly zero -- then the integer's own sign does. */
+  p.dir = Math.sign(p.fold) || (neg ? -1 : 1);
+  /* the hex string is nibble-quantised, so its length alone would put every
+     integer under 16 on the same rate. the bit length is what actually varies,
+     and it is what the stalk length stood for before. */
+  p.rateA = Math.max(1, v === 0n ? 1 : v.toString(2).length);
+  return p;
+}
+
+/* a fraction as a phasor: cut it to W cells, lay them into a square, read the
+   regions off exactly as an integer's are read. A non-dyadic carries what it
+   dropped, so a ring can say it is an approximation rather than pretend. */
+function fracPhasor(f, W){
+  const st = fracStalk(f, W || 16);
+  const n = Math.max(1, Math.ceil(Math.sqrt(st.d.length)));
+  const full = st.d.slice();
+  while(full.length < n * n) full.push(0);
+  const p = phasorOf(full, n, {frac: f, E: st.E, exact: st.exact, rem: st.rem,
+                               raw: st.d});
+  p.dir = Math.sign(p.fold) || (f.num < 0n ? -1 : 1);
+  return p;
 }
 
 const angleA = (p, t) => p.phase + p.dir * p.rateA * t;
@@ -519,4 +542,121 @@ function stalkSquare(digits){
   const cells = digits.slice();
   while(cells.length < n * n) cells.push(0);
   return boxes(cells, n, n, n - 1);
+}
+
+/* ---- exact arithmetic on what a card holds ----
+ * Cards take expressions: 47*127, (13*3*127/2^4), (1/3). Everything here is
+ * exact rationals in BigInt, never floats — math.js and friends evaluate to
+ * doubles, and this whole system's claim is that the value is exact. A parser
+ * that hands back num/den is forty lines; a dependency that hands back 0.333 is
+ * a different project.
+ */
+function gcdBig(a, b){
+  a = a < 0n ? -a : a; b = b < 0n ? -b : b;
+  while(b){ [a, b] = [b, a % b]; }
+  return a || 1n;
+}
+/* `rat`, not `frac`: three pages already have a local frac() for the animation
+   phase, and a top-level frac here shadowed them all. */
+function rat(num, den){
+  if(den === 0n) throw new Error("divide by zero");
+  if(den < 0n){ num = -num; den = -den; }
+  const g = gcdBig(num, den);
+  return {num: num / g, den: den / g};
+}
+/* declarations, not consts: a const does not escape an eval scope, and every
+   test in this repo loads stalk.js by eval. Three separate debugging detours
+   started with exactly that. */
+function fAdd(a, b){ return rat(a.num * b.den + b.num * a.den, a.den * b.den); }
+function fSub(a, b){ return rat(a.num * b.den - b.num * a.den, a.den * b.den); }
+function fMul(a, b){ return rat(a.num * b.num, a.den * b.den); }
+function fDiv(a, b){ return rat(a.num * b.den, a.den * b.num); }
+function fPow(a, n){
+  if(n < 0n) return fDiv({num: 1n, den: 1n}, fPow(a, -n));
+  let r = {num: 1n, den: 1n};
+  for(let i = 0n; i < n; i++) r = fMul(r, a);
+  return r;
+}
+
+function evalFrac(src){
+  const s = String(src).replace(/[\s_]/g, "");
+  let i = 0;
+  const peek = () => s[i];
+  const eat = c => { if(s[i] === c){ i++; return true; } return false; };
+  function atom(){
+    if(eat("(")){
+      const v = expr();
+      if(!eat(")")) throw new Error("missing )");
+      return v;
+    }
+    const m = /^[0-9]+/.exec(s.slice(i));
+    if(!m) throw new Error("expected a number at " + (i + 1));
+    i += m[0].length;
+    return {num: BigInt(m[0]), den: 1n};
+  }
+  function unary(){
+    if(eat("-")) return fSub({num: 0n, den: 1n}, unary());
+    if(eat("+")) return unary();
+    return atom();
+  }
+  function power(){
+    const base = unary();
+    if(eat("^")){
+      const e = power();
+      if(e.den !== 1n) throw new Error("the exponent must be a whole number");
+      return fPow(base, e.num);
+    }
+    return base;
+  }
+  function term(){
+    let v = power();
+    for(;;){
+      if(eat("*")) v = fMul(v, power());
+      else if(eat("/")) v = fDiv(v, power());
+      else return v;
+    }
+  }
+  function expr(){
+    let v = term();
+    for(;;){
+      if(peek() === "+"){ i++; v = fAdd(v, term()); }
+      else if(peek() === "-"){ i++; v = fSub(v, term()); }
+      else return v;
+    }
+  }
+  const v = expr();
+  if(i !== s.length) throw new Error("unexpected '" + s[i] + "'");
+  return v;
+}
+/* Is it dyadic? Only then does it have a finite stalk — 1/3 never terminates,
+   which is the same fact Wub / reports as a remainder.
+   A declaration, not a const: a const does not escape an eval scope, and every
+   test in this repo loads stalk.js by eval. */
+function isDyadic(f){ return (f.den & (f.den - 1n)) === 0n; }
+
+/* A fraction as a stalk: cells in (-1,1) riding a ring exponent E.
+ *
+ * A dyadic lands exactly. A non-dyadic never terminates -- 1/3 is 0.010101...
+ * for ever -- so it is cut at W cells and the part that did not fit comes back
+ * as a remainder, which is the same answer Wub / gives and the same reason only
+ * 430 of 2178 quotients there were exact.
+ */
+function fracStalk(f, W){
+  W = W || 24;
+  if(f.num === 0n) return {d: [0], E: 0, exact: true, rem: {num: 0n, den: 1n}};
+  const sgn = f.num < 0n ? -1 : 1;
+  const num = f.num < 0n ? -f.num : f.num, den = f.den;
+  /* smallest E with |f| < 2^E */
+  let E = 0;
+  while ((num << BigInt(Math.max(0, -E))) >= (den << BigInt(Math.max(0, E)))) E++;
+  while (E > 0 && (num << BigInt(Math.max(0, 1 - E))) < (den << BigInt(Math.max(0, E - 1)))) E--;
+  /* mantissa = floor(|f| * 2^(W-E)), so cell i weighs 2^-(i+1) on ring E */
+  const shift = BigInt(W) - BigInt(E);
+  const scaledNum = shift >= 0n ? num << shift : num;
+  const scaledDen = shift >= 0n ? den : den << -shift;
+  const m = scaledNum / scaledDen;
+  const rest = scaledNum - m * scaledDen;
+  const d = m.toString(2).padStart(W, "0").split("").map(c => (c === "1" ? sgn : 0));
+  return {d, E, exact: rest === 0n,
+          rem: rest === 0n ? {num: 0n, den: 1n} : rat(rest * BigInt(sgn), scaledDen)};
 }

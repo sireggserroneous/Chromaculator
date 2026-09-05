@@ -563,3 +563,34 @@ convention Wub ± and Wub ÷ use. A word is a rack, summed tip to tail.
 
 Click a string and it goes to the sphere, with its **1D X/Y/Z** and **2D
 XY/XZ/YZ** projections below. Drag to turn, or click an axis on the gizmo.
+
+## Chromaculator
+
+    python3 serve.py            # then http://localhost:1338/chromaculator.html
+
+A Desmos-shaped list on the left, a field of black bodies on the right. **A card
+is a black body**, and what you type in it becomes phasors spaced evenly around
+it:
+
+    3            1 phasor
+    3, 5         2 at 180°
+    3, 5, 7      3 at 120°
+    1,2,3,4,5,6  6 at 60°
+
+Cards take expressions, evaluated as **exact rationals in BigInt** — never
+floats, because the whole system's claim is that the value is exact:
+
+    47*127          = 5969        dyadic, lands exactly
+    (13*3*127/2^4)  = 4953/16     dyadic
+    (1/3)           = 1/3         not dyadic — cut to 16 cells, carries its remainder
+
+Only a power-of-two denominator can end, so `1/3` is `0101…` for ever. It is cut
+at a declared width and says what it dropped, which is the same answer Wub ÷
+gives when only 430 of its 2178 quotients came out exact. A malformed item is
+reported in place and the good ones still draw.
+
+Bodies are packed apart on a **Fibonacci lattice** — evenly spread with no
+relaxation to run and no two landing on each other, checked at 1, 2, 3, 8 and 30.
+
+`math.js` would have done the parsing, and it evaluates to doubles. The parser
+is forty lines in `stalk.js` instead.
