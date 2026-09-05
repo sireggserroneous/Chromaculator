@@ -59,12 +59,14 @@ def api_read(q, lang):
 MAX_PUSH = 64                                # per name, so a page stays a page
 
 
-def api_sort(q, lang, push="", read="sound", order="chroma"):
+def api_sort(q, lang, push="", read="sound", alphabet="chroma"):
     """Two independent axes.
 
-    order "chroma" the Chroma UTF ordering, which comes first
-          "ipa"    the IPA ordering, a different sort rather than a level
-                   inside the other one -- ties in it fall back to the Chroma key
+    alphabet "chroma"  306 symbols, 12-bit digits, base 4096, a 4x4 frame
+             "ipa"     126 symbols, 8-bit digits, base 256, a 3x3 frame.
+                       A different sort rather than a level inside the other
+                       one; ties in it fall back to the Chroma key. It needs a
+                       reading, so it forces read="sound".
 
     read  "spell"  the string as written, in Chroma UTF codes
           "sound"  its phonetic reading
@@ -79,20 +81,22 @@ def api_sort(q, lang, push="", read="sound", order="chroma"):
     /k/ reading, out of context it has kervezas.
     """
     C, P, S = ordering()
+    A, alphabet = _alpha(alphabet)
+    if alphabet == "ipa": read = "sound"          # IPA needs a reading
     items = [l for l in q.split("\n") if l.strip()]
     ipa = lambda r: "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
     spell_axis = read == "spell"
     if not push:
         rows = []
-        ordered = (S.chroma_sorted(items, lang or None, order) if not spell_axis
+        ordered = (S.chroma_sorted(items, lang or None, alphabet) if not spell_axis
                    else sorted(items, key=lambda n: S._k(n, S.spellings(n)[0])[0]))
         for n in ordered:
             k, spell, r = (S._k(n, S.spellings(n)[0]) if spell_axis
                            else S.key(n, lang or None))
             rows.append({"name": n, "reading": spell, "ipa": ipa(r),
-                         "codes": [c for c in C.letters(spell)]})
-        return {"lang": lang, "push": "", "read": read, "order": order,
-                "sorted": rows}
+                         "codes": _digits_for(alphabet, C, S, spell, ipa(r))})
+        return {"lang": lang, "push": "", "read": read, "alphabet": alphabet,
+                "codeBits": A["bits"], "base": 1 << A["bits"], "sorted": rows}
     ent = []
     for n in items:
         mine, seen = [], set()
@@ -103,7 +107,7 @@ def api_sort(q, lang, push="", read="sound", order="chroma"):
             if spell in seen: continue
             seen.add(spell)
             mine.append((k, {"name": n, "reading": spell, "ipa": ipa(rr),
-                             "codes": [c for c in C.letters(spell)]}))
+                             "codes": _digits_for(alphabet, C, S, spell, ipa(rr))}))
         # sort BEFORE capping, so the cap keeps the lowest N in order rather
         # than whichever the branch product happened to emit first
         mine.sort(key=lambda x: x[0])
@@ -113,7 +117,8 @@ def api_sort(q, lang, push="", read="sound", order="chroma"):
             row["truncated"] = total > MAX_PUSH
         ent += shown
     ent.sort(key=lambda x: x[0])
-    return {"lang": lang, "push": push, "read": read, "order": order,
+    return {"lang": lang, "push": push, "read": read, "alphabet": alphabet,
+            "codeBits": A["bits"], "base": 1 << A["bits"],
             "sorted": [r for _k, r in ent]}
 
 
@@ -121,8 +126,27 @@ CODE_BITS = 12          # RING + 3: three whole nibbles, so a character never
                         # straddles a nibble and 4-wide rows are whole characters
 MAX_ITEMS = 48
 
+# An alphabet is one choice: it fixes the digits, the base, the frame they draw
+# in, AND the order. Sorting by one while drawing the other would put the
+# divergence marker on a digit that decides nothing.
+ALPHABETS = {"chroma": {"bits": CODE_BITS, "label": "Chroma UTF"},
+             "ipa":    {"bits": 8,         "label": "Chroma IPA"}}
 
-def _int_of(codes):
+
+def _alpha(name):
+    return ALPHABETS.get(name, ALPHABETS["chroma"]), \
+           name if name in ALPHABETS else "chroma"
+
+
+def _digits_for(alphabet, C, S, spell, reading_ipa):
+    """The digits a string has IN THIS ALPHABET."""
+    if alphabet == "ipa":
+        import chroma_ipa as I
+        return I.digits(reading_ipa)
+    return [c for c in C.letters(spell)]
+
+
+def _int_of(codes, B=1 << CODE_BITS):
     """base(chroma-utf): the codes are the digits, the base is 2^12.
 
     The VALUE is the fraction: 0.d1 d2 d3 ... in base 4096, which is
@@ -137,15 +161,17 @@ def _int_of(codes):
 
     The integer is kept because Wub +- takes integers, not because it orders.
     """
-    B = 1 << CODE_BITS
     n = 0
     for c in codes: n = n * B + c
     return n, B ** len(codes) if codes else 1
 
 
-def api_cards(q, lang, push="", read="sound"):
+def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
     """One card per line; commas separate the items on a card."""
     C, P, S = ordering()
+    A, alphabet = _alpha(alphabet)
+    if alphabet == "ipa": read = "sound"          # IPA needs a reading
+    B = 1 << A["bits"]
     ipa = lambda r: "".join(x[1] for x in r if x[1] not in ("", "\u00b7"))
     cards = []
     for line in q.split("\n"):
@@ -162,21 +188,21 @@ def api_cards(q, lang, push="", read="sound"):
                 k, spell, r = S.key(t, lang or None)
                 alts = ["".join(x[0] for x in v)
                         for v in S.readings(t, lang or None, push != "all")] if push else []
-            codes = [c for c in C.letters(spell)]
-            n, den = _int_of(codes)
+            codes = _digits_for(alphabet, C, S, spell, ipa(r))
+            n, den = _int_of(codes, B)
             items.append({"text": t, "reading": spell, "ipa": ipa(r), "codes": codes,
                           # the value, in (0,1): 0.d1 d2 d3 ... base 4096
                           "num": str(n), "den": str(den),
                           "approx": f"{n / den:.18f}" if den else "0",
                           # and the integer, for Wub +- which takes integers
                           "int": str(n), "hex": format(n, "x"),
-                          "bits": len(codes) * CODE_BITS,
+                          "bits": len(codes) * A["bits"],
                           "alts": sorted(set(alts))[:MAX_PUSH]})
         tot = sum(int(i["int"]) for i in items)
         cards.append({"items": items, "sum": str(tot),
                       "sumHex": format(tot, "x")})
-    return {"lang": lang, "read": read, "push": push, "codeBits": CODE_BITS,
-            "base": 1 << CODE_BITS, "cards": cards}
+    return {"lang": lang, "read": read, "push": push, "alphabet": alphabet,
+            "codeBits": A["bits"], "base": B, "cards": cards}
 
 
 def api_ipa(q="", lang=""):
@@ -239,14 +265,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         lang = (qs.get("lang") or [""])[0]
         push = (qs.get("push") or [""])[0]
         read = (qs.get("read") or ["sound"])[0]
-        order = (qs.get("order") or ["chroma"])[0]
+        alphabet = (qs.get("alphabet") or qs.get("order") or ["chroma"])[0]
         if len(q) > MAX_Q or len(lang) > 64 or len(push) > 8 or len(read) > 8 \
-                or len(order) > 8:
+                or len(alphabet) > 8:
             self.send_error(413, "too long"); return
         try:
             if u.path == "/api/read":    body = api_read(q, lang)
-            elif u.path == "/api/sort":  body = api_sort(q, lang, push, read, order)
-            elif u.path == "/api/cards": body = api_cards(q, lang, push, read)
+            elif u.path == "/api/sort":  body = api_sort(q, lang, push, read, alphabet)
+            elif u.path == "/api/cards": body = api_cards(q, lang, push, read, alphabet)
             elif u.path == "/api/ipa":   body = api_ipa(q, lang)
             elif u.path == "/api/base":  body = api_base()
             else:
@@ -346,6 +372,15 @@ def demo():
     W = "church\ncat\ntop\nshoe\nsun"
     ch = [r["name"] for r in api_sort(W, "en", "", "sound", "chroma")["sorted"]]
     ia = [r["name"] for r in api_sort(W, "en", "", "sound", "ipa")["sorted"]]
+    # an alphabet fixes the digits AND the base, not just the order
+    cc = api_cards("shit", "en", "", "sound", "chroma")
+    ci = api_cards("shit", "en", "", "sound", "ipa")
+    assert cc["base"] == 4096 and cc["codeBits"] == 12, cc["base"]
+    assert ci["base"] == 256 and ci["codeBits"] == 8, ci["base"]
+    ic = cc["cards"][0]["items"][0]; ii = ci["cards"][0]["items"][0]
+    assert len(ii["codes"]) < len(ic["codes"]), (ic["codes"], ii["codes"])
+    assert ii["bits"] < ic["bits"], (ic["bits"], ii["bits"])
+    assert all(d < 256 for d in ii["codes"]), ii["codes"]
     assert sorted(ch) == sorted(ia) == sorted(W.split("\n")), (ch, ia)
     assert ch != ia, "the two orderings must differ, or one of them is not doing anything"
     assert ia.index("church") > ia.index("top"), \

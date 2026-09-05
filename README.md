@@ -486,8 +486,27 @@ words have distinct spellings.
 
 Levels 2 and 3 are already the key. **Chroma UTF comes first and IPA is its own
 kind of sorting**, so the two are *siblings, not levels*: pick one with
-`order=chroma` (the default) or `order=ipa`. Within the IPA sort, ties fall back
-to the Chroma key — the cascade again.
+`alphabet=chroma` (the default) or `alphabet=ipa`. Within the IPA sort, ties
+fall back to the Chroma key — the cascade again.
+
+An alphabet is **one choice**: it fixes the digits, the base, the frame they
+draw in *and* the order. Sorting by one while drawing the other would put the
+divergence marker on a digit that decides nothing.
+
+| | digits | base | frame | padding |
+|---|---|---|---|---|
+| Chroma UTF | 12 bits | 4,096 | 4×4 | 4 of 16 |
+| Chroma IPA | 8 bits | 256 | 3×3 | 1 of 9 |
+
+    shit   chroma  [734, 616, 622, 746]  48 bits
+           ipa     [100, 58, 104]        24 bits
+
+The frame has to come from the alphabet's **declared width**, not from the
+value. Chroma UTF codes are `2^9 + i`, so the leading 1 is always there and
+every code is ten significant bits — the frame comes out uniform for free.
+Chroma IPA uses bare ranks, so rank 1 has one significant bit and rank 126 has
+seven, and sizing to the value drew small ranks 2×2 and large ones 3×3. Same
+alphabet, two frames, and a row stops reading as a row.
 
     chroma   church  cat  shoe  sun  top
              /tʃuɹtʃ/ /kat/ /ʃoe/ /sun/ /top/

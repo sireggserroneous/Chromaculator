@@ -129,24 +129,49 @@ function seeded(q, lang, push, read){
     + `this|thin at digit ${dn.code + 1} cell ${dn.cell} — dis is the closer of the two`);
 }
 
-/* ---- 5. every digit is the same frame, which is why a row reads as a row ---- */
+/* ---- 6. one frame PER ALPHABET, and the Chroma picture is unchanged ----
+ *
+ * The width has to come from the alphabet, not the value. Chroma UTF codes are
+ * 2^9 + i so they are always ten significant bits and the frame is uniform for
+ * free; Chroma IPA uses bare ranks, so rank 1 has one significant bit and rank
+ * 126 has seven, and sizing to the value drew small ranks 2x2 and large ones
+ * 3x3 -- same alphabet, two frames, and a row stops reading as a row.
+ */
 {
   const p = loadPage(PAGE, {fetch: seeded(Q, "", "", "spell").fetch});
   await drain();
   const base = api("api_base");
-  const shapes = new Set(), deads = new Set();
-  for(const row of base.table){
-    p.run(`globalThis._s = squareOf(${row.code})`);
-    shapes.add(p.run("_s.n") + "x" + p.run("_s.cells.length"));
-    deads.add(p.run("_s.dead"));
+  const ipa = api("api_ipa");
+  const report = [];
+  for(const row of [["Chroma UTF", 12, base.table.map(r => r.code)],
+                    ["Chroma IPA", ipa.width, ipa.alphabet.map(r => r.rank)]]){
+    const [name, bits, codes] = row;
+    const shapes = new Set(), deads = new Set();
+    for(const c of codes){
+      p.run(`globalThis._s = squareOf(${c}, ${bits})`);
+      shapes.add(p.run("_s.n"));
+      deads.add(p.run("_s.dead"));
+    }
+    ok(shapes.size === 1 && deads.size === 1,
+       `${name}: frames differ, ${[...shapes]} with padding ${[...deads]}`);
+    report.push(`${name} ${codes.length} digits -> ${[...shapes][0]}x${[...shapes][0]}`
+      + `, ${[...deads][0]} padding`);
   }
-  ok(shapes.size === 1 && deads.size === 1,
-     `frames differ: ${[...shapes].join(",")} dead ${[...deads].join(",")}`);
-  console.log(`  [6] one frame      all ${base.count} digits draw ${[...shapes][0]} `
-    + `with ${[...deads][0]} padding cells`);
+  /* and drawing from a declared width must not have moved the Chroma picture */
+  let same = 0;
+  for(const r of base.table){
+    p.run(`globalThis._s = squareOf(${r.code}, 12)`);
+    if(p.run("_s.cells.join('')") === p.run(`hexSequence(${r.code}n).cells.join('')`))
+      same++;
+  }
+  ok(same === base.table.length,
+     `${base.table.length - same} Chroma squares changed shape`);
+  console.log(`  [6] one frame each ${report.join("; ")}`);
+  console.log(`                     all ${same} Chroma squares still match `
+    + "hexSequence exactly");
 }
 
-/* ---- 6. the four combinations, and the two push levels ---- */
+/* ---- 7. the four combinations, and the two push levels ---- */
 {
   const cell = (push, read) => api("api_sort", "cervezas",
     read === "sound" ? "en" : "", push, read).sorted;

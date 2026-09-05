@@ -195,9 +195,9 @@ dis, this, thin</textarea>
         <div class="seg" id="pho">
           <button data-v="0" class="on">As written</button><button data-v="1">Phonetic</button>
         </div>
-        <label id="ordWrap" hidden style="margin-top:8px">Ordering</label>
+        <label id="ordWrap" hidden style="margin-top:8px">Alphabet</label>
         <div class="seg" id="ord" hidden>
-          <button data-v="chroma" class="on">Chroma</button><button data-v="ipa">IPA</button>
+          <button data-v="chroma" class="on">Chroma UTF</button><button data-v="ipa">Chroma IPA</button>
         </div>
         <label class="check" id="rulesWrap" hidden>
           <input type="checkbox" id="rules"> rules off &mdash; every branch, no position
@@ -251,18 +251,32 @@ const PAGES = ["Bodies", "Polynomial", "Facts", "Rack"];
 let RING = 9, BASE = 4096, CODE_BITS = 12;
 let CARDS = [], PAGE = [], SHUT = [];
 
-/* One Chroma UTF digit as the hex arrangement: pad to whole nibbles, lay MSB
-   first row major into the smallest square. stalk.js does it; this only reads
-   the answer, so the picture is the picture every other page draws. */
+/* One digit as the hex arrangement: pad to the ALPHABET'S declared width, then
+   to whole nibbles, then lay MSB first row major into the smallest square.
+
+   The width has to come from the alphabet, not from the value. Chroma UTF codes
+   are 2^9 + i so the leading 1 is always there and every one is ten significant
+   bits — the frame comes out the same for free. Chroma IPA uses bare ranks, so
+   rank 1 has one significant bit and rank 126 has seven, and sizing to the value
+   drew small ranks 2x2 and large ones 3x3. Same alphabet, two frames, and a row
+   stops reading as a row. */
 const CACHE = new Map();
-function squareOf(code){
-  if(CACHE.has(code)) return CACHE.get(code);
-  const h = hexSequence(BigInt(code));
-  const R = hexRegions(h.cells, h.n);
-  const s = {n: h.n, cells: h.cells,
-             fold: new Set(R.fold.map(x => x.i)),
-             dead: h.cells.length - h.raw.length};
-  CACHE.set(code, s);
+function squareOf(code, bits){
+  bits = bits || CODE_BITS;
+  const ck = code + ":" + bits;
+  if(CACHE.has(ck)) return CACHE.get(ck);
+  /* exactly what hexSequence does, with the width declared instead of measured:
+     pad the value to whole nibbles at the FRONT, then fill the square at the
+     END. The trailing cells are the low-weight ones, so they change nothing. */
+  const raw = code.toString(2).padStart(Math.ceil(bits / 4) * 4, "0")
+    .split("").map(c => +c);
+  const n = Math.max(1, Math.ceil(Math.sqrt(raw.length)));
+  const cells = raw.slice();
+  while(cells.length < n * n) cells.push(0);
+  const R = hexRegions(cells, n);
+  const s = {n, cells, fold: new Set(R.fold.map(x => x.i)),
+             live: raw.length, dead: n * n - raw.length};
+  CACHE.set(ck, s);
   return s;
 }
 
@@ -279,10 +293,14 @@ const shown = r => esc(String(r).split(SEP).join("/"));
 function squareEl(code, splitCell, big){
   const s = squareOf(code);
   const e = el("div", "sq" + (big ? " big" : "") + (splitCell != null ? " split" : ""));
+  const px = big ? 15 : 10, gap = big ? 2 : 1;
+  e.style.gridTemplateColumns = "repeat(" + s.n + "," + px + "px)";
+  e.style.gridTemplateRows = "repeat(" + s.n + "," + px + "px)";
+  e.style.gap = gap + "px";
   e.title = "digit " + code + "  " + code.toString(2);
   for(let i = 0; i < s.cells.length; i++)
     e.appendChild(el("div", "c"
-      + (i < s.dead ? " dead" : "")
+      + (i >= s.live ? " dead" : "")
       + (s.cells[i] ? " on" : "")
       + (s.fold.has(i) ? " fold" : "")
       + (splitCell === i ? " split" : "")));
@@ -449,8 +467,8 @@ function renderOrder(rows){
   host.textContent = "";
   const st = state();
   $("#mode").textContent = (st.phonetic
-      ? (st.order === "ipa" ? "Ordered by sound \u00b7 IPA alphabet"
-                            : "Ordered by sound \u00b7 Chroma UTF")
+      ? (st.alphabet === "ipa" ? "Ordered by sound \u00b7 Chroma IPA, base 256"
+                               : "Ordered by sound \u00b7 Chroma UTF, base 4096")
       : "Ordered by spelling")
     + (!st.push ? ""
        : st.phonetic
@@ -494,15 +512,16 @@ function renderOrder(rows){
 /* Plain|Pushed and As written|Phonetic are INDEPENDENT axes, so all four
    combinations exist. The page holds them itself rather than reading them back
    out of a button's class. */
-let REP = "plain", PHONETIC = false, ORDER = "chroma";
+let REP = "plain", PHONETIC = false, ALPHABET = "chroma";
 function state(){
   const push = REP === "pushed"
     ? (PHONETIC && $("#rules").checked ? "all" : "ctx") : "";
-  /* Chroma comes first and IPA is its own kind of sorting, so the two are
-     siblings rather than levels: pick one. IPA needs a reading, so it is only
-     offered on the phonetic axis. */
+  /* An alphabet is ONE choice: it fixes the digits, the base, the frame they
+     draw in and the order. Sorting by one while drawing the other would put the
+     divergence marker on a digit that decides nothing. IPA needs a reading, so
+     it is only offered on the phonetic axis. */
   return {rep: REP, phonetic: PHONETIC, push,
-          order: PHONETIC ? ORDER : "chroma"};
+          alphabet: PHONETIC ? ALPHABET : "chroma"};
 }
 function chrome(){
   const st = state();
@@ -512,7 +531,7 @@ function chrome(){
   $("#ord").hidden = !st.phonetic;
   $("#lang").disabled = !st.phonetic;
   for(const pair of [["rep", REP], ["pho", PHONETIC ? "1" : "0"],
-                     ["ord", ORDER]]){
+                     ["ord", ALPHABET]]){
     const host = $("#" + pair[0]);
     if(!host || !host.querySelectorAll) continue;
     for(const x of host.querySelectorAll("button"))
@@ -521,7 +540,7 @@ function chrome(){
 }
 function pick(id, v){
   if(id === "rep") REP = v;
-  else if(id === "ord") ORDER = v;
+  else if(id === "ord") ALPHABET = v;
   else PHONETIC = v === "1";
   chrome(); go();
 }
@@ -538,7 +557,7 @@ function query(){
   const lang = st.phonetic ? $("#lang").value + ($("#leet").checked ? " leet" : "") : "";
   return "lang=" + encodeURIComponent(lang.trim())
     + "&read=" + (st.phonetic ? "sound" : "spell")
-    + "&order=" + st.order
+    + "&alphabet=" + st.alphabet
     + "&push=" + st.push + "&q=" + encodeURIComponent($("#q").value);
 }
 
