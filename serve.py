@@ -8,7 +8,7 @@ It also serves a read-only /api/ for the Chroma ordering. The ordering has one
 implementation, in Python, and the page asks for readings rather than carrying
 a second copy of the tables -- a change to the tables is a change everywhere.
 """
-import http.server, json, os, pathlib, socketserver, sys, urllib.parse
+import http.server, json, os, pathlib, re, socketserver, sys, urllib.parse
 
 MAX_Q = 4000                                 # the API reads text, and only text
 _mods = None
@@ -125,6 +125,7 @@ def api_sort(q, lang, push="", read="sound", alphabet="chroma"):
 CODE_BITS = 16          # four whole nibbles: fills the 4x4 exactly, so the
                         # square has no padding and all three regions live
 MAX_ITEMS = 48
+NUMERIC = re.compile(r"^[+-]?[0-9]+$")
 
 # An alphabet is one choice: it fixes the digits, the base, the frame they draw
 # in, AND the order. Sorting by one while drawing the other would put the
@@ -180,6 +181,16 @@ def api_cards(q, lang, push="", read="sound", alphabet="chroma"):
         texts = [t for t in texts if t][:MAX_ITEMS]
         items = []
         for t in texts:
+            # An item that parses as an integer IS an integer: one ring, sign and
+            # all, exactly as Wub +- draws it. Running "-6" through the character
+            # path made it a hyphen and a six, so the negative never reached
+            # hexSequence and the 1s never became -1s.
+            if NUMERIC.match(t):
+                items.append({"text": t, "numeric": True, "k": t,
+                              "reading": t, "ipa": "", "codes": [], "phasors": [],
+                              "num": "0", "den": "1", "approx": "0",
+                              "int": "0", "hex": "0", "bits": 0, "alts": []})
+                continue
             if read == "spell":
                 k, spell, r = S._k(t, S.spellings(t)[0])
                 alts = ["".join(x[0] for x in v) for v in S.spellings(t, True)] \
@@ -375,7 +386,13 @@ def demo():
     assert api_read("c3rv3zas", "en")["reading"] == "k3rv3zas"
     cd = api_cards("hello, 3, 45\ncerveza", "en")
     assert len(cd["cards"]) == 2 and len(cd["cards"][0]["items"]) == 3, cd
+    # a numeric item is one integer, not a string of digit characters
+    n45 = cd["cards"][0]["items"][2]
+    assert n45["numeric"] and n45["k"] == "45" and not n45["codes"], n45
+    neg = api_cards("-6, 6", "en")["cards"][0]["items"]
+    assert neg[0]["numeric"] and neg[0]["k"] == "-6", neg[0]
     h = cd["cards"][0]["items"][0]
+    assert not h.get("numeric") and len(h["codes"]) == 4, h
     assert h["text"] == "hello" and h["bits"] == len(h["codes"]) * CODE_BITS
     # the integer must be exactly the polynomial evaluated in base 2^12
     B = 1 << CODE_BITS

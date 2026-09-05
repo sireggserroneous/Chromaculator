@@ -158,7 +158,49 @@ function seeded(q, lang, push, read, alphabet){
     + `even ${ratio(even).toFixed(1)}x; card 2 is a ${want}-phasor rack`);
 }
 
-/* ---- 7. the alphabet changes the digits, the base and the frame ---- */
+/* ---- 7. an item that parses as an integer IS an integer ----
+ * "-6" was being segmented into a hyphen and a six, so it never reached
+ * hexSequence and the 1s never became -1s. And "45" was two digit characters
+ * when it should be forty-five.
+ */
+{
+  const p = loadPage(PAGE, {fetch: seeded("6, -6, 45\nhello", "en", "", "spell",
+    "chroma").fetch});
+  await drain();
+  const six = p.run("CARDS[0].items[0]"), neg = p.run("CARDS[0].items[1]");
+  ok(six.numeric && neg.numeric && !p.run("CARDS[1].items[0].numeric"),
+     "numbers should be numeric and words should not");
+  p.run("select(CARDS[0].items[2])");
+  ok(p.run("PH.length") === 1, "45 is one integer, not two digit characters");
+  p.run("select(CARDS[1].items[0])");
+  ok(p.run("PH.length") === 5, "hello is still five characters");
+  /* the cells flip sign and the handedness with them */
+  const cells = k => p.run(`(() => { const {v, neg} = parse(${JSON.stringify(k)});
+    return hexSequence(v, neg).cells.join(","); })()`);
+  ok(cells("6") === "0,1,1,0" && cells("-6") === "0,-1,-1,0",
+     `negation must flip the cells: 6 ${cells("6")}, -6 ${cells("-6")}`);
+  p.run("select(CARDS[0].items[0])");
+  const dirA = p.run("PH[0].dir"), foldA = p.run("PH[0].fold");
+  p.run("select(CARDS[0].items[1])");
+  ok(p.run("PH[0].dir") === -dirA && Math.abs(p.run("PH[0].fold") + foldA) < 1e-12,
+     "negation must flip the handedness and the fold");
+  /* and it is an exact reflection: the same curve run backwards */
+  const worst = p.run(`(() => {
+    const a = phasor("6", false), b = phasor("-6", false);
+    a.phase = 0; b.phase = 0;
+    let w = 0;
+    for(let i = 0; i <= 240; i++){ const t = Math.PI*2*i/240;
+      const A = comp(a, t), B = comp(b, -t);
+      for(let k = 0; k < 3; k++) w = Math.max(w, Math.abs(A[k] - B[k])); }
+    return w; })()`);
+  ok(worst < 1e-12, `negation should be an exact reflection, worst ${worst}`);
+  console.log(`  [7] integers       6 -> 0,1,1,0 and -6 -> 0,-1,-1,0; 45 is one `
+    + `ring, hello is five`);
+  console.log(`                     comp(-6, -t) == comp(6, t) to ${worst.toExponential(0)}`
+    + " — negation is the same curve run backwards");
+}
+
+/* ---- 8. the alphabet changes the digits, the base and the frame ---- */
 {
   const c = api("api_cards", "shit", "en", "", "sound", "chroma");
   const i = api("api_cards", "shit", "en", "", "sound", "ipa");
@@ -174,11 +216,11 @@ function seeded(q, lang, push, read, alphabet){
      "IPA draws 3x3 and Chroma 4x4");
   ok(ci.phasors.every(p => p.inner + p.fold + p.outer === p.lit),
      "the regions must account for every lit cell");
-  console.log(`  [7] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
+  console.log(`  [8] alphabets      chroma ${ci.codes.length} digits/${ci.bits} bits `
     + `in 4x4; ipa ${ii.codes.length}/${ii.bits} in 3x3`);
 }
 
-/* ---- 8. the whole stack over a live socket ---- */
+/* ---- 9. the whole stack over a live socket ---- */
 {
   const PORT = 18338;
   const srv = spawn("python3", ["-u", "serve.py", "--port", String(PORT)],
@@ -201,7 +243,7 @@ function seeded(q, lang, push, read, alphabet){
        "live cards wrong");
     ok((await get("/api/nope")).status === 404, "unknown endpoint should 404");
     ok((await get("/api/read?q=" + "a".repeat(5000))).status === 413, "should 413");
-    console.log("  [8] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
+    console.log("  [9] live stack     page 200, 2 cards with phasors, 404 and 413 hold");
   } finally { srv.kill("SIGTERM"); }
 }
 

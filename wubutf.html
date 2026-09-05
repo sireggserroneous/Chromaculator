@@ -97,6 +97,8 @@ button.add{border-color:var(--brass); color:var(--brass)}
   border-radius:2px; background:var(--sunk)}
 .c{background:var(--rule); border-radius:1px}
 .c.on{background:var(--blue)}
+.c.neg{background:var(--red)}
+.c.neg.fold{background:var(--red)}
 .c.fold{outline:1px solid var(--brass-soft); outline-offset:-1px}
 .c.on.fold{background:var(--brass)}
 .c.dead{background:transparent}
@@ -292,6 +294,26 @@ const el = (tag, cls, html) => {
 };
 const shown = r => esc(String(r).split(SEP).join("/"));
 
+/* an integer draws its own arrangement, and a negative one draws it in red:
+   hexSequence multiplies every cell by -1, which is what negation IS here. */
+function intSquareEl(k){
+  const {v, neg} = parse(String(k));
+  const h = hexSequence(v, neg);
+  const R = hexRegions(h.cells, h.n);
+  const fold = new Set(R.fold.map(x => x.i));
+  const e = el("div", "sq");
+  e.style.gridTemplateColumns = "repeat(" + h.n + ",8px)";
+  e.style.gridTemplateRows = "repeat(" + h.n + ",8px)";
+  e.title = k + " as " + h.n + "x" + h.n;
+  for(let j = 0; j < h.cells.length; j++){
+    const c = h.cells[j];
+    e.appendChild(el("div", "c" + (c > 0 ? " on" : c < 0 ? " neg" : "")
+      + (j >= h.raw.length ? " dead" : "") + (fold.has(j) ? " fold" : "")));
+  }
+  return e;
+}
+
+
 function squareEl(code){
   const s = squareOf(code);
   const e = el("div", "sq");
@@ -313,7 +335,20 @@ function squareEl(code){
  * was a smear rather than a shape.
  */
 function phasorsOf(item){
-  if(!item || !item.codes) return [];
+  if(!item) return [];
+  /* An item that parses as an integer IS an integer: one ring, sign and all.
+     hexSequence already turns the 1s into -1s for a negative and phasor() flips
+     dir with the fold, so "-6" is the reflection of "6" — it only had to reach
+     them. Running it through the character path made it a hyphen and a six. */
+  if(item.numeric){
+    const out = [];
+    if(PLAIN) out.push(Object.assign(phasor(item.k, false), {ch: item.k, pu: false}));
+    if(PUSH)  out.push(Object.assign(phasor(item.k, true),  {ch: item.k, pu: true}));
+    out.forEach((p, j) => { p.phase = TAU * j / (out.length || 1); });
+    scaleRings(out);
+    return out;
+  }
+  if(!item.codes) return [];
   /* A character IS an integer, so it fills a ring the way an integer does:
      phasor() reads its whole cell arrangement for the radius, the height and
      both rates. This used to build a different, flatter phasor per character —
@@ -332,6 +367,11 @@ function phasorsOf(item){
   });
   const N = P.length || 1;
   P.forEach((p, j) => { p.phase = TAU * j / N; });
+  scaleRings(P);
+  return P;
+}
+function scaleRings(P){
+  const N = P.length || 1;
   /* A display scale, not a model change. settled() weighs cell i by 2^-(i+1)
      and the INNER region holds the most significant cells, so inner outweighs
      fold — the radius — at any width, and every ring came out a spike three
@@ -350,7 +390,6 @@ function phasorsOf(item){
     }
     p.scale = (WEIGHT === "value" ? Math.pow(2, -(j + 1)) * 2 : 1 / N) / m;
   });
-  return P;
 }
 /* the house comp(), scaled for display */
 const cmp3 = (p, t) => { const c = comp(p, t);
@@ -635,7 +674,8 @@ function cardEl(card, idx){
     row.appendChild(el("div", "reads", "reads <b>" + shown(it.reading) + "</b>"
       + (it.ipa ? " &middot; /" + esc(it.ipa) + "/" : "")));
     const strip = el("div", "strip");
-    for(const code of it.codes)
+    if(it.numeric) strip.appendChild(intSquareEl(it.k));
+    else for(const code of it.codes)
       strip.appendChild(code <= 2 ? el("div", "sq sep", "&middot;") : squareEl(code));
     row.appendChild(strip);
     row.appendChild(el("div", "num", "0." + esc((it.approx || "").slice(2, 18))
